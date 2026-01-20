@@ -23,9 +23,6 @@
   "scripts": {
     "build": "npm run build --workspaces",
     "test": "jest --passWithNoTests",
-    "test:unit": "jest --selectProjects=unit --passWithNoTests",
-    "test:integration": "jest --selectProjects=integration",
-    "test:full": "jest --selectProjects=unit --selectProjects=integration --passWithNoTests",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:debug": "KEEP_CONTAINERS=true jest --runInBand --verbose",
