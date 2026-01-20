@@ -43,13 +43,13 @@ Tasks that are designed and ready for implementation. Organized by priority.
 ## P1 - Introspection & Code Generation (Week 3-4)
 
 ### odoo-client - Introspection
-- [ ] Implement `getModels()` - query ir.model
-  - [ ] Return model name, description, fields
-- [ ] Implement `getFields(model)` - query ir.model.fields
-  - [ ] Return field name, type, required, relation, etc.
-  - [ ] Handle all Odoo field types
-- [ ] Implement `getModelMetadata(model)` - combined model + fields
-- [ ] Cache introspection results (in-memory)
+- [x] Implement `getModels()` - query ir.model
+  - [x] Return model name, description, fields
+- [x] Implement `getFields(model)` - query ir.model.fields
+  - [x] Return field name, type, required, relation, etc.
+  - [x] Handle all Odoo field types
+- [x] Implement `getModelMetadata(model)` - combined model + fields
+- [x] Cache introspection results (in-memory)
 
 ### odoo-client - Code Generator
 - [ ] Create TypeScript interface generator
