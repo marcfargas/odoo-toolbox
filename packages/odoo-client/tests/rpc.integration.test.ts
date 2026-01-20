@@ -75,7 +75,7 @@ describe('OdooClient RPC Integration', () => {
       const ids = await client.search('res.partner', [], { limit: 1 });
       
       if (ids.length > 0) {
-        const records = await client.read('res.partner', ids[0], ['id', 'name']);
+        const records = await client.read('res.partner', [ids[0]], ['id', 'name']);
         
         expect(Array.isArray(records)).toBe(true);
         expect(records.length).toBe(1);
