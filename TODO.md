@@ -115,21 +115,22 @@ Tasks that are designed and ready for implementation. Organized by priority.
 ## P3 - Examples & Documentation (Week 7)
 
 ### Examples
-- [ ] Create example: Connect and authenticate
-- [ ] Create example: Generate types
-- [ ] Create example: CRUD operations with types
-- [ ] Create example: Search with domain filters
-- [ ] Create example: State management workflow
-- [ ] Create example: Batch operations
-- [ ] Create example: Context usage
+- [x] Create example: Connect and authenticate
+- [x] Create example: Generate types
+- [x] Create example: CRUD operations with types
+- [x] Create example: Search with domain filters
+- [x] Create example: Batch operations
+- [x] Create example: Context usage
+- [x] Create example: Schema introspection
+- [x] Add test suite to validate examples
 
 ### Documentation
-- [ ] Document connection options
-- [ ] Document generated type structure
-- [ ] Document state manager workflow
-- [ ] Document error handling
-- [ ] Create troubleshooting guide
-- [ ] Add API reference (auto-generated from TSDoc)
+- [ ] Document connection options (client README)
+- [ ] Document generated type structure (client README)
+- [ ] Document error handling patterns (client README, practical focus)
+- [ ] Create troubleshooting guide (client README, refer to examples)
+- [ ] Add API reference note in README; future auto-generation to ROADMAP
+- [ ] After state-manager implementation: add state manager workflow to main README
 
 ## Quick Wins (Anytime)
 
