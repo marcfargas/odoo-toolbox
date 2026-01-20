@@ -1,6 +1,6 @@
 /**
  * JSON-RPC transport for Odoo
- * 
+ *
  * Implements the JSON-RPC 2.0 protocol over HTTP for Odoo RPC calls
  * Handles authentication, request/response formatting, and error parsing
  */
@@ -33,7 +33,7 @@ export interface OdooSessionInfo {
 
 /**
  * JSON-RPC transport client for Odoo
- * 
+ *
  * Manages HTTP communication with Odoo using JSON-RPC protocol
  */
 export class JsonRpcTransport {
@@ -72,10 +72,10 @@ export class JsonRpcTransport {
 
   /**
    * Authenticate with Odoo using JSON-RPC
-   * 
+   *
    * Calls the common.login RPC method via /jsonrpc endpoint
    * Stores session info (uid, db) for future requests
-   * 
+   *
    * @see https://www.odoo.com/documentation/17.0/developer/howtos/web_services.html#json-rpc-library
    */
   async authenticate(username: string, password: string): Promise<OdooSessionInfo> {
@@ -104,13 +104,15 @@ export class JsonRpcTransport {
       if (error instanceof OdooAuthError) {
         throw error;
       }
-      throw new OdooAuthError(`Failed to authenticate: ${error instanceof Error ? error.message : String(error)}`);
+      throw new OdooAuthError(
+        `Failed to authenticate: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
   /**
    * Make an RPC call to Odoo
-   * 
+   *
    * Low-level method that sends JSON-RPC requests and parses responses
    */
   async callRpc<T = any>(method: string, params: Record<string, any>): Promise<T> {
@@ -137,7 +139,7 @@ export class JsonRpcTransport {
         );
       }
 
-      const data: JsonRpcResponse<T> = await response.json() as JsonRpcResponse<T>;
+      const data: JsonRpcResponse<T> = (await response.json()) as JsonRpcResponse<T>;
 
       // Handle JSON-RPC error response
       if (data.error) {
@@ -166,15 +168,15 @@ export class JsonRpcTransport {
 
   /**
    * Call an Odoo model method via JSON-RPC
-   * 
+   *
    * Uses the object.execute RPC method to call model methods
-   * 
+   *
    * @param model - Model name (e.g., 'res.partner')
    * @param method - Method name (e.g., 'search', 'read', 'create')
    * @param args - Positional arguments
    * @param kwargs - Keyword arguments (includes context)
    * @returns Method result
-   * 
+   *
    * @see https://www.odoo.com/documentation/17.0/developer/reference/external_api.html#calling-methods
    */
   async call<T = any>(
