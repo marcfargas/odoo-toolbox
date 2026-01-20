@@ -3,15 +3,15 @@ services:
     image: postgres:15-alpine
     container_name: odoo-toolbox-postgres
     environment:
-      POSTGRES_USER: ${ODOO_DB_USER:-admin}
-      POSTGRES_PASSWORD: ${ODOO_DB_PASSWORD:-admin}
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
       POSTGRES_DB: postgres
     volumes:
       - odoo-toolbox-postgres-data:/var/lib/postgresql/data
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${ODOO_DB_USER:-admin}"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d postgres"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -24,23 +24,21 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    command: ["odoo", "--database", "odoo", "--init", "base", "--without-demo", "all"]
     environment:
       HOST: postgres
-      PORT: 5432
-      USER: ${ODOO_DB_USER:-admin}
-      PASSWORD: ${ODOO_DB_PASSWORD:-admin}
-      DB_NAME: ${ODOO_DB_NAME:-odoo}
-      ADMIN_PASSWD: ${ODOO_ADMIN_PASSWORD:-admin}
+      USER: admin
+      PASSWORD: admin
     ports:
-      - "${ODOO_PORT:-8069}:8069"
+      - "8069:8069"
     volumes:
       - odoo-toolbox-odoo-data:/var/lib/odoo
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8069/web/health || exit 1"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
-      retries: 10
-      start_period: 30s
+      retries: 20
+      start_period: 60s
     networks:
       - odoo-toolbox
 
