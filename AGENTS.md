@@ -215,6 +215,28 @@ See `ROADMAP.md` for future design decisions.
 - **Fixtures**: Record/replay RPC calls for deterministic tests
 - **CI**: Need to design CI/CD with Odoo containers (see ROADMAP)
 
+### Test Infrastructure Guidelines
+
+**CRITICAL - Test Helper Location:**
+- Test helpers belong in `tests/helpers/`, NOT `test/` (singular)
+- The project uses `tests/` (plural) for all test-related code
+- If you accidentally create files in `test/`, immediately move them to `tests/helpers/` and delete the `test/` directory
+
+**Docker Test Environment Philosophy:**
+- Let Docker images handle their own initialization - don't build workarounds in test code
+- Fix issues at the source (docker-compose.test.yml) rather than working around them in helpers
+- Odoo auto-initializes its database via `--init base` command in docker-compose
+- Postgres uses hardcoded defaults: `admin/admin` credentials, `postgres` database
+- Global setup simply starts containers with `docker-compose up -d --wait`
+- Docker healthchecks ensure services are ready; no manual polling needed
+- If tests fail due to infrastructure, fix docker-compose.test.yml, not the test helpers
+
+**Debugging Test Infrastructure:**
+- Check `docker-compose logs odoo` to see Odoo initialization messages
+- Odoo logs "HTTP service (werkzeug) running on..." when ready
+- Healthcheck `/web/health` confirms Odoo can serve HTTP requests
+- If database issues persist, verify Odoo command includes `--init base`
+
 ## Common Patterns
 
 ### RPC Call Pattern
