@@ -1,61 +1,100 @@
 import { OdooClient } from '../src/client/odoo-client';
 import { OdooAuthError, OdooRpcError } from '../src/types/errors';
 
-describe('OdooClient RPC Foundation', () => {
-  // TODO: These tests require proper RPC endpoint configuration
-  // Currently skipped pending investigation of Odoo 17 JSON-RPC endpoint structure
-  
-  it.skip('should authenticate with valid credentials', async () => {
-    const odooUrl = process.env.ODOO_URL || 'http://localhost:8069';
-    const odooDb = process.env.ODOO_DB_NAME || 'odoo';
-    const odooUser = process.env.ODOO_DB_USER || 'admin';
-    const odooPassword = process.env.ODOO_DB_PASSWORD || 'admin';
+describe('OdooClient RPC Integration', () => {
+  const odooUrl = process.env.ODOO_URL || 'http://localhost:8069';
+  const odooDb = process.env.ODOO_DB_NAME || 'odoo';
+  const odooUser = process.env.ODOO_DB_USER || 'admin';
+  const odooPassword = process.env.ODOO_DB_PASSWORD || 'admin';
 
-    const client = new OdooClient({
-      url: odooUrl,
-      database: odooDb,
-      username: odooUser,
-      password: odooPassword,
+  describe('authentication', () => {
+    it('should authenticate with valid credentials', async () => {
+      const client = new OdooClient({
+        url: odooUrl,
+        database: odooDb,
+        username: odooUser,
+        password: odooPassword,
+      });
+
+      const session = await client.authenticate();
+      
+      expect(session).toBeDefined();
+      expect(session.uid).toBeGreaterThan(0);
+      expect(session.db).toBe(odooDb);
+      expect(client.isAuthenticated()).toBe(true);
     });
 
-    const session = await client.authenticate();
-    
-    expect(session).toBeDefined();
-    expect(session.uid).toBeGreaterThan(0);
-    expect(session.db).toBe(odooDb);
-    expect(client.isAuthenticated()).toBe(true);
+    it('should fail with invalid credentials', async () => {
+      const client = new OdooClient({
+        url: odooUrl,
+        database: odooDb,
+        username: 'invalid_user',
+        password: 'invalid_password',
+      });
+
+      await expect(client.authenticate()).rejects.toThrow(OdooAuthError);
+    });
+
+    it('should prevent calls before authentication', async () => {
+      const client = new OdooClient({
+        url: odooUrl,
+        database: odooDb,
+        username: odooUser,
+        password: odooPassword,
+      });
+
+      await expect(client.search('res.partner')).rejects.toThrow(OdooAuthError);
+    });
   });
 
-  it.skip('should fail with invalid credentials', async () => {
-    const odooUrl = process.env.ODOO_URL || 'http://localhost:8069';
-    const odooDb = process.env.ODOO_DB_NAME || 'odoo';
+  describe('basic operations', () => {
+    let client: OdooClient;
 
-    const client = new OdooClient({
-      url: odooUrl,
-      database: odooDb,
-      username: 'invalid_user',
-      password: 'invalid_password',
+    beforeAll(async () => {
+      client = new OdooClient({
+        url: odooUrl,
+        database: odooDb,
+        username: odooUser,
+        password: odooPassword,
+      });
+      await client.authenticate();
     });
 
-    await expect(client.authenticate()).rejects.toThrow(OdooAuthError);
-  });
-
-  it('should have OdooClient class with basic structure', () => {
-    const client = new OdooClient({
-      url: 'http://localhost:8069',
-      database: 'test',
-      username: 'admin',
-      password: 'admin',
+    afterAll(() => {
+      client.logout();
     });
 
-    expect(client).toBeDefined();
-    expect(typeof client.authenticate).toBe('function');
-    expect(typeof client.call).toBe('function');
-    expect(typeof client.search).toBe('function');
-    expect(typeof client.read).toBe('function');
-    expect(typeof client.create).toBe('function');
-    expect(typeof client.write).toBe('function');
-    expect(typeof client.unlink).toBe('function');
-    expect(client.isAuthenticated()).toBe(false);
+    it('should search for records', async () => {
+      const ids = await client.search('res.partner', [['is_company', '=', true]]);
+      
+      expect(Array.isArray(ids)).toBe(true);
+      expect(ids.length).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should read records', async () => {
+      const ids = await client.search('res.partner', [], { limit: 1 });
+      
+      if (ids.length > 0) {
+        const records = await client.read('res.partner', ids[0], ['id', 'name']);
+        
+        expect(Array.isArray(records)).toBe(true);
+        expect(records.length).toBe(1);
+        expect(records[0]).toHaveProperty('id');
+        expect(records[0]).toHaveProperty('name');
+      }
+    });
+
+    it('should search and read in one call', async () => {
+      const records = await client.searchRead('res.partner', [], {
+        fields: ['id', 'name'],
+        limit: 5,
+      });
+      
+      expect(Array.isArray(records)).toBe(true);
+      records.forEach((record) => {
+        expect(record).toHaveProperty('id');
+        expect(record).toHaveProperty('name');
+      });
+    });
   });
 });
