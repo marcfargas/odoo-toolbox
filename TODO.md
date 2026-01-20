@@ -7,39 +7,39 @@ Tasks that are designed and ready for implementation. Organized by priority.
 ### Project Setup
 - [x] Initialize monorepo with npm/pnpm workspaces
 - [x] Configure TypeScript for all packages
-- [ ] Set up ESLint + Prettier
+- [x] Set up ESLint + Prettier
 - [x] Create basic package.json for each package
 - [x] Set up Git repository and .gitignore
 - [x] Choose and add MIT License
 - [x] Create basic GitHub Actions for CI (lint, build, test)
 
 ### odoo-client - RPC Foundation
-- [ ] Implement JSON-RPC transport
-  - [ ] POST request with proper headers
-  - [ ] Authentication (login to get session/uid)
-  - [ ] Error response parsing
+- [x] Implement JSON-RPC transport
+  - [x] POST request with proper headers
+  - [x] Authentication (login to get session/uid)
+  - [x] Error response parsing
   - [ ] Connection keep-alive
 - [ ] Implement XML-RPC transport (alternative)
   - [ ] XML request/response serialization
   - [ ] Same authentication flow as JSON-RPC
-- [ ] Create OdooClient class
-  - [ ] Constructor with connection params (url, db, username, password)
-  - [ ] `authenticate()` method
-  - [ ] `call(model, method, args, kwargs)` method
-  - [ ] Context support in kwargs
-- [ ] Basic error handling
-  - [ ] OdooRpcError class
-  - [ ] Network error wrapping
-  - [ ] Odoo-specific error parsing
+- [x] Create OdooClient class
+  - [x] Constructor with connection params (url, db, username, password)
+  - [x] `authenticate()` method
+  - [x] `call(model, method, args, kwargs)` method
+  - [x] Context support in kwargs
+- [x] Basic error handling
+  - [x] OdooRpcError class
+  - [x] Network error wrapping
+  - [x] Odoo-specific error parsing
 
 ### odoo-client - Basic Operations
-- [ ] Implement `search(model, domain, options)` method
-- [ ] Implement `read(model, ids, fields)` method
-- [ ] Implement `search_read(model, domain, fields, options)` method
-- [ ] Implement `create(model, values)` method
-- [ ] Implement `write(model, ids, values)` method
-- [ ] Implement `unlink(model, ids)` method
-- [ ] Add TypeScript generics for return types
+- [x] Implement `search(model, domain, options)` method
+- [x] Implement `read(model, ids, fields)` method
+- [x] Implement `search_read(model, domain, fields, options)` method
+- [x] Implement `create(model, values)` method
+- [x] Implement `write(model, ids, values)` method
+- [x] Implement `unlink(model, ids)` method
+- [x] Add TypeScript generics for return types
 
 ## P1 - Introspection & Code Generation (Week 3-4)
 
