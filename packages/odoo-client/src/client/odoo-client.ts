@@ -1,6 +1,6 @@
 /**
  * Main Odoo client with typed access to models and methods
- * 
+ *
  * Provides a high-level API for interacting with Odoo
  */
 
@@ -16,7 +16,7 @@ export interface OdooClientConfig {
 
 /**
  * Main client for interacting with Odoo
- * 
+ *
  * Handles authentication and provides methods for CRUD operations on models
  */
 export class OdooClient {
@@ -31,7 +31,7 @@ export class OdooClient {
 
   /**
    * Authenticate with Odoo
-   * 
+   *
    * Must be called before making any RPC calls
    */
   async authenticate(): Promise<OdooSessionInfo> {
@@ -56,7 +56,7 @@ export class OdooClient {
 
   /**
    * Make a raw RPC call to a model method
-   * 
+   *
    * @param model - Model name (e.g., 'res.partner')
    * @param method - Method name (e.g., 'search', 'read')
    * @param args - Positional arguments
@@ -77,7 +77,7 @@ export class OdooClient {
 
   /**
    * Search for records
-   * 
+   *
    * @param model - Model name
    * @param domain - Search domain (e.g., [['active', '=', true]])
    * @param options - Search options (offset, limit, order, etc)
@@ -102,7 +102,7 @@ export class OdooClient {
 
   /**
    * Read records
-   * 
+   *
    * @param model - Model name
    * @param ids - Record IDs to read
    * @param fields - Fields to read (empty = all fields)
@@ -119,7 +119,7 @@ export class OdooClient {
 
   /**
    * Search and read records in one call
-   * 
+   *
    * @param model - Model name
    * @param domain - Search domain
    * @param options - Search and read options
@@ -148,7 +148,7 @@ export class OdooClient {
 
   /**
    * Create a new record
-   * 
+   *
    * @param model - Model name
    * @param values - Record values
    * @param context - Optional context for creation
@@ -164,7 +164,7 @@ export class OdooClient {
 
   /**
    * Update records
-   * 
+   *
    * @param model - Model name
    * @param ids - Record IDs to update
    * @param values - Values to update
@@ -183,7 +183,7 @@ export class OdooClient {
 
   /**
    * Delete records
-   * 
+   *
    * @param model - Model name
    * @param ids - Record IDs to delete
    * @returns True if successful

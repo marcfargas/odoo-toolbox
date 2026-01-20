@@ -15,7 +15,7 @@ export class OdooError extends Error {
 
 /**
  * Error thrown when RPC call fails
- * 
+ *
  * Handles both network errors and Odoo-specific RPC errors
  */
 export class OdooRpcError extends OdooError {

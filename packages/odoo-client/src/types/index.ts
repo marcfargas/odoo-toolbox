@@ -1,7 +1,2 @@
 // Error classes
-export {
-  OdooError,
-  OdooRpcError,
-  OdooAuthError,
-  OdooNetworkError,
-} from './errors';
+export { OdooError, OdooRpcError, OdooAuthError, OdooNetworkError } from './errors';

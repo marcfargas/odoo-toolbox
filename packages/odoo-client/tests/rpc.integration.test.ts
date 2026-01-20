@@ -1,5 +1,5 @@
 import { OdooClient } from '../src/client/odoo-client';
-import { OdooAuthError, OdooRpcError } from '../src/types/errors';
+import { OdooAuthError } from '../src/types/errors';
 
 describe('OdooClient RPC Integration', () => {
   const odooUrl = process.env.ODOO_URL || 'http://localhost:8069';
@@ -17,7 +17,7 @@ describe('OdooClient RPC Integration', () => {
       });
 
       const session = await client.authenticate();
-      
+
       expect(session).toBeDefined();
       expect(session.uid).toBeGreaterThan(0);
       expect(session.db).toBe(odooDb);
@@ -66,17 +66,17 @@ describe('OdooClient RPC Integration', () => {
 
     it('should search for records', async () => {
       const ids = await client.search('res.partner', [['is_company', '=', true]]);
-      
+
       expect(Array.isArray(ids)).toBe(true);
       expect(ids.length).toBeGreaterThanOrEqual(0);
     });
 
     it('should read records', async () => {
       const ids = await client.search('res.partner', [], { limit: 1 });
-      
+
       if (ids.length > 0) {
         const records = await client.read('res.partner', [ids[0]], ['id', 'name']);
-        
+
         expect(Array.isArray(records)).toBe(true);
         expect(records.length).toBe(1);
         expect(records[0]).toHaveProperty('id');
@@ -89,7 +89,7 @@ describe('OdooClient RPC Integration', () => {
         fields: ['id', 'name'],
         limit: 5,
       });
-      
+
       expect(Array.isArray(records)).toBe(true);
       records.forEach((record) => {
         expect(record).toHaveProperty('id');
