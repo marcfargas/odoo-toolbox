@@ -79,6 +79,29 @@ npm run test:odoo:stop
 npm run test:full
 ```
 
+### Fast Iteration Mode
+
+When developing integration tests, you can skip Docker teardown after test runs to speed up iteration:
+
+```bash
+# First run - starts containers and runs tests
+npm run test:integration:keep-containers
+
+# Subsequent runs - reuses existing containers (much faster!)
+npm run test:integration:keep-containers
+
+# When done iterating, clean up containers
+npm run docker:down    # Stop containers, keep volumes
+npm run docker:clean   # Stop containers, remove volumes
+```
+
+**⚠️ Test Pollution Risk**: When using `SKIP_TEARDOWN`, the Odoo database state persists between test runs. This means:
+- Data created in test run N may affect test run N+1
+- Tests relying on specific initial state may fail if run consecutively
+- Test isolation is your responsibility—ensure tests clean up after themselves or run in order
+
+**Best Practice**: Use fast iteration mode only during active development. Before committing, run the full test suite normally (`npm run test:integration`) to ensure tests pass with clean database state.
+
 ### Docker Compose Setup
 
 **File**: `docker-compose.test.yml`
