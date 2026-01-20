@@ -145,8 +145,10 @@ Tasks that are designed and ready for implementation. Organized by priority.
 ## Notes
 
 - Start with JSON-RPC (simpler than XML-RPC)
-- Test against Odoo v17 initially
+- Test against Odoo Community Edition v17 with OCA modules initially
+- Focus on OCA ecosystem (Community Edition) as primary target
 - Keep examples simple and focused
-- Use existing Odoo instance for development (don't set up CI until P2+)
+- Use existing OCA Odoo instance for development (don't set up CI until P2+)
 - Prioritize working code over perfect code
 - Each checkbox can be a separate commit
+- Reference OCA modules and patterns when relevant

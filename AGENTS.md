@@ -50,6 +50,96 @@ Similar to Terraform:
 
 ## Implementation Guidelines
 
+### Documenting Odoo Source References
+
+**CRITICAL**: When implementing Odoo-specific behavior, context handling, or quirks, ALWAYS reference the corresponding Odoo source code.
+
+**Why this matters**:
+- Odoo's behavior is often undocumented or poorly documented
+- Context variables can be cryptic and their origin non-obvious
+- Future maintainers need to understand WHY code exists
+- Links to source code provide authoritative answers
+
+**How to document references**:
+
+```typescript
+// ✅ GOOD: References the actual Odoo source
+/**
+ * Set default activity type when creating activities.
+ * 
+ * Context variable handled in:
+ * - addons/mail/models/mail_activity.py:_default_activity_type_id()
+ * - Used by mail.activity model to pre-select activity types
+ * 
+ * @see https://github.com/odoo/odoo/blob/17.0/addons/mail/models/mail_activity.py#L123
+ */
+context.default_activity_type_id = activityTypeId;
+
+// ❌ BAD: No context about where this is used
+context.default_activity_type_id = activityTypeId;
+```
+
+```typescript
+// ✅ GOOD: Explains Odoo quirk with source reference
+/**
+ * Odoo returns many2one fields as [id, display_name] tuples in read() operations.
+ * However, in create/write operations, you pass just the ID.
+ * 
+ * Handled in:
+ * - odoo/fields.py:Many2one.convert_to_read()
+ * - odoo/fields.py:Many2one.convert_to_write()
+ * 
+ * @see https://github.com/odoo/odoo/blob/17.0/odoo/fields.py#L2156
+ */
+function normalizeMany2One(value: number | [number, string]): number {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+// ❌ BAD: Implementation without explanation
+function normalizeMany2One(value: number | [number, string]): number {
+  return Array.isArray(value) ? value[0] : value;
+}
+```
+
+**Common Odoo modules to reference**:
+- `addons/mail/` - Activity management, followers, messaging (many context vars!)
+- `addons/project/` - Project and task management
+- `odoo/models.py` - Base model behavior, ORM
+- `odoo/fields.py` - Field type definitions and conversions
+- `odoo/api.py` - Decorators and API behavior
+- `addons/base/` - Core models (res.users, res.partner, ir.model, etc.)
+
+**OCA Module References**:
+When working with OCA modules, reference both:
+- Core Odoo: https://github.com/odoo/odoo/tree/17.0
+- OCA Modules: https://github.com/OCA (e.g., project, server-tools, web, etc.)
+
+**Context variable documentation template**:
+```typescript
+/**
+ * [Brief description of what this context variable does]
+ * 
+ * Handled in: [Odoo module/file path and function/method]
+ * Effect: [What happens when this is set]
+ * 
+ * @see [GitHub link to exact line in Odoo source]
+ */
+context.variable_name = value;
+```
+
+**When you don't know the source**:
+If you implement something based on observed behavior but can't find the source:
+```typescript
+/**
+ * [Description of behavior]
+ * 
+ * Note: Observed behavior in Odoo v17, source location TBD.
+ * TODO: Find and document corresponding Odoo source code.
+ */
+```
+
+This helps future contributors know what needs investigation.
+
 ### When Writing Code
 
 1. **Use Descriptive Types**: Prefer explicit interfaces over `any`
@@ -57,6 +147,7 @@ Similar to Terraform:
 3. **Context Matters**: Odoo heavily uses `context` parameter - make it first-class
 4. **Error Messages**: Odoo errors can be cryptic - add helpful wrapping
 5. **Batching**: Odoo prefers batch operations - design for it
+6. **Document Odoo Sources**: Reference actual Odoo code when implementing quirks/context handling
 
 ### Code Organization
 
@@ -78,21 +169,30 @@ Similar to Terraform:
 
 **Odoo Context Examples**:
 ```python
-# Common context keys
+# Common context keys - see addons/base and addons/mail for usage
 {
-  'lang': 'en_US',           # Language
-  'tz': 'Europe/Madrid',     # Timezone
-  'uid': 1,                  # User ID
-  'allowed_company_ids': [1] # Multi-company
+  'lang': 'en_US',                    # base/models/res_lang.py
+  'tz': 'Europe/Madrid',              # base/models/res_users.py
+  'uid': 1,                           # Always present, current user ID
+  'allowed_company_ids': [1],         # base/models/res_company.py - multi-company
+  'active_test': True,                # Filter active records (default True)
+  'default_*': 'value',               # Set default values for fields
+  'mail_activity_quick_update': True, # mail/models/mail_activity.py
+  'tracking_disable': True,           # Disable field tracking/audit
 }
 ```
 
 **Odoo Domain Filters**:
 ```python
+# See odoo/osv/expression.py for domain evaluation logic
 [
-  ('name', '=', 'Project Alpha'),
-  ('active', '=', True),
-  ('user_id', 'in', [1, 2, 3])
+  ('name', '=', 'Project Alpha'),    # Exact match
+  ('active', '=', True),              # Boolean
+  ('user_id', 'in', [1, 2, 3]),      # List membership
+  ('create_date', '>=', '2024-01-01'), # Date comparison
+  '|',                                # OR operator (prefix notation)
+  ('state', '=', 'done'),
+  ('state', '=', 'cancelled'),
 ]
 ```
 
@@ -150,11 +250,44 @@ function compareStates(desired: any, current: any): Diff {
 }
 ```
 
+### Context Variable Pattern
+```typescript
+/**
+ * Example of well-documented context usage
+ */
+interface ActivityContext {
+  /**
+   * Pre-select activity type when creating activities.
+   * Handled in: addons/mail/models/mail_activity.py:_default_activity_type_id()
+   */
+  default_activity_type_id?: number;
+  
+  /**
+   * Quick update mode for activities (skips some validations).
+   * Handled in: addons/mail/models/mail_activity.py:write()
+   * Effect: Bypasses onchange methods for faster bulk updates
+   */
+  mail_activity_quick_update?: boolean;
+  
+  /**
+   * Disable tracking/audit trail for this operation.
+   * Handled in: odoo/models.py:BaseModel._write()
+   * Effect: Changes won't appear in chatter/activity log
+   */
+  tracking_disable?: boolean;
+}
+```
+
 ## Getting Help
 
-- **Odoo Documentation**: https://www.odoo.com/documentation/17.0/
+- **Odoo Community (OCA) Documentation**: https://odoo-community.org/
+- **Odoo Source Code**: https://github.com/odoo/odoo/tree/17.0
+- **OCA Repositories**: https://github.com/OCA (primary focus)
 - **OCA Guidelines**: https://github.com/OCA/odoo-community.org
+- **Odoo Official Documentation**: https://www.odoo.com/documentation/17.0/
 - **This Project's Issues**: (TBD - will be on GitHub)
+
+**Note**: This project focuses on **Odoo Community Edition with OCA modules**. While it should work with Enterprise Edition, testing and development prioritizes the OCA ecosystem.
 
 ## Questions to Ask
 
@@ -164,6 +297,7 @@ When implementing features, consider:
 3. Can this batch multiple operations?
 4. How does context affect this operation?
 5. What errors could Odoo return here?
+6. **Where in Odoo source code is this behavior defined?**
 
 ## Anti-Patterns to Avoid
 
@@ -172,15 +306,19 @@ When implementing features, consider:
 - ❌ Making sequential RPC calls when batching is possible
 - ❌ Hardcoding field names (generate from schema!)
 - ❌ Treating all fields equally (computed/readonly vs writable)
+- ❌ **Implementing Odoo quirks without documenting the source**
+- ❌ **Using context variables without explaining their origin**
 
 ## Contributing
 
 This is designed as a FOSS project. Code should be:
 - Well-typed
 - Tested
-- Documented
+- Documented (especially Odoo source references!)
 - Following the project's design principles
 
 ---
 
 **Remember**: We're building developer tooling. DX (Developer Experience) is a feature.
+
+**Pro tip**: When debugging Odoo behavior, search the Odoo GitHub repo for the model/field name or context variable. The answers are in the source code!
