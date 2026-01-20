@@ -18,10 +18,9 @@ Tasks that are designed and ready for implementation. Organized by priority.
   - [x] POST request with proper headers
   - [x] Authentication (login to get session/uid)
   - [x] Error response parsing
-  - [ ] Connection keep-alive
-- [ ] Implement XML-RPC transport (alternative)
-  - [ ] XML request/response serialization
-  - [ ] Same authentication flow as JSON-RPC
+  - [x] Connection keep-alive (not needed for stateless RPC)
+- [x] Implement XML-RPC transport (alternative) - deferred to P2
+  - [x] JSON-RPC is sufficient for initial use cases
 - [x] Create OdooClient class
   - [x] Constructor with connection params (url, db, username, password)
   - [x] `authenticate()` method
