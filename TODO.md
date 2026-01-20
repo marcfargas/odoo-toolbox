@@ -52,24 +52,25 @@ Tasks that are designed and ready for implementation. Organized by priority.
 - [x] Cache introspection results (in-memory)
 
 ### odoo-client - Code Generator
-- [ ] Create TypeScript interface generator
-  - [ ] Map Odoo field types to TS types
-  - [ ] Handle required vs optional fields
-  - [ ] Generate helper types (Many2One, One2Many, Many2Many)
-- [ ] Generate individual model interfaces
-- [ ] Generate index file with all exports
-- [ ] Handle naming conflicts (sanitize model names)
-- [ ] Add JSDoc comments from Odoo field help text
-- [ ] CLI command: `odoo-client generate`
-  - [ ] Accept connection params
-  - [ ] Accept output directory
-  - [ ] Accept model filter (optional - which models to generate)
-  - [ ] Show progress during generation
+- [x] Create TypeScript interface generator
+  - [x] Map Odoo field types to TS types
+  - [x] Handle required vs optional fields
+  - [x] Generate helper types (SearchOptions, ReadOptions, etc.)
+- [x] Generate individual model interfaces
+- [x] Generate index file with all exports
+- [x] Handle naming conflicts (sanitize model names)
+- [x] Add JSDoc comments from Odoo field help text
+- [x] CLI command: `odoo-client generate`
+  - [x] Accept connection params
+  - [x] Accept output directory
+  - [x] Accept model filter (modules option)
+  - [x] Show progress during generation
+- [x] Unit tests for type mappers and formatter
 
 ### Testing Foundation
 - [x] Set up Jest or Vitest
 - [x] Create test Odoo connection fixture
-- [ ] Write unit tests for type mappers
+- [x] Write unit tests for type mappers
 - [x] Write integration tests for RPC client (require Odoo instance)
 - [x] Document how to run tests locally
 
