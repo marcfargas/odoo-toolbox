@@ -28,14 +28,80 @@ Items that require further design and research before implementation.
   - Pre-built images with OCA modules
   - Parallel test execution
 
+**Current Implementation** (Phase 1):
+- ✅ Docker Compose for local Odoo + PostgreSQL
+- ✅ Jest with unit and integration test projects
+- ✅ Automated setup/teardown via Jest globals
+- ✅ GitHub Actions with PostgreSQL service (fast)
+- ✅ `act` support for local CI validation (docker-compose mode)
+- ✅ Environment-based configuration (.env files)
+
+**Future Enhancements** (Phase 2+):
+
+#### Custom Docker Images with OCA Modules
+**Problem**: Each CI run pulls and starts fresh Odoo (~10-15 minutes), building modules every time.
+
+**Solution**: Pre-built Docker image with common OCA modules
+- Create `Dockerfile` extending odoo:17.0 with pre-installed modules:
+  - `project` - Project management
+  - `sale` - Sales order management
+  - `stock` - Inventory management
+  - `server-tools` - Common base utilities
+  - Other critical OCA modules as needed
+- Build and publish to GitHub Container Registry: `ghcr.io/owner/odoo-toolbox-test:17.0`
+- Update CI to use custom image instead of official
+- **Expected improvement**: Reduces startup from ~15min to ~2-3min
+
+#### Multi-Version Matrix Testing
+**Problem**: Odoo users may run different versions (14.0, 15.0, 16.0, 17.0).
+
+**Solution**: GitHub Actions matrix strategy
+```yaml
+strategy:
+  matrix:
+    odoo-version: ['17', '16', '15', '14']
+    postgres-version: ['15', '14', '13']
+```
+- Test against multiple Odoo/PostgreSQL combinations
+- Identify version-specific behavior and regressions
+- Custom Docker images per version (odoo:17.0, odoo:16.0, etc.)
+
+#### Fixture Recording (Polly.js)
+**Problem**: Integration tests are slow (wait for Odoo startup) but need real API behavior.
+
+**Solution**: Record RPC responses once, replay for deterministic tests
+- Install `@pollyjs/core`, `@pollyjs/adapter-node-http`, `@pollyjs/persister-fs`
+- Record mode: First test run captures all Odoo RPC responses to `tests/fixtures/http/`
+- Replay mode: Subsequent runs use fixtures (fast, deterministic)
+- Manual recording for edge cases and error scenarios
+- Update fixtures when Odoo version changes
+
+#### OCA Module Testing
+**Problem**: Need to test against actual OCA modules (project, sale, stock) with their fields and behavior.
+
+**Solution**: Install OCA modules in test Odoo instance
+- Clone OCA repos to `test-addons/`
+- Mount in docker-compose: `volumes: ['./test-addons:/mnt/extra-addons']`
+- Parameterize tests to validate against different module combinations
+- Document which OCA modules are tested in CI
+
+#### Performance Benchmarking
+**Problem**: Need to track performance regressions in RPC operations and state management.
+
+**Solution**: Add benchmark tests alongside integration tests
+- Measure: RPC call latency, drift detection time, plan generation time
+- Store baseline metrics in JSON
+- CI fails if benchmarks regress >10%
+- Generate performance reports in PR comments
+
 **Research Needed**:
-- [ ] Study OCA testing infrastructure and runbot
-- [ ] Evaluate Odoo Community Docker images
-- [ ] Identify essential OCA modules for testing (project, sale, stock, etc.)
-- [ ] Prototype GitHub Actions workflow with Odoo Community + OCA modules
-- [ ] Measure test execution times with OCA setup
-- [ ] Design test data fixtures for common OCA scenarios
-- [ ] (Optional) Test Enterprise compatibility separately
+- [ ] Study OCA testing infrastructure and runbot patterns
+- [ ] Evaluate custom Docker image build overhead vs startup savings
+- [ ] Measure with different module combinations and dataset sizes
+- [ ] Document OCA module dependencies for testing
+- [ ] Design fixture recording strategy and directory structure
+- [ ] Prototype matrix builds with GitHub Actions
+- [ ] (Optional) Enterprise Edition compatibility testing
 
 ---
 
