@@ -178,7 +178,42 @@ afterEach(async () => {
    - Spins up Docker Compose
    - Waits for health checks
    - Runs version-specific tests
+   - Collects Docker logs (configurable)
    - Cleans up containers
+
+### Docker Log Collection
+
+The workflow can collect Docker container logs as artifacts for debugging failed tests.
+
+**Configuration**: When manually triggering the workflow (Actions → tests → Run workflow), choose log collection behavior:
+- `on-failure` (default): Collect logs only when integration tests fail
+- `always`: Collect logs for every run (useful for debugging intermittent issues)
+- `never`: Skip log collection entirely
+
+**What's collected**:
+- `odoo.log`: Odoo application server logs
+- `postgres.log`: PostgreSQL database logs
+
+**Accessing logs**:
+1. Navigate to the failed workflow run in GitHub Actions
+2. Scroll to the "Artifacts" section at the bottom
+3. Download the `docker-logs` artifact (zip file)
+4. Extract and review `odoo.log` and `postgres.log`
+
+**Retention**: Logs are retained for 90 days (GitHub default)
+
+**Typical usage**:
+```bash
+# Failed test in CI but passes locally?
+# 1. Go to the GitHub Actions run
+# 2. Download docker-logs artifact
+# 3. Check odoo.log for errors:
+grep -i error odoo.log
+grep -i traceback odoo.log
+
+# 4. Check postgres.log for database issues:
+grep -i "fatal\|error" postgres.log
+```
 
 ### Matrix Strategy
 
@@ -377,6 +412,24 @@ curl http://localhost:8069/web/health
 docker-compose -f docker-compose.test.yml down -v
 docker-compose -f docker-compose.test.yml up -d
 ```
+
+### CI Test Failures
+
+When integration tests fail in CI but pass locally:
+
+1. **Download Docker logs** from the failed workflow run (see "Docker Log Collection" section above)
+2. **Check Odoo logs** for application errors:
+   ```bash
+   # Look for Python tracebacks, RPC errors, module issues
+   grep -i "traceback\|error\|exception" odoo.log
+   ```
+3. **Check PostgreSQL logs** for database issues:
+   ```bash
+   # Look for connection issues, constraint violations
+   grep -i "fatal\|error\|could not" postgres.log
+   ```
+4. **Compare timing**: CI might be slower, causing timeouts not seen locally
+5. **Check test isolation**: Ensure tests don't depend on execution order
 
 ### Tests Timing Out
 

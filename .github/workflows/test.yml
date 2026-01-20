@@ -9,6 +9,17 @@ on:
     branches:
       - main
       - develop
+  workflow_dispatch:
+    inputs:
+      collect_logs:
+        description: 'When to collect Docker logs'
+        required: false
+        default: 'on-failure'
+        type: choice
+        options:
+          - 'on-failure'
+          - 'always'
+          - 'never'
 
 jobs:
   unit-tests:
@@ -64,9 +75,23 @@ jobs:
           ODOO_DB_PASSWORD: admin
         run: npm run test:integration
 
-      - name: Collect Docker logs on failure
-        if: failure()
-        run: docker compose -f docker-compose.test.yml logs
+      - name: Collect Odoo logs
+        if: (failure() && inputs.collect_logs != 'never') || inputs.collect_logs == 'always'
+        run: docker compose -f docker-compose.test.yml logs odoo > odoo.log
+
+      - name: Collect PostgreSQL logs
+        if: (failure() && inputs.collect_logs != 'never') || inputs.collect_logs == 'always'
+        run: docker compose -f docker-compose.test.yml logs postgres > postgres.log
+
+      - name: Upload Docker logs
+        if: (failure() && inputs.collect_logs != 'never') || inputs.collect_logs == 'always'
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-logs
+          path: |
+            odoo.log
+            postgres.log
+          retention-days: 90
 
       - name: Stop Docker services
         if: always()
