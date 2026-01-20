@@ -2,6 +2,7 @@ import { execSync } from 'child_process';
 
 const CI = process.env.CI === 'true';
 const KEEP_CONTAINERS = process.env.KEEP_CONTAINERS === 'true';
+const SKIP_TEARDOWN = process.env.SKIP_TEARDOWN === 'true';
 
 export default async function globalTeardown() {
   if (CI) {
@@ -12,6 +13,12 @@ export default async function globalTeardown() {
 
   if (KEEP_CONTAINERS) {
     console.log('🧊 Keeping containers for debugging (KEEP_CONTAINERS=true)');
+    return;
+  }
+
+  if (SKIP_TEARDOWN) {
+    console.log('⏭️  Skipping teardown for fast iteration (SKIP_TEARDOWN=true)');
+    console.log('   Run "npm run docker:down" or "npm run docker:clean" to cleanup manually');
     return;
   }
 
