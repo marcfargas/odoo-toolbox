@@ -41,6 +41,7 @@ export class JsonRpcTransport {
   private db: string;
   private requestId = 0;
   private sessionInfo: OdooSessionInfo | null = null;
+  private password: string = '';
 
   constructor(baseUrl: string, db: string) {
     // Normalize base URL - remove trailing slash
@@ -70,40 +71,31 @@ export class JsonRpcTransport {
   }
 
   /**
-   * Authenticate with Odoo
+   * Authenticate with Odoo using JSON-RPC
    * 
-   * Calls the web session authenticate endpoint directly
-   * Stores session info (uid, session_id) for future requests
+   * Calls the common.login RPC method via /jsonrpc endpoint
+   * Stores session info (uid, db) for future requests
    * 
-   * @see https://github.com/odoo/odoo/blob/17.0/addons/web/controllers/session.py#L58
+   * @see https://www.odoo.com/documentation/17.0/developer/howtos/web_services.html#json-rpc-library
    */
   async authenticate(username: string, password: string): Promise<OdooSessionInfo> {
     try {
-      const response = await fetch(`${this.baseUrl}/web/session/authenticate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          db: this.db,
-          login: username,
-          password,
-        }),
+      const uid = await this.callRpc<number>('call', {
+        service: 'common',
+        method: 'login',
+        args: [this.db, username, password],
       });
 
-      if (!response.ok) {
-        throw new OdooAuthError(`HTTP ${response.status}: ${response.statusText}`);
+      if (!uid || typeof uid !== 'number' || uid === 0) {
+        throw new OdooAuthError('Authentication failed - invalid credentials');
       }
 
-      const data = await response.json() as any;
-
-      if (!data.uid) {
-        throw new OdooAuthError('Authentication failed - invalid credentials or server error');
-      }
+      // Store password for subsequent RPC calls
+      this.password = password;
 
       this.sessionInfo = {
-        uid: data.uid,
-        session_id: data.session_id || '',
+        uid,
+        session_id: '',
         db: this.db,
       };
 
@@ -173,13 +165,17 @@ export class JsonRpcTransport {
   }
 
   /**
-   * Call an Odoo model method via RPC
+   * Call an Odoo model method via JSON-RPC
+   * 
+   * Uses the object.execute RPC method to call model methods
    * 
    * @param model - Model name (e.g., 'res.partner')
    * @param method - Method name (e.g., 'search', 'read', 'create')
    * @param args - Positional arguments
    * @param kwargs - Keyword arguments (includes context)
    * @returns Method result
+   * 
+   * @see https://www.odoo.com/documentation/17.0/developer/reference/external_api.html#calling-methods
    */
   async call<T = any>(
     model: string,
@@ -189,8 +185,8 @@ export class JsonRpcTransport {
   ): Promise<T> {
     return this.callRpc<T>('call', {
       service: 'object',
-      method: 'execute_kw',
-      args: [this.db, this.sessionInfo?.uid || 0, '', model, method, ...args],
+      method: 'execute',
+      args: [this.db, this.sessionInfo?.uid || 0, this.password, model, method, ...args],
       kwargs,
     });
   }
@@ -200,5 +196,6 @@ export class JsonRpcTransport {
    */
   logout(): void {
     this.sessionInfo = null;
+    this.password = '';
   }
 }
