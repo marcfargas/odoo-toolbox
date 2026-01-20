@@ -53,7 +53,7 @@ jobs:
         run: npm ci
 
       - name: Start Docker services
-        run: docker-compose -f docker-compose.test.yml up -d --wait
+        run: docker compose -f docker-compose.test.yml up -d --wait
 
       - name: Run integration tests
         env:
@@ -66,11 +66,11 @@ jobs:
 
       - name: Collect Docker logs on failure
         if: failure()
-        run: docker-compose -f docker-compose.test.yml logs
+        run: docker compose -f docker-compose.test.yml logs
 
       - name: Stop Docker services
         if: always()
-        run: docker-compose -f docker-compose.test.yml down
+        run: docker compose -f docker-compose.test.yml down
 
       - name: Upload coverage
         if: always()
