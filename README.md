@@ -179,7 +179,8 @@ The typical workflow mirrors Terraform:
 
 ## 📚 Documentation
 
-- **[Examples](./examples/)** - Runnable code samples  
+- **[Examples](./examples/)** - Runnable code samples (8 examples covering all features)  
+- **[Integration Guide](./INTEGRATION_GUIDE.md)** - Complete workflow guide with patterns  
 - **[DEVELOPMENT.md](./DEVELOPMENT.md)** - Setup, testing, contributing  
 - **[TODO.md](./TODO.md)** - Implementation roadmap  
 - **[ROADMAP.md](./ROADMAP.md)** - Long-term roadmap  
