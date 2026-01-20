@@ -176,12 +176,15 @@ MIT License - see [LICENSE](./LICENSE) for details.
 ## 🙏 Acknowledgments
 
 - Inspired by Terraform's declarative approach
-- Built for the Odoo community
+- Built for the Odoo Community Association (OCA) ecosystem
 - Developed alongside the BGBL BizLang project
+- Focused on Community Edition with OCA modules
 
 ---
 
 **Status**: 🚧 Early Development - APIs will change
+
+**Odoo Target**: OCA (Odoo Community Association) / Community Edition - focuses on open-source Odoo, with potential Enterprise compatibility
 
 **Odoo Versions**: v17 (initially), v14+ (planned)
 

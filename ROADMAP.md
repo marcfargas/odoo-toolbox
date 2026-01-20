@@ -7,27 +7,35 @@ Items that require further design and research before implementation.
 ### Odoo Test Environment
 **Problem**: Need to test against real Odoo instances without requiring developers to run Odoo locally.
 
+**Primary Target**: Odoo Community Edition with OCA modules (what we run in production)
+**Secondary Target**: Odoo Enterprise (for compatibility testing)
+
 **Questions**:
 - How does OCA (Odoo Community Association) run tests?
-  - Investigate their runbot system
+  - Investigate their runbot system (https://runbot.odoo-community.org/)
   - Look at their GitHub Actions workflows
+  - Study OCA's testing patterns and conventions
 - Should we use Docker containers for Odoo in CI?
-  - Official Odoo images vs custom builds
+  - Official Odoo Community images vs custom builds with OCA modules
   - How to populate with test data
-- How to test against multiple Odoo versions?
-  - Matrix builds (v14, v15, v16, v17)
-  - Different module combinations
+  - Pre-install common OCA modules (project, server-tools, etc.)
+- How to test against multiple Odoo versions and editions?
+  - Matrix builds: Community v14, v15, v16, v17
+  - Optional: Enterprise compatibility testing
+  - Different OCA module combinations
 - How to handle slow CI (Odoo startup time)?
   - Caching strategies
-  - Pre-built images
+  - Pre-built images with OCA modules
   - Parallel test execution
 
 **Research Needed**:
-- [ ] Study OCA testing infrastructure
-- [ ] Evaluate Odoo Docker images
-- [ ] Prototype GitHub Actions workflow with Odoo container
-- [ ] Measure test execution times
-- [ ] Design test data fixtures
+- [ ] Study OCA testing infrastructure and runbot
+- [ ] Evaluate Odoo Community Docker images
+- [ ] Identify essential OCA modules for testing (project, sale, stock, etc.)
+- [ ] Prototype GitHub Actions workflow with Odoo Community + OCA modules
+- [ ] Measure test execution times with OCA setup
+- [ ] Design test data fixtures for common OCA scenarios
+- [ ] (Optional) Test Enterprise compatibility separately
 
 ---
 
@@ -205,6 +213,156 @@ Items that require further design and research before implementation.
 - [ ] Categorize field types
 - [ ] Design handling strategy
 - [ ] Update code generator to mark fields
+
+---
+
+## Error Handling & Debugging
+
+### Improved Error Messages
+**Problem**: Odoo RPC errors are verbose, nested, and difficult to parse. They often contain stack traces, cryptic model names, and unhelpful messages.
+
+**Example of typical Odoo error**:
+```python
+{
+  "jsonrpc": "2.0",
+  "id": null,
+  "error": {
+    "code": 200,
+    "message": "Odoo Server Error",
+    "data": {
+      "name": "odoo.exceptions.ValidationError",
+      "debug": "Traceback (most recent call last):\n  File \"/usr/lib/python3/dist-packages/odoo/addons/base/models/ir_http.py\", line 237, in _dispatch\n    result = request.dispatch()\n  ... [100+ lines of traceback] ...\n  ValidationError: You cannot create a task without a project.",
+      "message": "You cannot create a task without a project.",
+      "arguments": ["You cannot create a task without a project."],
+      "context": {}
+    }
+  }
+}
+```
+
+**What users actually need**:
+```
+❌ Failed to create project.task
+
+Reason: You cannot create a task without a project.
+
+Suggested fix: Ensure 'project_id' is set before creating tasks.
+
+Model: project.task
+Operation: create
+Values: { name: "My Task", ... }
+
+Run with --debug for full Odoo traceback.
+```
+
+**Questions**:
+- How to parse and categorize Odoo errors?
+  - ValidationError → user-friendly validation messages
+  - AccessError → permission/authentication issues
+  - IntegrityError → database constraint violations
+  - UserError → business logic violations
+- Should we build an error catalog?
+  - Common errors with solutions/suggestions
+  - Pattern matching on error messages
+  - Contextual help based on operation
+- Error enhancement strategies:
+  - Extract root cause from nested errors
+  - Add operation context (model, method, values)
+  - Suggest fixes based on error type
+  - Link to relevant documentation
+- Structured error objects:
+  - Machine-readable error codes
+  - Categorization (auth, validation, constraint, etc.)
+  - Actionable suggestions
+- Debug mode:
+  - Verbose output with full Odoo traceback
+  - RPC request/response logging
+  - Step-by-step operation logging
+
+**Design Needed**:
+- [ ] Catalog common Odoo error patterns
+- [ ] Design error parser (extract useful info from Odoo errors)
+- [ ] Create error category taxonomy
+- [ ] Design user-friendly error format
+- [ ] Build suggestion engine (error → suggested fix)
+- [ ] Implement debug mode for verbose output
+- [ ] Test with real-world Odoo errors
+
+**Implementation Ideas**:
+```typescript
+class OdooError extends Error {
+  code: string;              // 'VALIDATION_ERROR', 'ACCESS_DENIED', etc.
+  category: ErrorCategory;   // validation, auth, constraint, etc.
+  odooMessage: string;       // Original Odoo message
+  suggestion?: string;       // Suggested fix
+  model?: string;            // Affected model
+  operation?: string;        // create, write, search, etc.
+  context?: any;             // Operation context for debugging
+  debugInfo?: {              // Available in debug mode
+    traceback: string;
+    requestData: any;
+    responseData: any;
+  };
+}
+
+// Error catalog example
+const ERROR_CATALOG = {
+  'cannot create a task without a project': {
+    category: 'validation',
+    suggestion: "Ensure 'project_id' field is set when creating tasks",
+    docLink: 'https://docs.odoo.com/...'
+  },
+  'access denied': {
+    category: 'authorization',
+    suggestion: 'Check user permissions for this model and operation',
+    docLink: 'https://docs.odoo.com/...'
+  }
+};
+```
+
+### Error Recovery & Retry
+**Problem**: Network issues, timeouts, and transient errors should be retryable.
+
+**Questions**:
+- Which errors are retryable?
+  - Network timeouts
+  - Connection errors
+  - Rate limiting
+  - Temporary Odoo unavailability
+- Retry strategies:
+  - Exponential backoff
+  - Max retry count
+  - Configurable retry logic
+- Circuit breaker pattern?
+  - Stop retrying after repeated failures
+  - Prevent cascading failures
+
+**Design Needed**:
+- [ ] Identify retryable vs fatal errors
+- [ ] Design retry mechanism
+- [ ] Configure sensible defaults
+- [ ] Allow user customization
+
+### Operation Validation
+**Problem**: Catch errors before making RPC calls.
+
+**Questions**:
+- Pre-flight validation:
+  - Required fields present?
+  - Field types match expected?
+  - Domain filters well-formed?
+  - Context keys valid?
+- Where to validate?
+  - Client-side (before RPC)
+  - Use generated types for validation
+  - Introspection metadata for constraints
+- How to handle custom validation rules?
+
+**Design Needed**:
+- [ ] Design validation framework
+- [ ] Generate validators from types
+- [ ] Pre-flight checks for common errors
+- [ ] User-extensible validation
 
 ---
 
