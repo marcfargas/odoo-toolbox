@@ -39,37 +39,6 @@ jobs:
   integration-tests:
     name: Integration Tests (Odoo 17)
     runs-on: ubuntu-latest
-    
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: admin
-          POSTGRES_PASSWORD: admin
-          POSTGRES_DB: postgres
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-      odoo:
-        image: odoo:17.0
-        env:
-          HOST: postgres
-          USER: admin
-          PASSWORD: admin
-          DB_NAME: odoo
-          ADMIN_PASSWD: admin
-        options: >-
-          --health-cmd "curl -f http://localhost:8069/web/health || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-        ports:
-          - 8069:8069
 
     steps:
       - uses: actions/checkout@v4
@@ -83,6 +52,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Start Docker services
+        run: docker-compose -f docker-compose.test.yml up -d --wait
+
       - name: Run integration tests
         env:
           CI: 'true'
@@ -91,6 +63,14 @@ jobs:
           ODOO_DB_USER: admin
           ODOO_DB_PASSWORD: admin
         run: npm run test:integration
+
+      - name: Collect Docker logs on failure
+        if: failure()
+        run: docker-compose -f docker-compose.test.yml logs
+
+      - name: Stop Docker services
+        if: always()
+        run: docker-compose -f docker-compose.test.yml down
 
       - name: Upload coverage
         if: always()
