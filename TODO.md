@@ -5,13 +5,13 @@ Tasks that are designed and ready for implementation. Organized by priority.
 ## P0 - Foundation (Week 1-2)
 
 ### Project Setup
-- [ ] Initialize monorepo with npm/pnpm workspaces
-- [ ] Configure TypeScript for all packages
+- [x] Initialize monorepo with npm/pnpm workspaces
+- [x] Configure TypeScript for all packages
 - [ ] Set up ESLint + Prettier
-- [ ] Create basic package.json for each package
-- [ ] Set up Git repository and .gitignore
-- [ ] Choose and add MIT License
-- [ ] Create basic GitHub Actions for CI (lint, build, test)
+- [x] Create basic package.json for each package
+- [x] Set up Git repository and .gitignore
+- [x] Choose and add MIT License
+- [x] Create basic GitHub Actions for CI (lint, build, test)
 
 ### odoo-client - RPC Foundation
 - [ ] Implement JSON-RPC transport
@@ -68,11 +68,11 @@ Tasks that are designed and ready for implementation. Organized by priority.
   - [ ] Show progress during generation
 
 ### Testing Foundation
-- [ ] Set up Jest or Vitest
-- [ ] Create test Odoo connection fixture
+- [x] Set up Jest or Vitest
+- [x] Create test Odoo connection fixture
 - [ ] Write unit tests for type mappers
-- [ ] Write integration tests for RPC client (require Odoo instance)
-- [ ] Document how to run tests locally
+- [x] Write integration tests for RPC client (require Odoo instance)
+- [x] Document how to run tests locally
 
 ## P2 - State Manager Foundation (Week 5-6)
 
