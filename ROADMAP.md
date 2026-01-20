@@ -474,6 +474,43 @@ const ERROR_CATALOG = {
 - [ ] Define fallback behavior
 - [ ] Document extension points
 
+### Type-Safe Domain Selectors (P2)
+**Problem**: Odoo domains (search filters) are currently untyped arrays, prone to field name typos and invalid operators.
+
+**Current Approach**: Raw arrays with `any` type:
+```typescript
+// ❌ Typos go undetected, operators not validated
+const domain = [['name', '=', 'Partner'], ['statee', '=', 'active']];
+```
+
+**Questions**:
+- What pattern best balances type safety and API ergonomics?
+  - **Discriminated unions**: Full type safety, but verbose types
+  - **QueryBuilder**: Fluent API, but more runtime overhead
+  - **Generated builders**: Type-safe per model, auto-generated, minimal overhead
+  - **Filter helpers**: Simple helpers, partial type safety (field names only)
+- Should we generate domain builders per model?
+- How to handle logical operators (AND, OR, NOT)?
+- Should domain builders compose with other builders?
+
+**Evaluation**:
+- **Recommended**: Generated domain builder classes (see AGENTS.md research findings)
+  - Auto-generate `ProjectProjectBuilder`, `SaleOrderBuilder`, etc. in codegen
+  - Fluent API: `builder.name('=', 'Q1').active('=', true).build()`
+  - Full type safety with zero runtime cost (transpiles to arrays)
+  - Can generate exhaustive operator types per field
+  - Natural progression from existing codegen
+
+**Design Needed**:
+- [ ] Implement domain builder code generation templates
+- [ ] Generate operator type unions per field type
+- [ ] Handle logical operators in builder API
+- [ ] Add builder patterns to codegen output
+- [ ] Write examples and documentation
+- [ ] Consider backwards compatibility (raw arrays still valid)
+
+**Timeline**: P2 (after core codegen, before state manager)
+
 ---
 
 ## Versioning & Compatibility
