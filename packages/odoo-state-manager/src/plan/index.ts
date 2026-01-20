@@ -333,3 +333,5 @@ function createFailedPlan(errors: string[], operations: Operation[]): ExecutionP
 
 export type { Operation, ExecutionPlan, PlanOptions } from './types';
 export { formatPlanForConsole } from './formatter';
+export type { ValidationError, ValidationResult } from './validation';
+export { validatePlanReferences, formatValidationErrors, suggestErrorFixes } from './validation';

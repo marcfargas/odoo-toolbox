@@ -310,6 +310,91 @@ interface Operation {
 }
 ```
 
+## Plan Validation
+
+Before applying a plan, validate it to catch common errors early:
+
+### Validating Relational Records
+
+Check that all many2one and many2many references point to valid records:
+
+```typescript
+import { validatePlanReferences, formatValidationErrors } from '@odoo-toolbox/state-manager';
+
+const plan = generatePlan(diffs);
+
+// Offline validation (checks temp IDs and operation order)
+const result = await validatePlanReferences(plan);
+
+if (!result.isValid) {
+  console.error(formatValidationErrors(result));
+  process.exit(1);
+}
+
+// With OdooClient: Verify records exist in database
+const result = await validatePlanReferences(plan, odooClient);
+if (!result.isValid) {
+  for (const error of result.errors) {
+    console.error(`✗ ${error.message}`);
+    console.log('Suggested fixes:');
+    error.suggestedFixes.forEach((fix, i) => {
+      console.log(`  ${i + 1}. ${fix}`);
+    });
+  }
+}
+```
+
+### Validation Checks
+
+The validation module performs:
+
+1. **Temporary ID References** - Ensures references to newly created records (model:temp_N) are valid
+   - Referenced records exist in the plan
+   - Referenced operations are creates
+   - Referenced operations appear before the referencing operation (no circular deps)
+   - Handles both single references (many2one) and arrays (many2many)
+
+2. **Record Existence** - If OdooClient provided, verifies referenced records exist
+   - Queries database for record existence
+   - Groups queries by model for efficiency
+   - Reports missing records with context
+
+3. **Error Detection** - Identifies:
+   - Non-existent temporary record references
+   - Circular dependency chains
+   - Missing required many2one links
+
+### Handling Errors with Suggestions
+
+When validation fails, get actionable suggestions:
+
+```typescript
+import { suggestErrorFixes } from '@odoo-toolbox/state-manager';
+
+try {
+  const result = await applyPlan(plan, client);
+} catch (error) {
+  console.error(`Error: ${error.message}`);
+  
+  const fixes = suggestErrorFixes(error, {
+    model: 'project.task',
+    operation: currentOp,
+  });
+  
+  console.log('Suggested fixes:');
+  fixes.forEach((fix, i) => {
+    console.log(`  ${i + 1}. ${fix}`);
+  });
+}
+```
+
+The error suggestion engine recognizes common patterns:
+- **Access denied** → Check permissions and security groups
+- **Record not found** → Verify IDs and check if deleted
+- **Missing required field** → Review field requirements
+- **Validation error** → Check constraints and field values
+- **Many2one errors** → Verify relational references
+
 ## Integration with Compare & Apply
 
 Typical workflow:
@@ -346,12 +431,14 @@ Run plan tests:
 ```bash
 npm test -- packages/odoo-state-manager/tests/plan.test.ts
 npm test -- packages/odoo-state-manager/tests/formatter.test.ts
+npm test -- packages/odoo-state-manager/tests/validation.test.ts
 ```
 
 Test coverage:
 - 19 plan generator tests (operation generation, ordering, validation)
 - 32 formatter tests (output styling, colors, value formatting)
-- Edge cases (empty plans, errors, many fields)
+- 18 validation tests (relational references, error suggestions, fix recommendations)
+- Edge cases (empty plans, errors, many fields, circular dependencies)
 
 ## Performance
 
@@ -364,19 +451,29 @@ Typical performance:
 - 1000 diffs → ~50ms
 - 10000 diffs → ~500ms (might error due to maxOperations limit)
 
+## Features Implemented
+
+### ✅ Plan Validation
+- **Relational record validation** - Verify many2one/many2many references
+- **Temporary ID tracking** - Ensure references to newly created records are valid
+- **Circular dependency detection** - Prevent operations from forming dependency cycles
+- **Database verification** - Optional checks against live Odoo instance
+- **Error suggestions** - Actionable fixes for common validation failures
+
+### ✅ Error Diagnostics
+- **Pattern matching** - Recognizes common Odoo errors (access, not found, validation)
+- **Context-aware suggestions** - Uses operation/model context for specific fixes
+- **Human-readable output** - Clear error messages with ranked suggestions
+
 ## Future Enhancements
 
-- **Batching**: Combine multiple writes to same model
-- **Dry-run visualization**: Show exact values before/after
-- **Rollback planning**: If apply fails, how to rollback
-- **External ID support**: Reference records by external IDs
-- **Validation hooks**: Custom pre-apply validation
-  - Handle dependencies
-- **formatter.ts**: Plan formatting for console output
-  - Terraform-like output format
-  - Color coding (green add, yellow change, red delete)
-  - Human-readable summary
-- **validate.ts**: Plan validation
+- **Batching**: Combine multiple writes to same model for performance
+- **Dry-run visualization**: Show exact values before/after with no database changes
+- **Rollback planning**: If apply fails, how to rollback changes
+- **External ID support**: Reference records by external IDs instead of database IDs
+- **Custom validation hooks**: Allow users to provide pre-apply validation logic
+- **Performance optimization**: Cache query results for large plans
+- **Transaction support**: Group operations into atomic transactions
 
 ## Implementation Notes
 
