@@ -1,0 +1,17 @@
+# Configuration for act (local GitHub Actions runner)
+# https://github.com/nektos/act
+
+# Use catthehacker/ubuntu as default image (has Docker-in-Docker support)
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
+
+# Load secrets/env vars from .env file
+--secret-file .env.test
+
+# Set container architecture
+--container-architecture linux/amd64
+
+# Enable docker socket binding for Docker-in-Docker
+--bind
+
+# Set artifact server path
+--artifact-server-path /tmp/artifacts

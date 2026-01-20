@@ -17,6 +17,11 @@ pnpm-debug.log*
 
 # Testing
 coverage/
+.env.local
+tests/fixtures/http/**/*.json
+
+# Docker
+.docker-compose.env
 
 # IDE
 .vscode/

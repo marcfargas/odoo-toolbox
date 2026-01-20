@@ -169,6 +169,104 @@ Contributions are welcome! This project follows a batteries-included philosophy:
 
 See [AGENTS.md](./AGENTS.md) for development guidelines.
 
+## 🧪 Testing
+
+This project uses Jest with automated Docker Compose setup for Odoo integration tests.
+
+### Prerequisites
+
+- Docker Desktop (or Docker Engine + Docker Compose)
+- Node.js 18+
+
+### Quick Start
+
+```bash
+# Copy environment template
+cp .env.example .env.local
+
+# Run all tests (starts Docker automatically)
+npm test
+
+# Run only unit tests (no Docker needed)
+npm run test:unit
+
+# Run only integration tests
+npm run test:integration
+```
+
+### Local Development
+
+```bash
+# Start Odoo test environment manually
+npm run docker:up
+
+# View logs in another terminal
+npm run docker:logs
+
+# Run tests
+npm run test:integration
+
+# Stop when done
+npm run docker:down
+
+# Full cleanup (removes volumes)
+npm run docker:clean
+```
+
+### Validate CI Locally
+
+```bash
+# Install act (GitHub Actions runner)
+# macOS: brew install act
+# Windows: scoop install act
+# Linux: https://github.com/nektos/act
+
+# Run tests with act (same as CI)
+npm run test:local
+
+# Debug with containers kept (KEEP_CONTAINERS=true)
+npm run test:debug
+```
+
+#### Note on act on Windows
+
+`act` has known compatibility issues on Windows. Since `npm run test:full` runs the same tests with Docker and works reliably, use that instead:
+
+```bash
+# Recommended - works reliably on Windows
+npm run test:full
+```
+
+### Configuration
+
+Create `.env.local` from `.env.example` to customize:
+
+```bash
+# Odoo connection
+ODOO_URL=http://localhost:8069
+ODOO_DB_NAME=odoo
+ODOO_DB_USER=admin
+ODOO_DB_PASSWORD=admin
+
+# Testing
+TEST_TIMEOUT_MS=30000
+LOG_LEVEL=info
+
+# Keep containers after tests (for debugging)
+KEEP_CONTAINERS=false
+```
+
+### Test Structure
+
+- **Unit Tests**: `packages/*/src/**/*.test.ts` - Fast, no Odoo needed
+- **Integration Tests**: `tests/integration/**/*.test.ts` - Against real Odoo instance
+- **Helpers**: `tests/helpers/` - Shared test utilities and fixtures
+
+### Resources
+
+- [TESTING_FRAMEWORK.md](./TESTING_FRAMEWORK.md) - Detailed testing strategy
+- [ROADMAP.md](./ROADMAP.md) - Future testing enhancements
+
 ## 📄 License
 
 MIT License - see [LICENSE](./LICENSE) for details.

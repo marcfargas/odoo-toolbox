@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: odoo-toolbox-postgres
+    environment:
+      POSTGRES_USER: ${ODOO_DB_USER:-admin}
+      POSTGRES_PASSWORD: ${ODOO_DB_PASSWORD:-admin}
+      POSTGRES_DB: postgres
+    volumes:
+      - odoo-toolbox-postgres-data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${ODOO_DB_USER:-admin}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - odoo-toolbox
+
+  odoo:
+    image: odoo:17.0
+    container_name: odoo-toolbox-odoo
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      HOST: postgres
+      PORT: 5432
+      USER: ${ODOO_DB_USER:-admin}
+      PASSWORD: ${ODOO_DB_PASSWORD:-admin}
+      DB_NAME: ${ODOO_DB_NAME:-odoo}
+      ADMIN_PASSWD: ${ODOO_ADMIN_PASSWORD:-admin}
+    ports:
+      - "${ODOO_PORT:-8069}:8069"
+    volumes:
+      - odoo-toolbox-odoo-data:/var/lib/odoo
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8069/web/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - odoo-toolbox
+
+volumes:
+  odoo-toolbox-postgres-data:
+  odoo-toolbox-odoo-data:
+
+networks:
+  odoo-toolbox:
+    driver: bridge
