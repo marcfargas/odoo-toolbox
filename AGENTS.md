@@ -247,6 +247,21 @@ See `ROADMAP.md` for future design decisions.
 - **Fixtures**: Record/replay RPC calls for deterministic tests
 - **CI**: Need to design CI/CD with Odoo containers (see ROADMAP)
 
+### Test Execution Order
+
+Always run tests in this order - only proceed to the next step if the previous succeeds:
+
+```bash
+npm run lint && npm run test:unit && npm run test:integration
+```
+
+**Rationale**:
+1. **Lint first** - Catch style/syntax issues before running any tests
+2. **Unit tests second** - Fast, no infrastructure, tests core logic
+3. **Integration tests last** - Slow, requires Docker, validates against real Odoo instance
+
+This saves time and resources by failing fast on style/logic issues before spinning up containers.
+
 ### Test Infrastructure Guidelines
 
 **CRITICAL - Test Helper Location:**
