@@ -1,5 +1,5 @@
 /**
- * Example 6: Context Variables and Batch Operations
+ * Example 4: Context Variables and Batch Operations
  *
  * Demonstrates how to:
  * - Use Odoo context variables to control behavior
@@ -13,7 +13,7 @@
  * - Odoo instance running and authenticated
  * - Write access to res.partner model
  *
- * Run: npx ts-node examples/6-context-and-batch.ts
+ * Run: npx ts-node packages/odoo-client/examples/4-context-and-batch.ts
  *
  * Important: Context is a powerful feature in Odoo that allows you to:
  * - Pass metadata about the operation
@@ -25,7 +25,7 @@
  * See AGENTS.md for common context variables and where they're handled.
  */
 
-import { OdooClient } from '../packages/odoo-client/src';
+import { OdooClient } from '../src';
 
 async function main() {
   const client = new OdooClient({

@@ -1,5 +1,5 @@
 /**
- * Example 7: State Management - Drift Detection & Planning
+ * Example 1: State Management - Drift Detection & Planning
  * 
  * This example demonstrates the full state management workflow:
  * 1. Compare desired state vs actual Odoo state
@@ -16,7 +16,7 @@ import {
   formatPlanForConsole,
   applyPlan,
   dryRunPlan,
-} from '@odoo-toolbox/state-manager';
+} from '../src';
 
 async function main() {
   // Initialize client
