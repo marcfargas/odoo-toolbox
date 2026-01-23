@@ -8,8 +8,9 @@ This document provides context and guidelines for AI coding assistants (GitHub C
 
 ### Core Packages
 
-1. **odoo-client**: RPC client with schema introspection and TypeScript code generation
-2. **odoo-state-manager**: Drift detection and plan/apply orchestration for Odoo resources
+1. **@odoo-toolbox/client**: Lightweight RPC client for Odoo operations
+2. **@odoo-toolbox/introspection**: Schema introspection and TypeScript code generation
+3. **@odoo-toolbox/state-manager**: Drift detection and plan/apply workflow
 
 ## Design Principles
 
@@ -240,50 +241,6 @@ We are in **initial implementation** phase:
 See `TODO.md` for specific tasks ready to implement.
 See `ROADMAP.md` for future design decisions.
 
-## Testing Approach
-
-- **Unit Tests**: For pure logic (comparisons, transformations)
-- **Integration Tests**: Against real Odoo instance
-- **Fixtures**: Record/replay RPC calls for deterministic tests
-- **CI**: Need to design CI/CD with Odoo containers (see ROADMAP)
-
-### Test Execution Order
-
-Always run tests in this order - only proceed to the next step if the previous succeeds:
-
-```bash
-npm run lint && npm run test:unit && npm run test:integration
-```
-
-**Rationale**:
-1. **Lint first** - Catch style/syntax issues before running any tests
-2. **Unit tests second** - Fast, no infrastructure, tests core logic
-3. **Integration tests last** - Slow, requires Docker, validates against real Odoo instance
-
-This saves time and resources by failing fast on style/logic issues before spinning up containers.
-
-### Test Infrastructure Guidelines
-
-**CRITICAL - Test Helper Location:**
-- Test helpers belong in `tests/helpers/`, NOT `test/` (singular)
-- The project uses `tests/` (plural) for all test-related code
-- If you accidentally create files in `test/`, immediately move them to `tests/helpers/` and delete the `test/` directory
-
-**Docker Test Environment Philosophy:**
-- Let Docker images handle their own initialization - don't build workarounds in test code
-- Fix issues at the source (docker-compose.test.yml) rather than working around them in helpers
-- Odoo auto-initializes its database via `--init base` command in docker-compose
-- Postgres uses hardcoded defaults: `admin/admin` credentials, `postgres` database
-- Global setup simply starts containers with `docker-compose up -d --wait`
-- Docker healthchecks ensure services are ready; no manual polling needed
-- If tests fail due to infrastructure, fix docker-compose.test.yml, not the test helpers
-
-**Debugging Test Infrastructure:**
-- Check `docker-compose logs odoo` to see Odoo initialization messages
-- Odoo logs "HTTP service (werkzeug) running on..." when ready
-- Healthcheck `/web/health` confirms Odoo can serve HTTP requests
-- If database issues persist, verify Odoo command includes `--init base`
-
 ## Common Patterns
 
 ### RPC Call Pattern
@@ -378,16 +335,10 @@ When implementing features, consider:
 - ❌ **Implementing Odoo quirks without documenting the source**
 - ❌ **Using context variables without explaining their origin**
 
-## Contributing
-
-This is designed as a FOSS project. Code should be:
-- Well-typed
-- Tested
-- Documented (especially Odoo source references!)
-- Following the project's design principles
-
 ---
 
 **Remember**: We're building developer tooling. DX (Developer Experience) is a feature.
 
 **Pro tip**: When debugging Odoo behavior, search the Odoo GitHub repo for the model/field name or context variable. The answers are in the source code!
+
+For setup, testing, and contribution guidelines, see [DEVELOPMENT.md](./DEVELOPMENT.md).
