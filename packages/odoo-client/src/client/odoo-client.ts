@@ -6,13 +6,6 @@
 
 import { JsonRpcTransport, OdooSessionInfo } from '../rpc/transport';
 import { OdooAuthError } from '../types/errors';
-import { Introspector } from '../introspection/introspect';
-import type {
-  OdooModel,
-  OdooField,
-  ModelMetadata,
-  IntrospectionOptions,
-} from '../introspection/types';
 
 export interface OdooClientConfig {
   url: string;
@@ -30,12 +23,10 @@ export class OdooClient {
   private config: OdooClientConfig;
   private transport: JsonRpcTransport;
   private authenticated = false;
-  private introspector: Introspector;
 
   constructor(config: OdooClientConfig) {
     this.config = config;
     this.transport = new JsonRpcTransport(config.url, config.database);
-    this.introspector = new Introspector(this);
   }
 
   /**
@@ -208,89 +199,5 @@ export class OdooClient {
   logout(): void {
     this.transport.logout();
     this.authenticated = false;
-  }
-
-  /**
-   * Get all available models from Odoo.
-   * 
-   * Queries ir.model to retrieve all model definitions. Results are cached
-   * to minimize RPC overhead.
-   * 
-   * @param options - Introspection options
-   * @returns Array of model metadata
-   * 
-   * @example
-   * ```typescript
-   * const models = await client.getModels();
-   * console.log(models.map(m => m.model)); // ['res.partner', 'project.task', ...]
-   * ```
-   */
-  async getModels(options?: IntrospectionOptions): Promise<OdooModel[]> {
-    return this.introspector.getModels(options);
-  }
-
-  /**
-   * Get all fields for a specific model.
-   * 
-   * Queries ir.model.fields to retrieve field definitions. Results are cached.
-   * 
-   * @param modelName - Technical model name (e.g., 'res.partner')
-   * @param options - Introspection options
-   * @returns Array of field metadata
-   * 
-   * @example
-   * ```typescript
-   * const fields = await client.getFields('res.partner');
-   * const nameField = fields.find(f => f.name === 'name');
-   * ```
-   */
-  async getFields(
-    modelName: string,
-    options?: IntrospectionOptions
-  ): Promise<OdooField[]> {
-    return this.introspector.getFields(modelName, options);
-  }
-
-  /**
-   * Get complete metadata for a model (model info + fields).
-   * 
-   * Convenience method that combines model and field metadata in a single call.
-   * Results are cached.
-   * 
-   * @param modelName - Technical model name
-   * @param options - Introspection options
-   * @returns Combined model and field metadata
-   * 
-   * @example
-   * ```typescript
-   * const metadata = await client.getModelMetadata('res.partner');
-   * console.log(metadata.model.name); // 'Contact'
-   * console.log(metadata.fields.length); // 50+ fields
-   * ```
-   */
-  async getModelMetadata(
-    modelName: string,
-    options?: IntrospectionOptions
-  ): Promise<ModelMetadata> {
-    return this.introspector.getModelMetadata(modelName, options);
-  }
-
-  /**
-   * Clear the introspection cache.
-   * 
-   * Use this after installing or upgrading Odoo modules, which can
-   * add new models or fields.
-   */
-  clearIntrospectionCache(): void {
-    this.introspector.clearCache();
-  }
-
-  /**
-   * Clear cached introspection data for a specific model.
-   * 
-   * @param modelName - Model to clear from cache
-   */
-  clearModelCache(modelName: string): void {
-    this.introspector.clearModelCache(modelName);
   }
 }

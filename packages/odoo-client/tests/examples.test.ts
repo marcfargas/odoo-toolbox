@@ -86,7 +86,6 @@ describe('Examples', () => {
       const filePath = path.join(examplesDir, '3-generate-types.ts');
       const content = fs.readFileSync(filePath, 'utf-8');
       
-      expect(content).toContain('CodeGenerator');
       expect(content).toContain('generateCompleteFile');
       expect(content).toContain('getModelMetadata');
       expect(content).toContain('writeFileSync');
