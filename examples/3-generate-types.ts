@@ -21,7 +21,7 @@
  */
 
 import { OdooClient } from '../packages/odoo-client/src';
-import { CodeGenerator, generateCompleteFile } from '../packages/odoo-introspection/src/codegen';
+import { generateCompleteFile } from '../packages/odoo-introspection/src/codegen';
 import { Introspector } from '../packages/odoo-introspection/src/introspection';
 import * as fs from 'fs';
 import * as path from 'path';
