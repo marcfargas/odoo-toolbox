@@ -1,6 +1,6 @@
 # Development Guide
 
-Contributing to odoo-toolbox? Start here. For architectural decisions and implementation patterns, see [AGENTS.md](./AGENTS.md).
+Contributing to odoo-toolbox? Start here. For coding patterns and Odoo-specific knowledge, see [AGENTS.md](./AGENTS.md).
 
 ## Development Philosophy
 
@@ -30,6 +30,21 @@ npm install
 ## Testing
 
 Integration tests run against real Odoo instances in Docker. Tests are automated but can be run locally.
+
+### Test Execution Order
+
+Always run tests in this order - only proceed to the next step if the previous succeeds:
+
+```bash
+npm run lint && npm run test:unit && npm run test:integration
+```
+
+**Rationale**:
+1. **Lint first** - Catch style/syntax issues before running any tests
+2. **Unit tests second** - Fast, no infrastructure, tests core logic
+3. **Integration tests last** - Slow, requires Docker, validates against real Odoo instance
+
+This saves time and resources by failing fast on style/logic issues before spinning up containers.
 
 ### Quick Start
 
@@ -83,62 +98,27 @@ KEEP_CONTAINERS=false
 - **Integration Tests**: `packages/*/tests/**/*.integration.test.ts` - Against real Odoo
 - **Test Helpers**: `tests/helpers/` - Shared utilities and setup
 
+### Test Infrastructure Guidelines
+
+**Test Helper Location:**
+- Test helpers belong in `tests/helpers/`, NOT `test/` (singular)
+- The project uses `tests/` (plural) for all test-related code
+
+**Docker Test Environment:**
+- Let Docker images handle their own initialization - don't build workarounds in test code
+- Fix issues at the source (docker-compose.test.yml) rather than working around them in helpers
+- Odoo auto-initializes its database via `--init base` command in docker-compose
+- Docker healthchecks ensure services are ready; no manual polling needed
+- If tests fail due to infrastructure, fix docker-compose.test.yml, not the test helpers
+
+**Debugging Test Infrastructure:**
+- Check `docker-compose logs odoo` to see Odoo initialization messages
+- Odoo logs "HTTP service (werkzeug) running on..." when ready
+- Healthcheck `/web/health` confirms Odoo can serve HTTP requests
+
 ## Code Guidelines
 
-### Logging
-
-All modules use simple, consistent logging via the `debug` npm package:
-
-```typescript
-import debug from 'debug';
-const log = debug('odoo-client:client');
-
-log('Connecting to %s', url);
-log('Read %d records from %s', count, model);
-```
-
-**Namespace Format**: `<package-name>:<functional-part>`
-
-**Examples**:
-- `odoo-client:client` - OdooClient main class
-- `odoo-client:rpc` - RPC transport layer
-- `odoo-client:introspection` - Schema introspection
-- `odoo-client:codegen` - Code generation
-- `odoo-state-manager:compare` - Diff comparison
-- `odoo-state-manager:plan` - Plan generation
-- `odoo-state-manager:apply` - Plan execution
-
-Debug output is off by default. Enable it for testing/development:
-
-```bash
-# Enable specific module
-DEBUG=odoo-client:* npm test
-
-# Enable all odoo-toolbox logging
-DEBUG=odoo-* npm test
-
-# Enable everything (verbose)
-DEBUG=* npm test
-```
-
-### Odoo Source References
-
-When implementing Odoo-specific behavior, **always reference the corresponding Odoo source code**. This is critical because Odoo's behavior is often undocumented.
-
-```typescript
-// ✅ GOOD: References Odoo source
-/**
- * Set activity type with context variable.
- * Handled in: addons/mail/models/mail_activity.py:_default_activity_type_id()
- * @see https://github.com/odoo/odoo/blob/17.0/addons/mail/models/mail_activity.py#L123
- */
-context.default_activity_type_id = activityTypeId;
-
-// ❌ BAD: No source reference
-context.default_activity_type_id = activityTypeId;
-```
-
-See [AGENTS.md](./AGENTS.md) for detailed patterns.
+For detailed coding patterns, logging conventions, and Odoo-specific implementation guidelines, see [AGENTS.md](./AGENTS.md).
 
 ### Type Safety
 
@@ -156,13 +136,16 @@ See [AGENTS.md](./AGENTS.md) for detailed patterns.
 
 ```
 packages/
-  odoo-client/           # RPC client + introspection + codegen
+  odoo-client/           # RPC client
     src/
       client/            # OdooClient class
-      codegen/           # TypeScript generation
-      introspection/     # Schema discovery
       rpc/               # RPC transport
       types/             # Type definitions
+  odoo-introspection/    # Schema introspection + codegen
+    src/
+      introspection/     # Schema discovery
+      codegen/           # TypeScript generation
+      cli/               # CLI tool
   odoo-state-manager/    # Drift detection + plan/apply
     src/
       compare/           # Deep diff logic
@@ -179,7 +162,7 @@ examples/                # Usage examples
 
 1. Create feature branch
 2. Add tests (unit first, integration if needed)
-3. Implement feature with Odoo source references
+3. Implement feature with Odoo source references (see [AGENTS.md](./AGENTS.md))
 4. Update relevant README in package
 5. Update ROADMAP.md with status
 
@@ -209,10 +192,19 @@ npm run check
 npm run publish
 ```
 
+## Contributing
+
+This is designed as a FOSS project. Code should be:
+- Well-typed
+- Tested
+- Documented (especially Odoo source references!)
+- Following the project's design principles
+
+See [AGENTS.md](./AGENTS.md) for implementation patterns and Odoo-specific knowledge.
+
 ## Resources
 
-- [AGENTS.md](./AGENTS.md) - Architecture and implementation patterns
-- [TESTING_FRAMEWORK.md](./TESTING_FRAMEWORK.md) - Detailed testing strategy
+- [AGENTS.md](./AGENTS.md) - Coding patterns and Odoo knowledge
 - [ROADMAP.md](./ROADMAP.md) - Project roadmap
 - [Odoo Source Code](https://github.com/odoo/odoo/tree/17.0)
 - [OCA Guidelines](https://github.com/OCA/odoo-community.org)
@@ -226,8 +218,5 @@ npm run publish
 
 ---
 
-**Status**: 🚧 Early Development - APIs will change
-
-**Node.js**: 18+  
-**TypeScript**: 5.0+  
-**Odoo**: v17 (v14+ planned)
+**Status**: Early Development - APIs will change
+**Node.js**: 18+ | **TypeScript**: 5.0+ | **Odoo**: v17 (v14+ planned)
