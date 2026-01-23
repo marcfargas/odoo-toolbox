@@ -15,6 +15,7 @@
  */
 
 import { OdooClient } from '../packages/odoo-client/src';
+import { Introspector } from '../packages/odoo-introspection/src';
 
 async function main() {
   const client = new OdooClient({
@@ -28,9 +29,12 @@ async function main() {
     await client.authenticate();
     console.log('🔐 Authenticated\n');
 
+    // Create introspector
+    const introspector = new Introspector(client);
+
     // List all models
     console.log('📦 Listing all models...');
-    const models = await client.getModels();
+    const models = await introspector.getModels();
     console.log(`✅ Found ${models.length} models\n`);
     console.log('First 10 models:');
     models.slice(0, 10).forEach((model) => {
@@ -46,7 +50,7 @@ async function main() {
 
     // Inspect fields for a specific model
     console.log('\n🔍 Inspecting "res.partner" model:');
-    const partnerFields = await client.getFields('res.partner');
+    const partnerFields = await introspector.getFields('res.partner');
     console.log(`✅ Found ${partnerFields.length} fields\n`);
 
     // Show field details
@@ -68,7 +72,7 @@ async function main() {
 
     // Get combined metadata (model + fields) for code generation
     console.log('💾 Getting metadata for code generation:');
-    const metadata = await client.getModelMetadata('res.partner');
+    const metadata = await introspector.getModelMetadata('res.partner');
     console.log(`✅ Got metadata for ${metadata.model.name}`);
     console.log(`   Fields: ${metadata.fields.length}`);
     console.log(`   This metadata can be used to generate TypeScript interfaces`);

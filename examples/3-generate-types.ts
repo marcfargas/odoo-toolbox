@@ -21,7 +21,8 @@
  */
 
 import { OdooClient } from '../packages/odoo-client/src';
-import { CodeGenerator } from '../packages/odoo-client/src/codegen';
+import { CodeGenerator, generateCompleteFile } from '../packages/odoo-introspection/src/codegen';
+import { Introspector } from '../packages/odoo-introspection/src/introspection';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -37,6 +38,9 @@ async function main() {
     await client.authenticate();
     console.log('🔐 Authenticated\n');
 
+    // Create introspector
+    const introspector = new Introspector(client);
+
     // Models to generate (just a few for this example)
     const modelsToGenerate = ['res.partner', 'sale.order', 'sale.order.line'];
 
@@ -46,7 +50,7 @@ async function main() {
     const metadataList = [];
     for (const modelName of modelsToGenerate) {
       try {
-        const metadata = await client.getModelMetadata(modelName);
+        const metadata = await introspector.getModelMetadata(modelName);
         metadataList.push(metadata);
         console.log(`   ✅ ${modelName}`);
       } catch (error) {
@@ -61,8 +65,7 @@ async function main() {
 
     // Generate TypeScript code
     console.log('\n🔧 Generating code...');
-    const generator = new CodeGenerator();
-    const generatedCode = generator.generateCompleteFile(metadataList);
+    const generatedCode = generateCompleteFile(metadataList);
 
     // Ensure output directory exists
     const outputDir = path.join(__dirname, 'generated');
