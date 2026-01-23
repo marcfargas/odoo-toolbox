@@ -304,6 +304,133 @@ interface ActivityContext {
 }
 ```
 
+## Using Odoo Introspection for Research
+
+**CRITICAL**: When working on Odoo-related features or investigating Odoo behavior, use the introspection tooling to query live Odoo instances. This is your primary research tool.
+
+### Starting the Local Odoo Instance
+
+Start the local Odoo test server before running introspection:
+
+```bash
+npm run docker:up
+```
+
+This starts an Odoo instance at `http://localhost:8069` with default credentials (admin/admin).
+
+### Running Introspection Examples
+
+The introspection package includes examples you can run directly:
+
+```bash
+# Basic schema introspection - see models and fields
+npx ts-node packages/odoo-introspection/examples/1-schema-introspection.ts
+
+# Environment variables for custom Odoo instances:
+ODOO_URL=http://localhost:8069 \
+ODOO_DATABASE=mydb \
+ODOO_USERNAME=admin \
+ODOO_PASSWORD=admin \
+npx ts-node packages/odoo-introspection/examples/1-schema-introspection.ts
+```
+
+### Quick Investigation Scripts
+
+Write inline scripts to explore specific questions. Use the compiled JS for faster execution:
+
+```bash
+# Search for specific field types or patterns
+node -e "
+const { OdooClient } = require('./packages/odoo-client/dist');
+
+async function main() {
+  const client = new OdooClient({
+    url: process.env.ODOO_URL || 'http://localhost:8069',
+    database: process.env.ODOO_DATABASE || 'odoo',
+    username: process.env.ODOO_USERNAME || 'admin',
+    password: process.env.ODOO_PASSWORD || 'admin',
+  });
+
+  await client.authenticate();
+
+  // Example: Search for fields containing 'properties'
+  const fields = await client.searchRead(
+    'ir.model.fields',
+    [['name', 'ilike', 'properties']],
+    { fields: ['name', 'model', 'ttype', 'field_description'] }
+  );
+
+  fields.forEach(f => {
+    console.log(f.model + '.' + f.name, '(' + f.ttype + '):', f.field_description);
+  });
+}
+
+main().catch(e => console.error('Error:', e.message));
+"
+```
+
+### Common Investigation Patterns
+
+**Find fields by name pattern:**
+```javascript
+await client.searchRead('ir.model.fields',
+  [['name', 'ilike', 'pattern']],
+  { fields: ['name', 'model', 'ttype', 'field_description', 'relation'] }
+);
+```
+
+**List all fields for a model:**
+```javascript
+await client.searchRead('ir.model.fields',
+  [['model', '=', 'project.task']],
+  { fields: ['name', 'ttype', 'field_description', 'required', 'readonly'] }
+);
+```
+
+**Check installed modules:**
+```javascript
+await client.searchRead('ir.module.module',
+  [['state', '=', 'installed']],
+  { fields: ['name', 'shortdesc'] }
+);
+```
+
+**Find models from a specific module:**
+```javascript
+await client.searchRead('ir.model',
+  [['modules', 'ilike', 'project']],
+  { fields: ['model', 'name', 'info'] }
+);
+```
+
+**Inspect field metadata (including selection options):**
+```javascript
+const fields = await client.call('ir.model.fields', 'search_read',
+  [[['model', '=', 'crm.lead'], ['name', '=', 'type']]],
+  { fields: ['name', 'ttype', 'selection'] }
+);
+```
+
+### When to Use Introspection
+
+1. **Before implementing Odoo-specific features**: Query the schema to understand field types, relations, and constraints
+2. **When investigating unknown behavior**: Check what fields exist, their types, and relationships
+3. **To verify assumptions**: Confirm field names, model structures, and module dependencies
+4. **When debugging**: Check actual data structures returned by Odoo
+5. **For documentation**: Discover available models and their purposes
+
+### Introspection vs. Source Code
+
+| Use Introspection | Use Source Code (GitHub) |
+|-------------------|-------------------------|
+| What fields exist on a model | How a field computes its value |
+| Field types and relations | Business logic and validation |
+| Installed modules | Context variable handling |
+| Actual data examples | Method implementations |
+| Schema of YOUR Odoo instance | Default Odoo behavior |
+
+**Best practice**: Start with introspection to understand the schema, then dive into Odoo source code to understand behavior.
+
 ## Getting Help
 
 - **Odoo Community (OCA) Documentation**: https://odoo-community.org/
