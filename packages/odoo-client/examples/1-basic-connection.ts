@@ -31,21 +31,20 @@ async function main() {
     const sessionInfo = await client.authenticate();
     console.log('✅ Authentication successful');
     console.log(`   User ID: ${sessionInfo.uid}`);
-    console.log(`   Username: ${sessionInfo.username}`);
-    console.log(`   Company: ${sessionInfo.company_name}`);
+    console.log(`   Session ID: ${sessionInfo.session_id}`);
+    console.log(`   Database: ${sessionInfo.db}`);
 
     // Optional: Verify connection by making a simple call
     console.log('\n🔍 Verifying connection...');
-    const [partnerId] = await client.search('res.partner', [
-      ['id', '=', sessionInfo.partner_id],
-    ]);
+    // Read the current user's partner record
+    const [user] = await client.read('res.users', [sessionInfo.uid], ['partner_id']);
+    const partnerId = Array.isArray(user.partner_id) ? user.partner_id[0] : user.partner_id;
     const [partner] = await client.read('res.partner', [partnerId], [
-      'id',
       'name',
       'email',
     ]);
     console.log('✅ Connection verified');
-    console.log(`   Partner: ${partner.name} (${partner.email})`);
+    console.log(`   Partner: ${partner.name}${partner.email ? ` (${partner.email})` : ''}`);
 
     // Logout (optional but good practice)
     console.log('\n👋 Logging out...');

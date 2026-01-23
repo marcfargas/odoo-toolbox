@@ -80,8 +80,10 @@ describe('odoo-client examples', () => {
       const success = await client.unlink('res.partner', [testPartnerId]);
       expect(success).toBe(true);
 
-      // Partner may still exist briefly due to Odoo caching, just verify delete succeeded
-      // The actual deletion is confirmed by the return value from unlink()
+      // Verify deletion using search (bypasses read cache)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const foundIds = await client.search('res.partner', [['id', '=', testPartnerId]]);
+      expect(foundIds.length).toBe(0);
     });
 
     it('should batch create partners', async () => {
@@ -94,8 +96,11 @@ describe('odoo-client examples', () => {
       expect(ids).toHaveLength(3);
       ids.forEach((id) => expect(id).toBeGreaterThan(0));
 
-      // Cleanup
+      // Cleanup and verify deletion
       await client.unlink('res.partner', ids);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const foundIds = await client.search('res.partner', [['id', 'in', ids]]);
+      expect(foundIds.length).toBe(0);
     });
   });
 

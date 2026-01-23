@@ -21,6 +21,23 @@
 
 import { OdooClient } from '../src';
 
+/**
+ * Verify that records have been deleted from Odoo
+ * Uses search() instead of read() to bypass Odoo's read cache
+ */
+async function verifyDeleted(
+  client: OdooClient,
+  model: string,
+  ids: number[]
+): Promise<boolean> {
+  // Wait for Odoo cache to clear
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  // Search for the IDs - should return empty if deleted
+  const foundIds = await client.search(model, [['id', 'in', ids]]);
+  return foundIds.length === 0;
+}
+
 async function main() {
   const client = new OdooClient({
     url: 'http://localhost:8069',
@@ -93,10 +110,10 @@ async function main() {
     const deleteResult = await client.unlink('res.partner', [partnerId]);
     console.log(`✅ Deleted record (success: ${deleteResult})`);
 
-    // Try to read the deleted record (should fail or return empty)
+    // Verify deletion
     console.log('\n📖 Verifying deletion...');
-    const deleted = await client.read('res.partner', [partnerId], ['id']);
-    if (deleted.length === 0) {
+    const isDeleted = await verifyDeleted(client, 'res.partner', [partnerId]);
+    if (isDeleted) {
       console.log('✅ Record is gone');
     } else {
       console.log('⚠️  Record still exists (unexpected)');
@@ -117,6 +134,15 @@ async function main() {
     console.log('\n🔄 BATCH DELETE: Cleaning up...');
     const batchDeleteResult = await client.unlink('res.partner', batchIds);
     console.log(`✅ Deleted ${batchIds.length} records (success: ${batchDeleteResult})`);
+
+    // Verify batch deletion
+    console.log('\n📖 Verifying batch deletion...');
+    const areBatchDeleted = await verifyDeleted(client, 'res.partner', batchIds);
+    if (areBatchDeleted) {
+      console.log('✅ All batch records are gone');
+    } else {
+      console.log('⚠️  Some records still exist (unexpected)');
+    }
 
     await client.logout();
   } catch (error) {
