@@ -11,7 +11,7 @@
  */
 
 import { ExecutionPlan, Operation } from '../src/plan/types';
-import { applyPlan, dryRunPlan, ApplyResult } from '../src/apply';
+import { applyPlan, dryRunPlan } from '../src/apply';
 
 // Mock OdooClient
 class MockOdooClient {
@@ -23,7 +23,7 @@ class MockOdooClient {
   async create(
     model: string,
     values: Record<string, any>,
-    context: Record<string, any> = {}
+    _context: Record<string, any> = {}
   ): Promise<number> {
     this.recordOperation('create', model, values);
     if (this.failOn?.type === 'create' && this.failOn.model === model) {
@@ -37,7 +37,7 @@ class MockOdooClient {
     model: string,
     id: number | number[],
     values: Record<string, any>,
-    context: Record<string, any> = {}
+    _context: Record<string, any> = {}
   ): Promise<boolean> {
     this.recordOperation('write', model, values);
     if (this.failOn?.type === 'update' && this.failOn.model === model) {
@@ -47,7 +47,7 @@ class MockOdooClient {
     return true;
   }
 
-  async unlink(model: string, id: number | number[]): Promise<boolean> {
+  async unlink(model: string, _id: number | number[]): Promise<boolean> {
     this.recordOperation('unlink', model, {});
     if (this.failOn?.type === 'delete' && this.failOn.model === model) {
       throw new Error(`Mock: unlink failed for ${model}`);

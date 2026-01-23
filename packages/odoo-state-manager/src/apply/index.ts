@@ -12,7 +12,7 @@
 
 import { OdooClient } from '@odoo-toolbox/client';
 import { ExecutionPlan, Operation } from '../plan/types';
-import { ApplyResult, OperationResult, ApplyOptions, DryRunOptions } from './types';
+import { ApplyResult, OperationResult, ApplyOptions } from './types';
 
 /**
  * Apply an execution plan to Odoo.

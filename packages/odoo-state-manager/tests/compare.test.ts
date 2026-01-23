@@ -9,7 +9,7 @@
  * - Multiple record comparison
  */
 
-import { compareRecord, compareRecords, CompareOptions } from '../src/compare';
+import { compareRecord, compareRecords } from '../src/compare';
 import { OdooField } from '@odoo-toolbox/client';
 
 describe('State Comparison Module', () => {

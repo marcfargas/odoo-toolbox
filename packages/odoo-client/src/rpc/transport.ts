@@ -5,31 +5,14 @@
  * Handles authentication, request/response formatting, and error parsing
  */
 
+import debug from 'debug';
 import { OdooRpcError, OdooNetworkError, OdooAuthError } from '../types/errors';
+import { JsonRpcRequest, JsonRpcResponse, OdooSessionInfo } from './types';
 
-export interface JsonRpcRequest {
-  jsonrpc: '2.0';
-  method: string;
-  params: Record<string, any>;
-  id: number | string;
-}
+// Re-export types for convenience
+export { JsonRpcRequest, JsonRpcResponse, OdooSessionInfo };
 
-export interface JsonRpcResponse<T = any> {
-  jsonrpc: '2.0';
-  result?: T;
-  error?: {
-    code: number;
-    message: string;
-    data?: any;
-  };
-  id: number | string;
-}
-
-export interface OdooSessionInfo {
-  uid: number;
-  session_id: string;
-  db: string;
-}
+const log = debug('odoo-client:rpc');
 
 /**
  * JSON-RPC transport client for Odoo
@@ -79,12 +62,16 @@ export class JsonRpcTransport {
    * @see https://www.odoo.com/documentation/17.0/developer/howtos/web_services.html#json-rpc-library
    */
   async authenticate(username: string, password: string): Promise<OdooSessionInfo> {
+    log(`authenticate ${username}@${this.db}`);
+    
     try {
+      const startTime = Date.now();
       const uid = await this.callRpc<number>('call', {
         service: 'common',
         method: 'login',
         args: [this.db, username, password],
       });
+      const duration = Date.now() - startTime;
 
       if (!uid || typeof uid !== 'number' || uid === 0) {
         throw new OdooAuthError('Authentication failed - invalid credentials');
@@ -99,8 +86,11 @@ export class JsonRpcTransport {
         db: this.db,
       };
 
+      log(`authenticated ${username}@${this.db} uid=${uid} (${duration}ms)`);
       return this.sessionInfo;
     } catch (error) {
+      log(`auth failed ${username}@${this.db}: ${error instanceof Error ? error.message : String(error)}`);
+      
       if (error instanceof OdooAuthError) {
         throw error;
       }
@@ -185,12 +175,25 @@ export class JsonRpcTransport {
     args: any[] = [],
     kwargs: Record<string, any> = {}
   ): Promise<T> {
-    return this.callRpc<T>('call', {
-      service: 'object',
-      method: 'execute',
-      args: [this.db, this.sessionInfo?.uid || 0, this.password, model, method, ...args],
-      kwargs,
-    });
+    log(`→ ${model}.${method}()`);
+    
+    const startTime = Date.now();
+    try {
+      const result = await this.callRpc<T>('call', {
+        service: 'object',
+        method: 'execute',
+        args: [this.db, this.sessionInfo?.uid || 0, this.password, model, method, ...args],
+        kwargs,
+      });
+      
+      const duration = Date.now() - startTime;
+      log(`← ${model}.${method}() [${duration}ms]`);
+      return result;
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      log(`✗ ${model}.${method}() [${duration}ms]: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    }
   }
 
   /**

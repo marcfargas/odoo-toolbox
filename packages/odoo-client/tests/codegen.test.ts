@@ -16,7 +16,7 @@ import {
   generateCompleteFile,
   generateHelperTypes,
 } from '../src/codegen/formatter';
-import { OdooField, ModelMetadata, OdooModel } from '../src/introspection/types';
+import { OdooField, ModelMetadata } from '../src/introspection/types';
 
 describe('Type Mappers', () => {
   describe('mapFieldType', () => {

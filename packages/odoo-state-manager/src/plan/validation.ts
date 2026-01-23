@@ -242,7 +242,7 @@ function validateTempIdReference(
   operationIndex: number,
   allOperations: Operation[]
 ): ValidationError | null {
-  const [refModel, refIdPart] = tempId.split(':');
+  const [refModel] = tempId.split(':');
 
   // Find the operation being referenced
   const referencedOp = allOperations.find(
