@@ -1,5 +1,5 @@
 /**
- * Example 8: Planning Without Applying - CI/CD Validation
+ * Example 2: Planning Without Applying - CI/CD Validation
  * 
  * This example shows how to use the planning and dry-run features
  * for CI/CD pipelines without making actual changes.
@@ -14,7 +14,7 @@ import {
   generatePlan,
   formatPlanForConsole,
   dryRunPlan,
-} from '@odoo-toolbox/state-manager';
+} from '../src';
 
 async function main() {
   const client = new OdooClient({

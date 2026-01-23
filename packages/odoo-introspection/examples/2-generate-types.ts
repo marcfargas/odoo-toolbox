@@ -1,5 +1,5 @@
 /**
- * Example 3: Generate TypeScript Types
+ * Example 2: Generate TypeScript Types
  *
  * Demonstrates how to:
  * - Use the code generator to create TypeScript interfaces from Odoo schema
@@ -11,18 +11,18 @@
  * - Odoo instance running and authenticated
  * - An output directory for generated files
  *
- * Run: npx ts-node examples/3-generate-types.ts
+ * Run: npx ts-node packages/odoo-introspection/examples/2-generate-types.ts
  *
  * This generates a file like:
- *   examples/generated/models.ts
+ *   packages/odoo-introspection/examples/generated/models.ts
  *
  * Which can then be imported:
  *   import { ResPartner, SaleOrder } from './generated/models'
  */
 
-import { OdooClient } from '../packages/odoo-client/src';
-import { generateCompleteFile } from '../packages/odoo-introspection/src/codegen';
-import { Introspector } from '../packages/odoo-introspection/src/introspection';
+import { OdooClient } from '@odoo-toolbox/client';
+import { generateCompleteFile } from '../src/codegen';
+import { Introspector } from '../src/introspection';
 import * as fs from 'fs';
 import * as path from 'path';
 

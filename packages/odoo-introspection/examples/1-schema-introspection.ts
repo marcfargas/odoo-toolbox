@@ -1,5 +1,5 @@
 /**
- * Example 2: Schema Introspection
+ * Example 1: Schema Introspection
  *
  * Demonstrates how to:
  * - List all available Odoo models
@@ -9,13 +9,13 @@
  * - Work with the schema dynamically
  *
  * Prerequisites:
- * - Odoo instance running and authenticated (see example 1)
+ * - Odoo instance running and authenticated
  *
- * Run: npx ts-node examples/2-schema-introspection.ts
+ * Run: npx ts-node packages/odoo-introspection/examples/1-schema-introspection.ts
  */
 
-import { OdooClient } from '../packages/odoo-client/src';
-import { Introspector } from '../packages/odoo-introspection/src';
+import { OdooClient } from '@odoo-toolbox/client';
+import { Introspector } from '../src';
 
 async function main() {
   const client = new OdooClient({

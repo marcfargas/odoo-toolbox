@@ -1,5 +1,5 @@
 /**
- * Example 5: Search and Filtering
+ * Example 3: Search and Filtering
  *
  * Demonstrates how to:
  * - Search with Odoo domain filters
@@ -14,10 +14,10 @@
  * - Odoo instance running and authenticated
  * - Some sample data in res.partner
  *
- * Run: npx ts-node examples/5-search-and-filter.ts
+ * Run: npx ts-node packages/odoo-client/examples/3-search-and-filter.ts
  */
 
-import { OdooClient } from '../packages/odoo-client/src';
+import { OdooClient } from '../src';
 
 async function main() {
   const client = new OdooClient({

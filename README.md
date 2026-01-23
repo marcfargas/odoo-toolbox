@@ -39,7 +39,11 @@ See each package README for detailed usage:
 2. **[Introspection](./packages/odoo-introspection/README.md)** - Generate TypeScript types from schema
 3. **[State Manager](./packages/odoo-state-manager/README.md)** - Compare, plan, apply workflow
 
-Or explore the [examples/](./examples/) directory for runnable code samples.
+Or explore the examples in each package:
+
+- **[odoo-client examples](./packages/odoo-client/examples/)** - Connection, CRUD, search, context
+- **[odoo-introspection examples](./packages/odoo-introspection/examples/)** - Schema introspection, type generation
+- **[odoo-state-manager examples](./packages/odoo-state-manager/examples/)** - State management, CI/CD validation
 
 ## Use Cases
 
@@ -53,7 +57,9 @@ Or explore the [examples/](./examples/) directory for runnable code samples.
 
 | Document | Audience | Purpose |
 |----------|----------|---------|
-| [examples/](./examples/) | Users | Runnable code samples (8 examples) |
+| [packages/odoo-client/examples](./packages/odoo-client/examples/) | Users | Client examples: connection, CRUD, search, context |
+| [packages/odoo-introspection/examples](./packages/odoo-introspection/examples/) | Users | Introspection examples: schema discovery, type generation |
+| [packages/odoo-state-manager/examples](./packages/odoo-state-manager/examples/) | Users | State manager examples: drift detection, plan/apply |
 | [DEVELOPMENT.md](./DEVELOPMENT.md) | Contributors | Setup, testing, contributing |
 | [AGENTS.md](./AGENTS.md) | AI Assistants | Coding patterns, Odoo knowledge |
 | [ROADMAP.md](./ROADMAP.md) | All | Future vision and design decisions |

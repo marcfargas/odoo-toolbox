@@ -14,14 +14,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 describe('Examples', () => {
-  const examplesDir = path.join(__dirname, '..', '..', '..', 'examples');
+  const examplesDir = path.join(__dirname, '..', 'examples');
   const exampleFiles = [
     '1-basic-connection.ts',
-    '2-schema-introspection.ts',
-    '3-generate-types.ts',
-    '4-crud-operations.ts',
-    '5-search-and-filter.ts',
-    '6-context-and-batch.ts',
+    '2-crud-operations.ts',
+    '3-search-and-filter.ts',
+    '4-context-and-batch.ts',
   ];
 
   describe('File Structure', () => {
@@ -73,26 +71,8 @@ describe('Examples', () => {
       expect(content).toContain('read');
     });
 
-    it('example 2 should demonstrate introspection', () => {
-      const filePath = path.join(examplesDir, '2-schema-introspection.ts');
-      const content = fs.readFileSync(filePath, 'utf-8');
-      
-      expect(content).toContain('getModels');
-      expect(content).toContain('getFields');
-      expect(content).toContain('getModelMetadata');
-    });
-
-    it('example 3 should demonstrate code generation', () => {
-      const filePath = path.join(examplesDir, '3-generate-types.ts');
-      const content = fs.readFileSync(filePath, 'utf-8');
-      
-      expect(content).toContain('generateCompleteFile');
-      expect(content).toContain('getModelMetadata');
-      expect(content).toContain('writeFileSync');
-    });
-
-    it('example 4 should demonstrate CRUD', () => {
-      const filePath = path.join(examplesDir, '4-crud-operations.ts');
+    it('example 2 should demonstrate CRUD', () => {
+      const filePath = path.join(examplesDir, '2-crud-operations.ts');
       const content = fs.readFileSync(filePath, 'utf-8');
       
       expect(content).toContain('create');
@@ -101,8 +81,8 @@ describe('Examples', () => {
       expect(content).toContain('unlink');
     });
 
-    it('example 5 should demonstrate search', () => {
-      const filePath = path.join(examplesDir, '5-search-and-filter.ts');
+    it('example 3 should demonstrate search', () => {
+      const filePath = path.join(examplesDir, '3-search-and-filter.ts');
       const content = fs.readFileSync(filePath, 'utf-8');
       
       expect(content).toContain('search');
@@ -112,8 +92,8 @@ describe('Examples', () => {
       expect(content).toContain('limit');
     });
 
-    it('example 6 should demonstrate context and batch', () => {
-      const filePath = path.join(examplesDir, '6-context-and-batch.ts');
+    it('example 4 should demonstrate context and batch', () => {
+      const filePath = path.join(examplesDir, '4-context-and-batch.ts');
       const content = fs.readFileSync(filePath, 'utf-8');
       
       expect(content).toContain('context');
@@ -131,15 +111,12 @@ describe('Examples', () => {
       
       // Check each example is documented
       expect(content).toContain('1. Basic Connection');
-      expect(content).toContain('2. Schema Introspection');
-      expect(content).toContain('3. Generate TypeScript Types');
-      expect(content).toContain('4. CRUD Operations');
-      expect(content).toContain('5. Search and Filtering');
-      expect(content).toContain('6. Context Variables');
+      expect(content).toContain('2. CRUD Operations');
+      expect(content).toContain('3. Search and Filtering');
+      expect(content).toContain('4. Context Variables');
       
       // Check common patterns section
-      expect(content).toContain('Common Patterns');
-      expect(content).toContain('Tips & Best Practices');
+      expect(content).toContain('Quick Start');
       expect(content).toContain('Troubleshooting');
     });
 

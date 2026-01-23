@@ -11,10 +11,10 @@
  * - Odoo instance running at http://localhost:8069
  * - Valid credentials: admin / admin
  *
- * Run: npx ts-node examples/1-basic-connection.ts
+ * Run: npx ts-node packages/odoo-client/examples/1-basic-connection.ts
  */
 
-import { OdooClient } from '../packages/odoo-client/src';
+import { OdooClient } from '../src';
 
 async function main() {
   // Create client with connection config
