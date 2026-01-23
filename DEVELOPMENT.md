@@ -85,6 +85,42 @@ KEEP_CONTAINERS=false
 
 ## Code Guidelines
 
+### Logging
+
+All modules use simple, consistent logging via the `debug` npm package:
+
+```typescript
+import debug from 'debug';
+const log = debug('odoo-client:client');
+
+log('Connecting to %s', url);
+log('Read %d records from %s', count, model);
+```
+
+**Namespace Format**: `<package-name>:<functional-part>`
+
+**Examples**:
+- `odoo-client:client` - OdooClient main class
+- `odoo-client:rpc` - RPC transport layer
+- `odoo-client:introspection` - Schema introspection
+- `odoo-client:codegen` - Code generation
+- `odoo-state-manager:compare` - Diff comparison
+- `odoo-state-manager:plan` - Plan generation
+- `odoo-state-manager:apply` - Plan execution
+
+Debug output is off by default. Enable it for testing/development:
+
+```bash
+# Enable specific module
+DEBUG=odoo-client:* npm test
+
+# Enable all odoo-toolbox logging
+DEBUG=odoo-* npm test
+
+# Enable everything (verbose)
+DEBUG=* npm test
+```
+
 ### Odoo Source References
 
 When implementing Odoo-specific behavior, **always reference the corresponding Odoo source code**. This is critical because Odoo's behavior is often undocumented.

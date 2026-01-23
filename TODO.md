@@ -2,6 +2,15 @@
 
 Tasks that are designed and ready for implementation. Organized by priority.
 
+## Upcoming
+
+### Logging Audit
+- [ ] Audit all logging calls to match namespace convention (package:part)
+- [ ] Replace any custom logging wrappers with `debug()` package
+- [ ] Verify all loggers follow pattern: `debug('package:part')`
+- [ ] Update any undocumented loggers with namespace comments
+- [ ] Add debug namespace documentation to each package README
+
 ## P0 - Foundation (Week 1-2)
 
 ### Project Setup
