@@ -18,10 +18,29 @@
 ### Installation
 
 ```bash
+# Core packages
 npm install @odoo-toolbox/client @odoo-toolbox/state-manager
+
+# For code generation (dev dependency recommended)
+npm install --save-dev @odoo-toolbox/introspection
 ```
 
-### 1. Connect to Odoo
+### 1. Generate Types (Optional)
+
+```typescript
+// Use @odoo-toolbox/introspection to generate types
+// from your live Odoo schema:
+//
+// npx odoo-introspect generate \
+//   --url https://myodoo.com \
+//   --db mydb \
+//   --password admin \
+//   --output src/models
+//
+// This generates src/models/generated.ts with typed interfaces
+```
+
+### 2. Connect to Odoo
 
 ```typescript
 import { OdooClient } from '@odoo-toolbox/client';
@@ -36,7 +55,7 @@ const client = new OdooClient({
 await client.authenticate();
 ```
 
-### 2. Compare Desired vs Actual State
+### 3. Compare Desired vs Actual State
 
 ```typescript
 import { compareRecords } from '@odoo-toolbox/state-manager';
@@ -55,7 +74,7 @@ const diffs = compareRecords('project.task', desired, actual);
 // Returns: Changes detected in record 1 only
 ```
 
-### 3. Generate Execution Plan
+### 4. Generate Execution Plan
 
 ```typescript
 import { generatePlan, formatPlanForConsole } from '@odoo-toolbox/state-manager';
@@ -73,7 +92,7 @@ console.log(formatPlanForConsole(plan));
 // Plan: 0 to add, 1 to change, 0 to destroy.
 ```
 
-### 4. Apply Changes
+### 5. Apply Changes
 
 ```typescript
 // Review and apply
@@ -85,15 +104,32 @@ if (!plan.summary.hasErrors) {
 
 ## 📦 Packages
 
+The odoo-toolbox monorepo consists of three complementary packages:
+
 ### @odoo-toolbox/client
 
-RPC client with schema introspection and code generation.
+Lightweight RPC client for Odoo operations.
 
-- Typed RPC calls with context support
-- Automatic schema introspection from ir.model
-- TypeScript code generation for custom modules
+- Typed RPC calls (search, read, create, write, delete)
+- Context and domain filter support
+- Batch operation support
+- Full TypeScript generics for type safety
 
 [📖 Client Documentation](./packages/odoo-client/README.md)
+
+### @odoo-toolbox/introspection
+
+Schema introspection and TypeScript code generation.
+
+- Query Odoo models and fields from `ir.model`
+- Generate TypeScript interfaces from live schemas
+- Field type mapping (Odoo → TypeScript)
+- Built-in result caching
+- CLI tool: `odoo-introspect generate`
+
+**Separation of Concerns**: Introspection is dev-time only (not needed in production), so it's in a separate package to keep runtime dependencies light.
+
+[📖 Introspection Documentation](./packages/odoo-introspection/README.md)
 
 ### @odoo-toolbox/state-manager
 
