@@ -10,7 +10,7 @@
  * - null values and empty arrays are normalized for comparison
  */
 
-import { OdooField } from '@odoo-toolbox/client';
+import { OdooField } from '@odoo-toolbox/introspection';
 import { FieldChange, ModelDiff } from '../types';
 
 /**
