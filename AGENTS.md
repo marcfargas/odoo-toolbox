@@ -50,6 +50,38 @@ Similar to Terraform:
 
 ## Implementation Guidelines
 
+### Logging Convention
+
+Keep logging simple and consistent. Each module creates a logger using the `debug()` function with a fixed namespace pattern:
+
+**Pattern**: `package:part` or `package:subpart`
+
+**Examples**:
+```typescript
+// packages/odoo-client/src/client/odoo-client.ts
+import debug from 'debug';
+const log = debug('odoo-client:client');
+
+log('Connected to Odoo at %s', url);
+log('Executing RPC call: %s.%s', model, method);
+
+// packages/odoo-client/src/rpc/transport.ts
+const log = debug('odoo-client:rpc');
+log('POST %s with headers', endpoint);
+
+// packages/odoo-state-manager/src/plan/index.ts
+const log = debug('odoo-state-manager:plan');
+log('Generating execution plan for %d changes', diffs.length);
+```
+
+**Guidelines**:
+- Use the `debug` npm package (no custom logging wrappers)
+- Namespace follows: `<package-name>:<functional-part>`
+- Always use function-like format (e.g., `debug('odoo-client:client')`) - never object constructors
+- Debug output is off by default; users enable with `DEBUG=odoo-client:* npm test`
+- Don't log sensitive data (passwords, auth tokens)
+- Use %s, %d, %o formatting instead of string concatenation
+
 ### Documenting Odoo Source References
 
 **CRITICAL**: When implementing Odoo-specific behavior, context handling, or quirks, ALWAYS reference the corresponding Odoo source code.
