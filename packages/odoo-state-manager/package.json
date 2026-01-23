@@ -18,7 +18,8 @@
   "author": "Marc",
   "license": "MIT",
   "dependencies": {
-    "@odoo-toolbox/client": "^0.1.0"
+    "@odoo-toolbox/client": "^0.1.0",
+    "@odoo-toolbox/introspection": "^0.1.0"
   },
   "devDependencies": {
     "@types/jest": "^29.0.0",

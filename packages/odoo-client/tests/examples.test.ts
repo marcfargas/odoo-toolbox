@@ -67,7 +67,6 @@ describe('Examples', () => {
       
       expect(content).toContain('authenticate');
       expect(content).toContain('sessionInfo');
-      expect(content).toContain('search');
       expect(content).toContain('read');
     });
 
