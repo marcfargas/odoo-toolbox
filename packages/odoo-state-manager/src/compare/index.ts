@@ -11,7 +11,7 @@
  */
 
 import { OdooField } from '@odoo-toolbox/client';
-import { FieldChange, ModelDiff, ComparisonResult } from '../types';
+import { FieldChange, ModelDiff } from '../types';
 
 /**
  * Options for comparison behavior.

@@ -9,7 +9,7 @@
  * - Edge cases (empty plans, cycles, max operations)
  */
 
-import { generatePlan, Operation, ExecutionPlan } from '../src/plan';
+import { generatePlan } from '../src/plan';
 import { ModelDiff, FieldChange } from '../src/types';
 
 describe('Plan Generation Module', () => {
@@ -130,17 +130,6 @@ describe('Plan Generation Module', () => {
     });
 
     it('handles create, update, delete order', () => {
-      const diffs: ModelDiff[] = [
-        {
-          model: 'project.task',
-          id: 3,
-          changes: [],
-          isNew: false,
-          // Simulating a delete would require different diff structure
-          // For now, just test ordering of create/update/delete operations
-        },
-      ];
-
       // Create a diff and plan with multiple operation types
       const diffs2: ModelDiff[] = [
         {

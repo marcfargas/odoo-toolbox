@@ -10,7 +10,7 @@
  */
 
 import { formatPlanForConsole } from '../src/plan/formatter';
-import { ExecutionPlan, Operation } from '../src/plan';
+import { ExecutionPlan } from '../src/plan';
 
 describe('Plan Formatter', () => {
   describe('formatPlanForConsole - Empty Plans', () => {

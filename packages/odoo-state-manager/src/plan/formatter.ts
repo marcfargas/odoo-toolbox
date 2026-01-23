@@ -68,7 +68,7 @@ export function formatPlanForConsole(plan: ExecutionPlan, colorize: boolean = is
   }
 
   // Format each model's operations
-  for (const [model, operations] of operationsByModel) {
+  for (const [, operations] of operationsByModel) {
     for (const op of operations) {
       lines.push(formatOperation(op, colorize));
     }
@@ -88,7 +88,7 @@ function formatOperation(op: Operation, colorize: boolean): string {
   const lines: string[] = [];
 
   // Operation header with model and ID
-  const symbol = getOperationSymbol(op.type, colorize);
+  const symbol = getOperationSymbol(op.type);
   const color = getOperationColor(op.type, colorize);
   const reset = colorize ? colors.reset : '';
 
@@ -116,7 +116,7 @@ function formatOperation(op: Operation, colorize: boolean): string {
  * Format a single field change.
  */
 function formatFieldChange(opType: string, field: string, newValue: any, colorize: boolean): string {
-  const symbol = getOperationSymbol(opType, colorize);
+  const symbol = getOperationSymbol(opType);
   const color = getOperationColor(opType, colorize);
   const reset = colorize ? colors.reset : '';
 
@@ -136,7 +136,7 @@ function formatFieldChange(opType: string, field: string, newValue: any, coloriz
 /**
  * Get the symbol for an operation type.
  */
-function getOperationSymbol(opType: string, colorize: boolean): string {
+function getOperationSymbol(opType: string): string {
   switch (opType) {
     case 'create':
       return '+';

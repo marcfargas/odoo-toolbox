@@ -8,7 +8,7 @@
  * - Generating index file with all exports
  */
 
-import { OdooField, ModelMetadata } from '../introspection/types';
+import { ModelMetadata } from '../introspection/types';
 import { getFieldTypeExpression, generateFieldJSDoc, isWritableField } from './type-mappers';
 
 /**
@@ -108,7 +108,7 @@ export function generateModelInterface(metadata: ModelMetadata): string {
   lines.push('');
 
   const writableFields = metadata.fields.filter(isWritableField);
-  const writableFieldNames = writableFields.map(f => f.name).join(' | ');
+  writableFields.map(f => f.name).join(' | ');
   
   lines.push('  /**');
   lines.push('   * Create a new record with the given values.');

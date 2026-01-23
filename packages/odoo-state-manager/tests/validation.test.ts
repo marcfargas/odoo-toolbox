@@ -10,7 +10,7 @@ import {
   suggestErrorFixes,
   ValidationResult,
 } from '../src/plan/validation';
-import { ExecutionPlan, Operation } from '../src/plan/types';
+import { ExecutionPlan } from '../src/plan/types';
 
 describe('Plan Validation', () => {
   describe('validatePlanReferences', () => {

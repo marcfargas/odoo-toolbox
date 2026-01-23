@@ -39,7 +39,6 @@ export function generatePlan(
   options: PlanOptions = {}
 ): ExecutionPlan {
   const {
-    enableBatching = true,
     validateDependencies = true,
     autoReorder = true,
     maxOperations = 10000,
@@ -153,14 +152,14 @@ function extractValues(changes: FieldChange[]): Record<string, any> {
 function resolveDependencies(
   operation: Operation,
   allOperations: Operation[],
-  currentIdx: number
+  _currentIdx: number
 ): string[] {
   const dependencies: string[] = [];
 
   // For now, simple heuristic: if this is a create operation that references
   // other models (via many2one fields in values), depend on their create operations
   if (operation.type === 'create' && operation.values) {
-    for (const [fieldName, value] of Object.entries(operation.values)) {
+    for (const [, value] of Object.entries(operation.values)) {
       // Check if value is a temp ID (newly created record)
       if (typeof value === 'string' && value.includes(':temp_')) {
         // Find the operation that creates this record

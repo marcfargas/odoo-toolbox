@@ -15,7 +15,6 @@ import {
   formatPlanForConsole,
   dryRunPlan,
 } from '@odoo-toolbox/state-manager';
-import * as fs from 'fs';
 
 async function main() {
   const client = new OdooClient({
