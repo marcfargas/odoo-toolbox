@@ -1,50 +1,15 @@
 # @odoo-toolbox/client
 
-TypeScript client for Odoo with schema introspection and code generation.
+Lightweight TypeScript client for Odoo RPC operations.
 
 ## Features
 
-- JSON-RPC and XML-RPC support
-- Schema introspection
-- TypeScript code generation
+- JSON-RPC support
+- CRUD operations (create, read, search, write, delete)
 - Context and domain filter support
-- Batch operations
-
-## Connection
-
-Provide connection details when creating `OdooClient`:
-
-```typescript
-import { OdooClient } from '@odoo-toolbox/client';
-
-const client = new OdooClient({
-	url: process.env.ODOO_URL || 'http://localhost:8069',
-	database: process.env.ODOO_DB_NAME || 'odoo',
-	username: process.env.ODOO_DB_USER || 'admin',
-	password: process.env.ODOO_DB_PASSWORD || 'admin',
-	// Optional: timeoutMs, headers, context
-});
-
-await client.authenticate();
-```
-
-### Options
-
-- `url`: Odoo base URL (HTTP/HTTPS)
-- `database`: Database name
-- `username` / `password`: Credentials
-- `context`: Default context for all calls (overridable per call)
-- `timeoutMs` (optional): Request timeout
-- `headers` (optional): Additional HTTP headers
-
-Environment variable overrides (recommended for scripts/CI):
-
-```
-ODOO_URL=http://localhost:8069
-ODOO_DB_NAME=odoo
-ODOO_DB_USER=admin
-ODOO_DB_PASSWORD=admin
-```
+- Batch operation support
+- Full TypeScript support with generics
+- Comprehensive error handling
 
 ## Installation
 
@@ -52,73 +17,83 @@ ODOO_DB_PASSWORD=admin
 npm install @odoo-toolbox/client
 ```
 
-## Usage
-
-See main [README](../../README.md) and [examples/](../../examples/README.md) for runnable samples.
-
-### Generated Types (Overview)
-
-Types are generated from your live Odoo schema. Fields marked required remain required; optional fields are `type | undefined`. Relational fields map to IDs/arrays of IDs.
+## Quick Start
 
 ```typescript
-// Odoo model: res.partner
-export interface ResPartner {
-	id: number;
-	name: string;
-	email?: string | undefined;
-	is_company?: boolean | undefined;
-	country_id?: number | undefined; // many2one -> number
-	category_id?: number[] | undefined; // many2many -> number[]
-}
+import { OdooClient } from '@odoo-toolbox/client';
+
+// Create client
+const client = new OdooClient({
+  url: 'http://localhost:8069',
+  database: 'odoo_dev',
+  username: 'admin',
+  password: 'admin',
+});
+
+// Authenticate
+await client.authenticate();
+
+// Search
+const ids = await client.search('res.partner', [['name', 'ilike', 'John']]);
+
+// Read
+const records = await client.read('res.partner', ids, ['name', 'email']);
+
+// Create
+const newId = await client.create('res.partner', { name: 'Acme Corp' });
+
+// Update
+await client.write('res.partner', [newId], { email: 'info@acme.com' });
+
+// Delete
+await client.unlink('res.partner', [newId]);
 ```
 
-Generated helper types:
+## Connection Configuration
 
 ```typescript
-export interface SearchOptions {
-	domain?: any[];
-	order?: string;
-	limit?: number;
-	offset?: number;
-	context?: Record<string, any>;
-}
+const client = new OdooClient({
+  url: 'http://localhost:8069',           // Odoo base URL
+  database: 'odoo_dev',                   // Database name
+  username: 'admin',                      // Username
+  password: 'admin',                      // Password
+  context: { lang: 'en_US' },            // Default context (optional)
+  timeoutMs: 30000,                      // Request timeout (optional)
+  headers: { 'X-Custom': 'value' },      // Custom headers (optional)
+});
 
-export interface ReadOptions {
-	fields?: string[];
-	context?: Record<string, any>;
-}
+await client.authenticate();
 ```
 
-Run generator via CLI (see main README) or programmatically with `CodeGenerator`.
+**Environment Variables** (recommended for scripts/CI):
 
-### Error Handling (practical patterns)
-
-Wrap calls in `try/catch` and branch on message/HTTP errors:
-
-```typescript
-try {
-	const ids = await client.search('res.partner', [['is_company', '=', true]]);
-	const records = await client.read('res.partner', ids, ['id', 'name']);
-	console.log(records);
-} catch (error) {
-	if (error instanceof Error) {
-		if (error.message.includes('access')) {
-			console.error('Access denied: check user permissions');
-		} else if (error.message.includes('connect')) {
-			console.error('Connection failed: is Odoo running?');
-		} else {
-			console.error('Unexpected error:', error.message);
-		}
-	}
-}
+```bash
+export ODOO_URL=http://localhost:8069
+export ODOO_DB=odoo_dev
+export ODOO_USER=admin
+export ODOO_PASSWORD=admin
 ```
 
-### Troubleshooting (quick checks)
+## Code Generation
 
-- **Connection refused**: Is Odoo up? Check `ODOO_URL` and Docker status.
-- **Invalid credentials**: Verify username/password/database.
-- **Access denied**: User lacks model permission; try admin or adjust ACLs.
-- **Slow/timeout**: Increase `timeoutMs`; inspect Odoo logs.
-- **Schema mismatch**: Regenerate types after changing Odoo modules/fields.
+To generate TypeScript interfaces from your Odoo schema, use [@odoo-toolbox/introspection](../odoo-introspection):
 
-For end-to-end runnable examples, see [examples/](../../examples/README.md).
+```bash
+npm install @odoo-toolbox/introspection
+
+# Generate types
+odoo-introspect generate \
+  --url http://localhost:8069 \
+  --db odoo_dev \
+  --password admin \
+  --output src/models
+```
+
+## Related Packages
+
+- [@odoo-toolbox/introspection](../odoo-introspection) - Schema introspection and code generation
+- [@odoo-toolbox/state-manager](../odoo-state-manager) - State management and drift detection
+
+## License
+
+LGPL-3.0
