@@ -22,6 +22,24 @@ on:
           - 'never'
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
@@ -36,6 +54,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Build packages
+        run: npm run build
 
       - name: Run unit tests
         run: npm run test:unit
@@ -62,6 +83,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Build packages
+        run: npm run build
 
       - name: Start Docker services
         run: docker compose -f docker-compose.test.yml up -d --wait
