@@ -98,6 +98,62 @@ KEEP_CONTAINERS=false
 - **Integration Tests**: `packages/*/tests/**/*.integration.test.ts` - Against real Odoo
 - **Test Helpers**: `tests/helpers/` - Shared utilities and setup
 
+### Managing Modules in Tests
+
+The test helpers include utilities for managing modules during testing:
+
+```typescript
+import { installModuleForTest, uninstallModuleForTest, cleanupInstalledModules } from '../../../tests/helpers/odoo-instance';
+import { ModuleManager } from '@odoo-toolbox/client';
+
+describe('My Test Suite', () => {
+  let moduleManager: ModuleManager;
+  const installedModules: string[] = [];
+
+  beforeAll(async () => {
+    // ... setup client and moduleManager
+  });
+
+  afterAll(async () => {
+    // Cleanup all installed modules
+    await cleanupInstalledModules(moduleManager, installedModules);
+  });
+
+  it('should work with project module', async () => {
+    // Install module for test (tracks for cleanup)
+    await installModuleForTest(moduleManager, 'project', installedModules);
+    
+    // ... your test code
+  });
+});
+```
+
+### CLI Module Management
+
+Manage modules from the command line:
+
+```bash
+# List installed modules
+npm run addon:list installed
+
+# Get module information
+npm run addon:info project
+
+# Install a module (useful for testing specific scenarios)
+npm run addon:install project
+
+# Uninstall a module
+npm run addon:uninstall project
+```
+
+Environment variables (defaults shown):
+```bash
+export ODOO_URL=http://localhost:8069
+export ODOO_DB_NAME=odoo
+export ODOO_DB_USER=admin
+export ODOO_DB_PASSWORD=admin
+```
+
 ### Test Infrastructure Guidelines
 
 **Test Helper Location:**
