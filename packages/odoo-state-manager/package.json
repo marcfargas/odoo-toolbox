@@ -18,6 +18,14 @@
   "author": "Marc",
   "license": "MIT",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "dependencies": {
     "@odoo-toolbox/client": "^0.1.0",
     "@odoo-toolbox/introspection": "^0.1.0"
