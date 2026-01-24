@@ -256,7 +256,8 @@ function isTtyOutput(): boolean {
     return false;
   }
 
-  // TypeScript ambient access - process exists in Node.js runtime
+  // Cast to any for browser compatibility - process exists in Node.js but TypeScript
+  // can't verify its types without @types/node dependency
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (process as any).stdout?.isTTY ?? false;
 }
