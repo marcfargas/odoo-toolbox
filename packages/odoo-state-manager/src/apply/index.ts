@@ -11,8 +11,8 @@
  */
 
 import { OdooClient } from '@odoo-toolbox/client';
-import { ExecutionPlan, Operation } from '../plan/types';
-import { ApplyResult, OperationResult, ApplyOptions } from './types';
+import { ExecutionPlan, Operation } from '../plan/types.js';
+import { ApplyResult, OperationResult, ApplyOptions } from './types.js';
 
 /**
  * Apply an execution plan to Odoo.
@@ -403,4 +403,4 @@ export async function dryRunPlan(
 }
 
 // Re-export types
-export * from './types';
+export * from './types.js';

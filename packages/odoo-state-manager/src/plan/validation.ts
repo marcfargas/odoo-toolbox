@@ -12,7 +12,7 @@
  * @see https://github.com/odoo/odoo/blob/17.0/odoo/models.py#L2500 (create/write validation)
  */
 
-import { Operation, ExecutionPlan } from './types';
+import { Operation, ExecutionPlan } from './types.js';
 import { OdooClient } from '@odoo-toolbox/client';
 
 /**

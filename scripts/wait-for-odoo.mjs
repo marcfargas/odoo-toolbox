@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const http = require('http');
+import http from 'http';
 
 const URL = process.env.ODOO_URL || 'http://localhost:8069';
 const MAX_ATTEMPTS = parseInt(process.env.WAIT_ATTEMPTS || '60', 10);

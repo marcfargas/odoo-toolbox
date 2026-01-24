@@ -26,7 +26,7 @@
 
 import * as path from 'path';
 import { OdooClient } from '@odoo-toolbox/client';
-import { CodeGenerator } from '../codegen/generator';
+import { CodeGenerator } from '../codegen/generator.js';
 
 /**
  * Parsed command line arguments.
@@ -208,7 +208,7 @@ export async function runCli(args: string[]): Promise<void> {
 }
 
 // Run immediately if this is the main entry point
-// Note: CommonJS modules don't have import.meta, so we export and let Node.js handle it
-if (require.main === module) {
+// ESM pattern: check if this module is the entry point
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(process.argv.slice(2));
 }

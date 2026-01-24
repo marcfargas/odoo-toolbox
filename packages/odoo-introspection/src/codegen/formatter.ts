@@ -8,8 +8,8 @@
  * - Generating index file with all exports
  */
 
-import { ModelMetadata } from '../introspection/types';
-import { getFieldTypeExpression, generateFieldJSDoc, isWritableField } from './type-mappers';
+import { ModelMetadata } from '../introspection/types.js';
+import { getFieldTypeExpression, generateFieldJSDoc, isWritableField } from './type-mappers.js';
 
 /**
  * Converts a model name like 'res.partner' to TypeScript interface name 'ResPartner'.

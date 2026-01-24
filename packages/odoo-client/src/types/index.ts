@@ -1,5 +1,5 @@
 // Error classes
-export { OdooError, OdooRpcError, OdooAuthError, OdooNetworkError } from './errors';
+export { OdooError, OdooRpcError, OdooAuthError, OdooNetworkError } from './errors.js';
 
 // Properties types and helpers
-export * from './properties';
+export * from './properties.js';

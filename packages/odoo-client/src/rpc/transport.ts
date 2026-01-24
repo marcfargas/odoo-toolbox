@@ -6,8 +6,8 @@
  */
 
 import debug from 'debug';
-import { OdooRpcError, OdooNetworkError, OdooAuthError } from '../types/errors';
-import { JsonRpcRequest, JsonRpcResponse, OdooSessionInfo } from './types';
+import { OdooRpcError, OdooNetworkError, OdooAuthError } from '../types/errors.js';
+import { JsonRpcRequest, JsonRpcResponse, OdooSessionInfo } from './types.js';
 
 // Re-export types for convenience
 export { JsonRpcRequest, JsonRpcResponse, OdooSessionInfo };

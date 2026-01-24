@@ -9,7 +9,7 @@
  * this approach is sufficient for most use cases.
  */
 
-import type { OdooModel, OdooField, ModelMetadata } from './types';
+import type { OdooModel, OdooField, ModelMetadata } from './types.js';
 
 export class IntrospectionCache {
   private models: OdooModel[] | null = null;

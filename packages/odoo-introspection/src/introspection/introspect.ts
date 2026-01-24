@@ -15,8 +15,8 @@ import type {
   OdooField,
   ModelMetadata,
   IntrospectionOptions,
-} from './types';
-import { IntrospectionCache } from './cache';
+} from './types.js';
+import { IntrospectionCache } from './cache.js';
 
 /**
  * Field type mapping from Odoo field types to TypeScript types.

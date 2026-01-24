@@ -8,20 +8,20 @@
  * - Formatter - Code formatting and output generation
  */
 
-export { CodeGenerator, generateCode } from './generator';
-export type { CodeGeneratorOptions } from './generator';
+export { CodeGenerator, generateCode } from './generator.js';
+export type { CodeGeneratorOptions } from './generator.js';
 
 export {
   mapFieldType,
   getFieldTypeExpression,
   isWritableField,
   generateFieldJSDoc,
-} from './type-mappers';
-export type { TypeScriptTypeExpression } from './type-mappers';
+} from './type-mappers.js';
+export type { TypeScriptTypeExpression } from './type-mappers.js';
 
 export {
   modelNameToInterfaceName,
   generateModelInterface,
   generateCompleteFile,
   generateHelperTypes,
-} from './formatter';
+} from './formatter.js';

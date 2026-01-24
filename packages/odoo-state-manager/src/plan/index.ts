@@ -6,8 +6,8 @@
  * respects parent-child relationships in relational fields.
  */
 
-import { ModelDiff, FieldChange } from '../types';
-import { Operation, ExecutionPlan, PlanOptions, PlanMetadata, PlanSummary } from './types';
+import { ModelDiff, FieldChange } from '../types/index.js';
+import { Operation, ExecutionPlan, PlanOptions, PlanMetadata, PlanSummary } from './types.js';
 
 /**
  * Generate an execution plan from model diffs.
@@ -330,7 +330,7 @@ function createFailedPlan(errors: string[], operations: Operation[]): ExecutionP
   };
 }
 
-export type { Operation, ExecutionPlan, PlanOptions } from './types';
-export { formatPlanForConsole } from './formatter';
-export type { ValidationError, ValidationResult } from './validation';
-export { validatePlanReferences, formatValidationErrors, suggestErrorFixes } from './validation';
+export type { Operation, ExecutionPlan, PlanOptions } from './types.js';
+export { formatPlanForConsole } from './formatter.js';
+export type { ValidationError, ValidationResult } from './validation.js';
+export { validatePlanReferences, formatValidationErrors, suggestErrorFixes } from './validation.js';

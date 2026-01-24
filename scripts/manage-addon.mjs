@@ -10,7 +10,7 @@
  *   npm run addon:info <module-name>      - Get module information
  */
 
-const { OdooClient, ModuleManager } = require('../packages/odoo-client/dist');
+import { OdooClient, ModuleManager } from '../packages/odoo-client/dist/index.js';
 
 const COMMANDS = {
   install: 'install',

@@ -24,5 +24,5 @@
  * @packageDocumentation
  */
 
-export * from './introspection';
-export * from './codegen';
+export * from './introspection/index.js';
+export * from './codegen/index.js';

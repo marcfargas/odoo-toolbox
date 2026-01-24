@@ -7,7 +7,7 @@
  */
 
 import debug from 'debug';
-import { OdooClient } from './odoo-client';
+import { OdooClient } from './odoo-client.js';
 
 const log = debug('odoo-client:module-manager');
 

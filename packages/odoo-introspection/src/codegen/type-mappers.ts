@@ -7,7 +7,7 @@
  * This module handles the conversion from Odoo's ttype values to TypeScript type expressions.
  */
 
-import { OdooField } from '../introspection/types';
+import { OdooField } from '../introspection/types.js';
 
 /**
  * Represents a TypeScript type expression as a string.

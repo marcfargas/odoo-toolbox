@@ -5,6 +5,6 @@
  * and ir.model.fields. Enables type generation and metadata discovery.
  */
 
-export * from './types';
-export * from './introspect';
-export * from './cache';
+export * from './types.js';
+export * from './introspect.js';
+export * from './cache.js';

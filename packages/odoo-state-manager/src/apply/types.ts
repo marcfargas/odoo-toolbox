@@ -4,7 +4,7 @@
  * Tracks the execution of operations and results.
  */
 
-import { Operation } from '../plan/types';
+import { Operation } from '../plan/types.js';
 
 /**
  * Result of a single operation execution.

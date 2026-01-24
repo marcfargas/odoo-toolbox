@@ -4,8 +4,8 @@
  * Provides a high-level API for interacting with Odoo
  */
 
-import { JsonRpcTransport, OdooSessionInfo } from '../rpc/transport';
-import { OdooAuthError } from '../types/errors';
+import { JsonRpcTransport, OdooSessionInfo } from '../rpc/transport.js';
+import { OdooAuthError } from '../types/errors.js';
 
 export interface OdooClientConfig {
   url: string;

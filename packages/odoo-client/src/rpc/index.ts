@@ -4,6 +4,6 @@ export {
   type JsonRpcRequest,
   type JsonRpcResponse,
   type OdooSessionInfo,
-} from './transport';
+} from './transport.js';
 
 

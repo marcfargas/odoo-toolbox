@@ -5,7 +5,7 @@
  * Uses ANSI colors and symbols to show changes clearly.
  */
 
-import { ExecutionPlan, Operation } from './types';
+import { ExecutionPlan, Operation } from './types.js';
 
 /**
  * ANSI color codes for console output.
@@ -258,4 +258,4 @@ function isTtyOutput(): boolean {
   return process.stdout?.isTTY ?? false;
 }
 
-export { ExecutionPlan } from './types';
+export { ExecutionPlan } from './types.js';

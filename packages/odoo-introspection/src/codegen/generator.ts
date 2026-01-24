@@ -9,9 +9,9 @@
  */
 
 import { OdooClient } from '@odoo-toolbox/client';
-import { Introspector } from '../introspection';
-import type { ModelMetadata } from '../introspection/types';
-import { generateCompleteFile, generateHelperTypes } from './formatter';
+import { Introspector } from '../introspection/index.js';
+import type { ModelMetadata } from '../introspection/types.js';
+import { generateCompleteFile, generateHelperTypes } from './formatter.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 

@@ -11,7 +11,7 @@
  */
 
 import { OdooField } from '@odoo-toolbox/introspection';
-import { FieldChange, ModelDiff } from '../types';
+import { FieldChange, ModelDiff } from '../types/index.js';
 
 /**
  * Options for comparison behavior.
@@ -274,4 +274,4 @@ function deepEqual(a: any, b: any, isRelationalField = false): boolean {
   return keysA.every(key => deepEqual(a[key], b[key]));
 }
 
-export type { FieldChange, ModelDiff, ComparisonResult } from '../types';
+export type { FieldChange, ModelDiff, ComparisonResult } from '../types/index.js';
