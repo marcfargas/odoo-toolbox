@@ -25,6 +25,8 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -43,6 +45,8 @@ jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -71,6 +75,8 @@ jobs:
   integration-tests:
     name: Integration Tests (Odoo 17)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
