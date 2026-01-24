@@ -17,6 +17,7 @@
   ],
   "author": "Marc",
   "license": "MIT",
+  "type": "module",
   "workspaces": [
     "packages/*"
   ],
@@ -39,10 +40,10 @@
     "docker:clean": "docker compose -f docker-compose.test.yml down -v",
     "docker:logs": "docker compose -f docker-compose.test.yml logs -f",
     "clean": "rm -rf packages/*/dist",
-    "addon:install": "node scripts/manage-addon.js install",
-    "addon:uninstall": "node scripts/manage-addon.js uninstall",
-    "addon:list": "node scripts/manage-addon.js list",
-    "addon:info": "node scripts/manage-addon.js info"
+    "addon:install": "node scripts/manage-addon.cjs install",
+    "addon:uninstall": "node scripts/manage-addon.cjs uninstall",
+    "addon:list": "node scripts/manage-addon.cjs list",
+    "addon:info": "node scripts/manage-addon.cjs info"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

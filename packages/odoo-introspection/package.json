@@ -21,6 +21,7 @@
   ],
   "author": "Marc",
   "license": "MIT",
+  "type": "commonjs",
   "dependencies": {
     "@odoo-toolbox/client": "^0.1.0",
     "@types/debug": "^4.1.12",
