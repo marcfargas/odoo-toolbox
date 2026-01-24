@@ -35,15 +35,48 @@ npm install --save-dev @odoo-toolbox/introspection
 
 See each package README for detailed usage:
 
-1. **[Client](./packages/odoo-client/README.md)** - Connect to Odoo, CRUD operations
+1. **[Client](./packages/odoo-client/README.md)** - Connect to Odoo, CRUD operations, module management
 2. **[Introspection](./packages/odoo-introspection/README.md)** - Generate TypeScript types from schema
 3. **[State Manager](./packages/odoo-state-manager/README.md)** - Compare, plan, apply workflow
 
 Or explore the examples in each package:
 
-- **[odoo-client examples](./packages/odoo-client/examples/)** - Connection, CRUD, search, context
+- **[odoo-client examples](./packages/odoo-client/examples/)** - Connection, CRUD, search, context, module management
 - **[odoo-introspection examples](./packages/odoo-introspection/examples/)** - Schema introspection, type generation
 - **[odoo-state-manager examples](./packages/odoo-state-manager/examples/)** - State management, CI/CD validation
+
+## Managing Odoo Modules
+
+The client package now includes module management capabilities:
+
+```bash
+# Install a module
+npm run addon:install project
+
+# Uninstall a module
+npm run addon:uninstall project
+
+# List installed modules
+npm run addon:list installed
+
+# Get module information
+npm run addon:info sale
+```
+
+For programmatic usage:
+
+```typescript
+import { OdooClient, ModuleManager } from '@odoo-toolbox/client';
+
+const client = new OdooClient({ /* config */ });
+await client.authenticate();
+
+const moduleManager = new ModuleManager(client);
+await moduleManager.installModule('project');
+await moduleManager.uninstallModule('project');
+```
+
+See [packages/odoo-client/examples/5-module-management.ts](./packages/odoo-client/examples/5-module-management.ts) for complete examples.
 
 ## Use Cases
 
@@ -57,7 +90,7 @@ Or explore the examples in each package:
 
 | Document | Audience | Purpose |
 |----------|----------|---------|
-| [packages/odoo-client/examples](./packages/odoo-client/examples/) | Users | Client examples: connection, CRUD, search, context |
+| [packages/odoo-client/examples](./packages/odoo-client/examples/) | Users | Client examples: connection, CRUD, search, context, modules |
 | [packages/odoo-introspection/examples](./packages/odoo-introspection/examples/) | Users | Introspection examples: schema discovery, type generation |
 | [packages/odoo-state-manager/examples](./packages/odoo-state-manager/examples/) | Users | State manager examples: drift detection, plan/apply |
 | [DEVELOPMENT.md](./DEVELOPMENT.md) | Contributors | Setup, testing, contributing |
