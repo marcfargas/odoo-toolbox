@@ -20,7 +20,6 @@
   "type": "module",
   "dependencies": {
     "@types/debug": "^4.1.12",
-    "@types/node": "^25.0.10",
     "debug": "^4.4.3"
   },
   "devDependencies": {
