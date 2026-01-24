@@ -191,16 +191,27 @@ export async function runCli(args: string[]): Promise<void> {
     const generator = new CodeGenerator(client);
 
     console.log('📝 Generating TypeScript interfaces...');
+    
+    // Import Node.js file system adapter
+    const { createNodeFsAdapter } = await import('../codegen/fs-adapters.js');
+    const fs = await createNodeFsAdapter();
+    
+    // Create console logger
+    const logger = { log: (msg: string) => console.log(msg) };
+    
+    const outputPath = parsed.output || path.join(process.cwd(), 'src', 'models', 'generated.ts');
+    
     const code = await generator.generate({
-      outputDir: parsed.output,
+      outputPath,
+      fs,
+      logger,
       includeTransient: parsed.includeTransient,
       modules: parsed.modules,
       bypassCache: parsed.bypassCache,
     });
 
-    const outputPath = parsed.output || path.join(process.cwd(), 'src', 'models');
     console.log(`✅ Generated ${code.split('\n').length} lines of TypeScript code`);
-    console.log(`📦 Output: ${path.join(outputPath, 'generated.ts')}`);
+    console.log(`📦 Output: ${outputPath}`);
 
   } catch (error) {
     console.error('❌ Generation failed:', error);

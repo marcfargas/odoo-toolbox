@@ -5,22 +5,50 @@
  * 1. Introspection (querying Odoo metadata)
  * 2. Type mapping (Odoo types → TypeScript)
  * 3. Code formatting (generating TypeScript code)
- * 4. File output (writing generated.ts)
+ * 4. Optional file output (if file system adapter provided)
  */
 
 import { OdooClient } from '@odoo-toolbox/client';
 import { Introspector } from '../introspection/index.js';
 import type { ModelMetadata } from '../introspection/types.js';
 import { generateCompleteFile, generateHelperTypes } from './formatter.js';
-import * as fs from 'fs/promises';
-import * as path from 'path';
+
+/**
+ * File system adapter interface for writing generated files.
+ * Can be implemented using Node.js fs or browser APIs.
+ */
+export interface FileSystemAdapter {
+  writeFile(path: string, content: string): Promise<void>;
+  mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
+}
+
+/**
+ * Logger interface for progress reporting.
+ * Can be implemented using console or custom loggers.
+ */
+export interface Logger {
+  log(message: string): void;
+}
+
+/**
+ * Default logger that does nothing (for browser compatibility).
+ */
+const noopLogger: Logger = {
+  log: () => {}
+};
 
 /**
  * Options for code generation.
  */
 export interface CodeGeneratorOptions {
-  /** Output directory for generated.ts file */
-  outputDir?: string;
+  /** Output path for generated.ts file (requires fs adapter) */
+  outputPath?: string;
+  
+  /** File system adapter for writing files (optional, Node.js only) */
+  fs?: FileSystemAdapter;
+  
+  /** Logger for progress messages (optional) */
+  logger?: Logger;
   
   /** Whether to include transient models (wizards) */
   includeTransient?: boolean;
@@ -50,33 +78,35 @@ export class CodeGenerator {
    * 2. Query fields for each model
    * 3. Map Odoo types to TypeScript
    * 4. Format generated code
-   * 5. Write to file (if outputDir provided)
+   * 5. Write to file (if outputPath and fs provided)
    * 
    * @param options - Generation options
    * @returns Generated TypeScript code
    */
   async generate(options: CodeGeneratorOptions = {}): Promise<string> {
     const {
-      outputDir = path.join(process.cwd(), 'src', 'models'),
+      outputPath,
+      fs,
+      logger = noopLogger,
       includeTransient = false,
       modules = undefined,
       bypassCache = false
     } = options;
 
-    console.log('[odoo-introspection:codegen] Starting code generation...');
+    logger.log('[odoo-introspection:codegen] Starting code generation...');
 
     // Step 1: Get all models
-    console.log('[odoo-introspection:codegen] Querying Odoo models...');
+    logger.log('[odoo-introspection:codegen] Querying Odoo models...');
     const models = await this.introspector.getModels({
       includeTransient,
       modules,
       bypassCache
     });
 
-    console.log(`[odoo-introspection:codegen] Found ${models.length} models`);
+    logger.log(`[odoo-introspection:codegen] Found ${models.length} models`);
 
     // Step 2: Get metadata for each model
-    console.log('[odoo-introspection:codegen] Querying model fields...');
+    logger.log('[odoo-introspection:codegen] Querying model fields...');
     const allMetadata: ModelMetadata[] = [];
 
     for (const model of models) {
@@ -87,42 +117,51 @@ export class CodeGenerator {
         );
         allMetadata.push(metadata);
       } catch (error) {
-        console.warn(`[odoo-introspection:codegen] Warning: Failed to introspect ${model.model}`, error);
+        logger.log(`[odoo-introspection:codegen] Warning: Failed to introspect ${model.model}`);
       }
     }
 
-    console.log(`[odoo-introspection:codegen] Successfully introspected ${allMetadata.length} models`);
+    logger.log(`[odoo-introspection:codegen] Successfully introspected ${allMetadata.length} models`);
 
     // Step 3: Generate code
-    console.log('[odoo-introspection:codegen] Generating TypeScript interfaces...');
+    logger.log('[odoo-introspection:codegen] Generating TypeScript interfaces...');
     const generatedCode = generateCompleteFile(allMetadata);
     const helperTypes = generateHelperTypes();
     const fullCode = `${helperTypes}\n\n${generatedCode}`;
 
-    // Step 4: Write to file
-    if (outputDir) {
-      await this.writeGeneratedFile(fullCode, outputDir);
-      console.log(`[odoo-introspection:codegen] Generated file: ${path.join(outputDir, 'generated.ts')}`);
+    // Step 4: Write to file (if fs adapter and outputPath provided)
+    if (outputPath && fs) {
+      await this.writeGeneratedFile(fullCode, outputPath, fs);
+      logger.log(`[odoo-introspection:codegen] Generated file: ${outputPath}`);
     }
 
     return fullCode;
   }
 
   /**
-   * Write generated code to file.
+   * Write generated code to file using the provided file system adapter.
    * 
-   * Creates output directory if it doesn't exist.
+   * Creates parent directories if they don't exist.
    * 
    * @param code - Generated TypeScript code
-   * @param outputDir - Output directory
+   * @param outputPath - Full output file path
+   * @param fs - File system adapter
    */
-  private async writeGeneratedFile(code: string, outputDir: string): Promise<void> {
-    // Create directory if it doesn't exist
-    await fs.mkdir(outputDir, { recursive: true });
+  private async writeGeneratedFile(
+    code: string,
+    outputPath: string,
+    fs: FileSystemAdapter
+  ): Promise<void> {
+    // Extract directory from path
+    const lastSlash = Math.max(outputPath.lastIndexOf('/'), outputPath.lastIndexOf('\\'));
+    if (lastSlash > 0) {
+      const dir = outputPath.substring(0, lastSlash);
+      // Create directory if it doesn't exist
+      await fs.mkdir(dir, { recursive: true });
+    }
 
     // Write file
-    const filePath = path.join(outputDir, 'generated.ts');
-    await fs.writeFile(filePath, code, 'utf-8');
+    await fs.writeFile(outputPath, code);
   }
 }
 
