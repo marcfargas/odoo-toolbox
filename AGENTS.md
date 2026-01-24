@@ -199,6 +199,100 @@ This helps future contributors know what needs investigation.
 - `many2one` → `number | [number, string]` (id or [id, name])
 - `one2many`, `many2many` → `number[]`
 - `selection` → `string` (could be union of literals)
+- `properties` → Read/Write asymmetry (see Properties section below)
+- `properties_definition` → Array of property schemas
+
+**Odoo Properties Fields**
+
+Properties are user-definable dynamic fields that can be created via the Odoo web UI without modifying database structure. Common in CRM (lead_properties) and Projects (task_properties).
+
+**Asymmetric Read/Write Format**:
+```typescript
+// When WRITING properties - use simple key-value object
+const writeFormat = {
+  custom_field: 'value',
+  priority: 5,
+  active: true
+};
+
+await client.write('crm.lead', leadId, {
+  lead_properties: writeFormat
+});
+
+// When READING properties - Odoo returns array with full metadata
+const lead = await client.read('crm.lead', leadId, ['lead_properties']);
+// Returns: [
+//   { name: 'custom_field', type: 'char', string: 'Custom Field', value: 'value' },
+//   { name: 'priority', type: 'integer', string: 'Priority', value: 5 },
+//   { name: 'active', type: 'boolean', string: 'Active', value: true }
+// ]
+```
+
+**CRITICAL: Full Replacement Behavior**:
+When writing properties, Odoo REPLACES all property values. Unspecified properties are set to `false`.
+
+```typescript
+// ❌ BAD - This will set other properties to false!
+await client.write('crm.lead', leadId, {
+  lead_properties: { priority: 10 } // Other properties become false!
+});
+
+// ✅ GOOD - Read first, modify, then write all
+const lead = await client.read('crm.lead', leadId, ['lead_properties']);
+const props = propertiesToWriteFormat(lead[0].lead_properties);
+props.priority = 10; // Modify only what you need
+await client.write('crm.lead', leadId, {
+  lead_properties: props // Write ALL properties
+});
+```
+
+**Allowed Property Types** (from odoo/fields.py:Properties.ALLOWED_TYPES):
+- Standard: `boolean`, `integer`, `float`, `char`, `date`, `datetime`
+- Relational: `many2one`, `many2many`, `selection`, `tags`
+- UI: `separator` (visual organizer, no value)
+- Note: `text` is NOT a valid property type (use `char` instead)
+
+**PropertiesDefinition Structure**:
+```typescript
+const definition: PropertiesDefinition = [
+  {
+    name: 'technical_name',    // Technical identifier
+    string: 'Display Label',   // Human-readable label
+    type: 'char',              // Property type
+  },
+  {
+    name: 'status',
+    string: 'Status',
+    type: 'selection',
+    selection: [               // Required for selection type
+      ['draft', 'Draft'],
+      ['done', 'Done']
+    ]
+  },
+  {
+    name: 'partner_id',
+    string: 'Partner',
+    type: 'many2one',
+    comodel: 'res.partner'     // Required for many2one/many2many
+  }
+];
+```
+
+**Helper Functions**:
+```typescript
+import { getPropertyValue, propertiesToWriteFormat } from '@odoo-toolbox/client';
+
+// Extract single property value
+const priority = getPropertyValue(lead.lead_properties, 'priority');
+
+// Convert read format to write format
+const writeFormat = propertiesToWriteFormat(lead.lead_properties);
+```
+
+**Source References**:
+- Properties field: https://github.com/odoo/odoo/blob/17.0/odoo/fields.py#L3188
+- PropertiesDefinition field: https://github.com/odoo/odoo/blob/17.0/odoo/fields.py#L3419
+- CRM lead properties: https://github.com/odoo/odoo/blob/17.0/addons/crm/models/crm_lead.py
 
 **Odoo Context Examples**:
 ```python
