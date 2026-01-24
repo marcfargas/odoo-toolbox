@@ -39,7 +39,7 @@
     "docker:down": "docker compose -f docker-compose.test.yml down",
     "docker:clean": "docker compose -f docker-compose.test.yml down -v",
     "docker:logs": "docker compose -f docker-compose.test.yml logs -f",
-    "clean": "rm -rf packages/*/dist",
+    "clean": "rm -rf packages/*/dist packages/*/*.tsbuildinfo",
     "addon:install": "node scripts/manage-addon.cjs install",
     "addon:uninstall": "node scripts/manage-addon.cjs uninstall",
     "addon:list": "node scripts/manage-addon.cjs list",
