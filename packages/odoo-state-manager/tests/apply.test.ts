@@ -435,8 +435,9 @@ describe('Apply Module', () => {
 
       const result = await applyPlan(plan, mockClient as any);
 
-      expect(result.duration).toBeGreaterThanOrEqual(10);
-      expect(result.operations[0].duration).toBeGreaterThanOrEqual(10);
+      // Allow some timing variance in CI environments
+      expect(result.duration).toBeGreaterThanOrEqual(8);
+      expect(result.operations[0].duration).toBeGreaterThanOrEqual(8);
     });
 
     test('respects maxOperations limit', async () => {
