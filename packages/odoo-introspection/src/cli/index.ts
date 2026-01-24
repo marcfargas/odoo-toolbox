@@ -25,6 +25,7 @@
  */
 
 import * as path from 'path';
+import { pathToFileURL } from 'url';
 import { OdooClient } from '@odoo-toolbox/client';
 import { CodeGenerator } from '../codegen/generator.js';
 
@@ -209,6 +210,6 @@ export async function runCli(args: string[]): Promise<void> {
 
 // Run immediately if this is the main entry point
 // ESM pattern: check if this module is the entry point
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   runCli(process.argv.slice(2));
 }
