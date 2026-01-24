@@ -251,11 +251,14 @@ function formatSummary(summary: any, colorize: boolean): string {
  * Used to decide whether to include ANSI color codes.
  */
 function isTtyOutput(): boolean {
+  // In browser environments, process is undefined
   if (typeof process === 'undefined') {
     return false;
   }
 
-  return process.stdout?.isTTY ?? false;
+  // TypeScript ambient access - process exists in Node.js runtime
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (process as any).stdout?.isTTY ?? false;
 }
 
 export { ExecutionPlan } from './types.js';
