@@ -6,6 +6,7 @@ Lightweight TypeScript client for Odoo RPC operations.
 
 - JSON-RPC support
 - CRUD operations (create, read, search, write, delete)
+- Module management (install, uninstall, upgrade)
 - Context and domain filter support
 - Batch operation support
 - Full TypeScript support with generics
@@ -48,6 +49,38 @@ await client.write('res.partner', [newId], { email: 'info@acme.com' });
 // Delete
 await client.unlink('res.partner', [newId]);
 ```
+
+## Module Management
+
+```typescript
+import { OdooClient, ModuleManager } from '@odoo-toolbox/client';
+
+const client = new OdooClient({ /* config */ });
+await client.authenticate();
+
+const moduleManager = new ModuleManager(client);
+
+// List installed modules
+const installed = await moduleManager.listModules({ state: 'installed' });
+
+// Check if module is installed
+const isInstalled = await moduleManager.isModuleInstalled('project');
+
+// Get module information
+const moduleInfo = await moduleManager.getModuleInfo('sale');
+console.log(`${moduleInfo.name}: ${moduleInfo.summary}`);
+
+// Install a module
+await moduleManager.installModule('project');
+
+// Uninstall a module
+await moduleManager.uninstallModule('project');
+
+// Upgrade a module
+await moduleManager.upgradeModule('sale');
+```
+
+See [examples/5-module-management.ts](./examples/5-module-management.ts) for complete examples.
 
 ## Connection Configuration
 

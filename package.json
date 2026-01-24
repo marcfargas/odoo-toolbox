@@ -34,11 +34,15 @@
     "test:debug": "cross-env KEEP_CONTAINERS=true vitest run --config vitest.integration.config.ts --reporter=verbose",
     "test:integration:keep-containers": "cross-env SKIP_TEARDOWN=true vitest run --config vitest.integration.config.ts",
     "test:local": "act --secret-file .env.test",
-    "docker:up": "docker-compose -f docker-compose.test.yml up -d",
-    "docker:down": "docker-compose -f docker-compose.test.yml down",
-    "docker:clean": "docker-compose -f docker-compose.test.yml down -v",
-    "docker:logs": "docker-compose -f docker-compose.test.yml logs -f",
-    "clean": "rm -rf packages/*/dist"
+    "docker:up": "docker compose -f docker-compose.test.yml up -d",
+    "docker:down": "docker compose -f docker-compose.test.yml down",
+    "docker:clean": "docker compose -f docker-compose.test.yml down -v",
+    "docker:logs": "docker compose -f docker-compose.test.yml logs -f",
+    "clean": "rm -rf packages/*/dist",
+    "addon:install": "node scripts/manage-addon.js install",
+    "addon:uninstall": "node scripts/manage-addon.js uninstall",
+    "addon:list": "node scripts/manage-addon.js list",
+    "addon:info": "node scripts/manage-addon.js info"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
