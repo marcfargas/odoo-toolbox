@@ -1,6 +1,10 @@
 /**
  * CLI for odoo-introspection code generation.
  * 
+ * **Note: This CLI module is Node.js-only.** It uses Node.js-specific APIs
+ * like 'path', 'process', and 'url'. The core library (CodeGenerator,
+ * Introspector) is browser-compatible through pluggable adapters.
+ * 
  * Usage:
  *   odoo-introspect generate [options]
  * 
