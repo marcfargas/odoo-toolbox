@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run test:unit:*)",
+      "Bash(npm run docker:up:*)",
+      "Bash(npm run test:integration:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run:*)"
+    ]
+  }
+}
