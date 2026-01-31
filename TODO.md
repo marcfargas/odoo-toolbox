@@ -1,87 +1,47 @@
-## P0.5 - Package Refactoring (Week 2.5)
-**Goal**: Separate runtime concerns (client) from development-time concerns (introspection/codegen)
+# TODO - Ready to Implement
 
-**Rationale**:
-- Runtime apps don't need codegen dependencies
-- Clear separation of concerns: client (runtime RPC) vs introspection (dev-time schema analysis)
-- Enables lighter production bundles
-- Better testability and reusability
-- Sets foundation for MCP server that uses both packages
+Tasks that are designed and ready for implementation. Organized by priority.
 
-### Create @odoo-toolbox/introspection Package
-- [ ] Create `packages/odoo-introspection` directory structure
-  - [ ] `src/introspection/` - schema introspection logic
-  - [ ] `src/codegen/` - TypeScript interface generation
-  - [ ] `src/cli/` - CLI for code generation
-- [ ] Create `package.json` with dependency on `@odoo-toolbox/client`
-- [ ] Move files from odoo-client:
-  - [ ] `packages/odoo-client/src/introspection/` → `packages/odoo-introspection/src/introspection/`
-  - [ ] `packages/odoo-client/src/codegen/` → `packages/odoo-introspection/src/codegen/`
-  - [ ] CLI logic → `packages/odoo-introspection/src/cli/index.ts`
-- [ ] Update all imports in moved files
-  - [ ] Change relative imports to `@odoo-toolbox/client`
-  - [ ] Update import paths for moved modules
-- [ ] Create package files:
-  - [ ] `src/index.ts` - export IntrospectionService, CodeGenerator, types
-  - [ ] `README.md` - document introspection and codegen features
-  - [ ] `tsconfig.json` - TypeScript configuration
-- [ ] Update bin entry: `odoo-introspect` command (was `odoo-client generate`)
+---
 
-### Clean Up @odoo-toolbox/client Package
-- [ ] Remove introspection/codegen directories:
-  - [ ] Delete `src/introspection/`
-  - [ ] Delete `src/codegen/`
-  - [ ] Delete CLI file(s)
-- [ ] Update `package.json`:
-  - [ ] Remove `bin` entry (CLI moved to introspection package)
-  - [ ] Remove codegen-related dependencies (if any)
-  - [ ] Update description: "Lightweight TypeScript client for Odoo RPC operations"
-- [ ] Update `src/index.ts`:
-  - [ ] Remove introspection exports
-  - [ ] Remove codegen exports
-  - [ ] Keep only: OdooClient, types (Domain, Context), errors
-- [ ] Update `README.md`:
-  - [ ] Focus on runtime RPC client capabilities
-  - [ ] Remove introspection/codegen documentation
-  - [ ] Add link to @odoo-toolbox/introspection for type generation
-  - [ ] Update examples to show lean client usage
+## Completed Phases
 
-### Update @odoo-toolbox/state-manager
-- [ ] Update `package.json`:
-  - [ ] Add `@odoo-toolbox/introspection` to dependencies (if needed for validation)
-- [ ] Update imports if introspection features are used
+### P0 - Foundation ✅
+- Project setup (monorepo, TypeScript, ESLint, CI)
+- RPC Foundation (JSON-RPC transport, OdooClient class, error handling)
+- Basic Operations (search, read, create, write, unlink)
 
-### Update Documentation
-- [ ] Update root `README.md`:
-  - [ ] Document three packages (client, introspection, state-manager)
-  - [ ] Explain separation: runtime vs dev-time concerns
-  - [ ] Update installation examples
-  - [ ] Update code examples to show both packages
-- [ ] Update examples:
-  - [ ] Separate client examples from introspection examples
-  - [ ] Show how to use generated types with client
-- [ ] Update package READMEs with cross-references
+### P1 - Introspection & Code Generation ✅
+- Introspection (getModels, getFields, getModelMetadata, caching)
+- Code Generator (TypeScript interfaces, CLI command)
+- Testing foundation
 
-### Testing & Validation
-- [ ] Create `tests/integration/introspection/` directory
-- [ ] Move introspection tests to new directory
-- [ ] Create tests for IntrospectionService:
-  - [ ] Test getModels()
-  - [ ] Test getFields()
-  - [ ] Test getModelMetadata()
-  - [ ] Test getInstalledModules() (new feature)
-  - [ ] Test getModuleModels() (new feature)
-- [ ] Create tests for CodeGenerator:
-  - [ ] Test interface generation
-  - [ ] Test type mapping
-  - [ ] Test CLI end-to-end
-- [ ] Run full test suite:
-  - [ ] `npm install` at root (update workspace links)
-  - [ ] `npm run build` (verify all packages build)
-  - [ ] `npm test` (verify all tests pass)
-- [ ] Verify no broken imports or missing dependencies
+### P2 - State Manager Foundation ✅
+- Compare module (deep comparison, diff types)
+- Plan module (operation ordering, dependency graph)
+- Apply module (execute plans against Odoo)
 
-## P3 - MCP Server (Week 7-8)
+### P3 - Examples & Documentation ✅
+- Complete example suite (CRUD, search, batch, context, state management)
+- Documentation (README, INTEGRATION_GUIDE.md)
+- 146 tests (all passing)
+
+### P0.5 - Package Refactoring ✅
+Separated runtime concerns (client) from development-time concerns (introspection/codegen):
+- Created `@odoo-toolbox/introspection` package with schema introspection and codegen
+- Cleaned up `@odoo-toolbox/client` to be lightweight runtime-only
+- Updated documentation and examples for new package structure
+
+**Current packages:**
+- `packages/odoo-client` - Lightweight RPC client for runtime
+- `packages/odoo-introspection` - Schema introspection and TypeScript codegen
+- `packages/odoo-state-manager` - State management (compare, plan, apply)
+
+---
+
+## Next Phase
+
+## P4 - MCP Server
 
 **Goal**: Create a Model Context Protocol (MCP) server with semantic understanding of Odoo models, leveraging introspection to provide rich context to AI assistants.
 
@@ -252,4 +212,25 @@
   - [ ] "Ask AI to create a project with tasks"
   - [ ] "Ask AI to discover inventory models"
 
-Keep the rest of the existing TODO.md content after these sections.
+---
+
+## Future Enhancements (P5+)
+
+### Client Enhancements
+- [ ] Add retry logic for transient failures (exponential backoff)
+- [ ] Add connection timeout configuration
+- [ ] Add request logging (with `debug` library)
+- [ ] Add validation for connection params
+- [ ] Connection pooling (investigate need)
+
+### State Manager Enhancements
+- [ ] Operation batching optimization
+- [ ] Group similar operations (create all then update all)
+- [ ] Profile query performance gains
+
+### Type System Improvements
+- [ ] Type-safe domain selectors (see ROADMAP.md)
+- [ ] Selection field union types
+- [ ] Date/DateTime handling utilities
+
+See [ROADMAP.md](./ROADMAP.md) for long-term design decisions and research items.
