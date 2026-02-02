@@ -12,6 +12,25 @@ This document provides context and guidelines for AI coding assistants (GitHub C
 2. **@odoo-toolbox/introspection**: Schema introspection and TypeScript code generation
 3. **@odoo-toolbox/state-manager**: Drift detection and plan/apply workflow
 
+### Meta-Skills Documentation
+
+The project includes **Meta-Skills** documentation in `docs/meta-skills/` that teaches AI agents how to interact with Odoo instances. Unlike static commands, meta-skills enable agents to:
+
+1. **Connect** to any Odoo instance
+2. **Introspect** the schema to discover available models and fields
+3. **Generate** instance-specific SKILLs tailored to that Odoo configuration
+
+**Documentation Structure:**
+- `01-fundamentals/` - Connection, field types, domain syntax
+- `02-introspection/` - Discovering models and analyzing fields
+- `03-skill-generation/` - How to generate `.claude/commands/` files
+- `04-patterns/` - CRUD, search, properties, module patterns
+
+**When to use meta-skills:**
+- When the user asks to "connect to Odoo" or "work with Odoo"
+- When generating instance-specific commands
+- When learning about Odoo field behaviors (many2one asymmetry, properties)
+
 ## Design Principles
 
 - **Batteries-included**: Prefer comprehensive solutions over minimal abstractions

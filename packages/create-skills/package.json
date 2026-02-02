@@ -1,0 +1,49 @@
+{
+  "name": "@odoo-toolbox/create-skills",
+  "version": "0.1.0",
+  "description": "CLI to scaffold Odoo skill projects for AI agents",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "create-skills": "dist/cli/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "dev": "tsc --watch"
+  },
+  "keywords": [
+    "odoo",
+    "skills",
+    "ai-agent",
+    "claude",
+    "scaffolding",
+    "cli"
+  ],
+  "author": "Marc",
+  "license": "LGPL-3.0",
+  "dependencies": {
+    "commander": "^12.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^4.0.0"
+  },
+  "peerDependencies": {
+    "@odoo-toolbox/client": "^0.1.0",
+    "@odoo-toolbox/introspection": "^0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@odoo-toolbox/client": {
+      "optional": true
+    },
+    "@odoo-toolbox/introspection": {
+      "optional": true
+    }
+  },
+  "files": [
+    "dist",
+    "assets"
+  ]
+}

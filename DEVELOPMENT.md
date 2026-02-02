@@ -22,7 +22,7 @@ This project follows a batteries-included philosophy:
 ### Installation
 
 ```bash
-git clone https://github.com/your-org/odoo-toolbox.git
+git clone https://github.com/telenieko/odoo-toolbox.git
 cd odoo-toolbox
 npm install
 ```

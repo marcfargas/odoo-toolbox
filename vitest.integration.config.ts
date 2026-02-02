@@ -8,10 +8,9 @@ export default defineConfig({
 
     root: '.',
 
-    // Only integration tests (packages and meta-skills docs)
+    // Only integration tests (packages)
     include: [
       'packages/*/tests/**/*.integration.test.ts',
-      'docs/meta-skills/__tests__/**/*.integration.test.ts',
     ],
 
     // Global setup/teardown for Docker containers

@@ -90,6 +90,7 @@ See [packages/odoo-client/examples/5-module-management.ts](./packages/odoo-clien
 
 | Document | Audience | Purpose |
 |----------|----------|---------|
+| [docs/meta-skills/](./docs/meta-skills/) | AI Agents | Meta-skills for learning Odoo patterns and generating instance-specific commands |
 | [packages/odoo-client/examples](./packages/odoo-client/examples/) | Users | Client examples: connection, CRUD, search, context, modules |
 | [packages/odoo-introspection/examples](./packages/odoo-introspection/examples/) | Users | Introspection examples: schema discovery, type generation |
 | [packages/odoo-state-manager/examples](./packages/odoo-state-manager/examples/) | Users | State manager examples: drift detection, plan/apply |

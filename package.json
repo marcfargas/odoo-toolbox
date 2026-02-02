@@ -43,7 +43,7 @@
     "addon:uninstall": "node scripts/manage-addon.js uninstall",
     "addon:list": "node scripts/manage-addon.js list",
     "addon:info": "node scripts/manage-addon.js info",
-    "test:meta-skills": "vitest run --config vitest.integration.config.ts docs/meta-skills/__tests__/"
+    "test:create-skills": "vitest run --config vitest.integration.config.ts packages/create-skills/tests/"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

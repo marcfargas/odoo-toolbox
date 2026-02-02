@@ -5,7 +5,10 @@
       "Bash(npm run docker:up:*)",
       "Bash(npm run test:integration:*)",
       "Bash(npm run build:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(tree:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npx vitest:*)"
     ]
   }
 }
