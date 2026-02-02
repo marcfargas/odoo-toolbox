@@ -1,111 +1,79 @@
 # odoo-toolbox
 
-> TypeScript infrastructure-as-code toolkit for Odoo ERP
+> Teach AI agents to work with your Odoo instance
 
-**odoo-toolbox** provides typed client libraries and state management for Odoo, enabling Infrastructure-as-Code workflows with drift detection and plan/apply capabilities - think **Terraform for Odoo**.
-
-## Features
-
-- **Schema Introspection** - Generate TypeScript types from your live Odoo instance
-- **Type-Safe Client** - Fully typed Odoo operations with autocomplete
-- **Drift Detection** - Compare desired state vs actual Odoo state
-- **Plan/Apply Workflow** - Review changes before applying (like Terraform)
-- **Odoo v17 Ready** - Full support for v17, v14+ planned
-- **Batteries Included** - Context, batching, error handling, Odoo field quirks
-
-## Packages
-
-| Package | Description | Docs |
-|---------|-------------|------|
-| **@odoo-toolbox/client** | Lightweight RPC client for Odoo operations | [README](./packages/odoo-client/README.md) |
-| **@odoo-toolbox/introspection** | Schema introspection and TypeScript code generation | [README](./packages/odoo-introspection/README.md) |
-| **@odoo-toolbox/state-manager** | Drift detection and plan/apply workflow | [README](./packages/odoo-state-manager/README.md) |
-| **@odoo-toolbox/create-skills** | CLI to scaffold Odoo skill projects for AI agents | [README](./packages/create-skills/README.md) |
-
-## Installation
-
-```bash
-# Core packages
-npm install @odoo-toolbox/client @odoo-toolbox/state-manager
-
-# For code generation (dev dependency)
-npm install --save-dev @odoo-toolbox/introspection
-```
+**odoo-toolbox** provides tested, validated skills that enable AI agents (Claude Code, Cursor, etc.) to interact with Odoo ERP. Use the base knowledge modules directly or scaffold a custom skill project for your instance.
 
 ## Quick Start
 
-See each package README for detailed usage:
+### Option 1: Download Pre-built Skills
 
-1. **[Client](./packages/odoo-client/README.md)** - Connect to Odoo, CRUD operations, module management
-2. **[Introspection](./packages/odoo-introspection/README.md)** - Generate TypeScript types from schema
-3. **[State Manager](./packages/odoo-state-manager/README.md)** - Compare, plan, apply workflow
+Download `odoo-skills.zip` from the [latest CI build](https://github.com/telenieko/odoo-toolbox/actions) (look for the "odoo-skills" artifact).
 
-Or explore the examples in each package:
-
-- **[odoo-client examples](./packages/odoo-client/examples/)** - Connection, CRUD, search, context, module management
-- **[odoo-introspection examples](./packages/odoo-introspection/examples/)** - Schema introspection, type generation
-- **[odoo-state-manager examples](./packages/odoo-state-manager/examples/)** - State management, CI/CD validation
-
-## Managing Odoo Modules
-
-The client package now includes module management capabilities:
+Extract and configure:
 
 ```bash
-# Install a module
-npm run addon:install project
-
-# Uninstall a module
-npm run addon:uninstall project
-
-# List installed modules
-npm run addon:list installed
-
-# Get module information
-npm run addon:info sale
+unzip odoo-skills.zip
+cd odoo-skills
+cp .env.example .env  # Add your Odoo credentials
 ```
 
-For programmatic usage:
+Then point your AI agent to the project and ask it to:
+- "Connect to Odoo and list available models"
+- "Introspect the crm.lead model"
+- "Create a new sales order"
 
-```typescript
-import { OdooClient, ModuleManager } from '@odoo-toolbox/client';
+### Option 2: Create a Custom Skill Project
 
-const client = new OdooClient({ /* config */ });
-await client.authenticate();
+For instance-specific skills with your Odoo configuration:
 
-const moduleManager = new ModuleManager(client);
-await moduleManager.installModule('project');
-await moduleManager.uninstallModule('project');
+```bash
+npx @odoo-toolbox/create-skills my-odoo-skills
+cd my-odoo-skills
+cp .env.example .env  # Configure your Odoo credentials
 ```
 
-See [packages/odoo-client/examples/5-module-management.ts](./packages/odoo-client/examples/5-module-management.ts) for complete examples.
+## Knowledge Modules
 
-## Use Cases
+All examples are **tested against real Odoo v17 instances** in CI:
 
-- **Infrastructure as Code for Odoo** - Define state declaratively
-- **Type-Safe Migrations** - Generate types, safely transform data
-- **Configuration Management** - Version control Odoo configuration
-- **CI/CD Integration** - Validate configuration before deployment
-- **Multi-Tenant Management** - Replicate setup across instances
+| Module | What it teaches |
+|--------|-----------------|
+| `connection.md` | Authentication and session management |
+| `crud.md` | Create, Read, Update, Delete operations |
+| `search.md` | Domain filters and search patterns |
+| `introspection.md` | Discover models and fields dynamically |
+| `field-types.md` | Handle Odoo's type system and quirks |
+| `properties.md` | Work with dynamic user-defined fields |
 
-## Documentation
+## Packages
 
-| Document | Audience | Purpose |
-|----------|----------|---------|
-| [packages/create-skills/assets/](./packages/create-skills/assets/) | AI Agents | Tested examples and knowledge base for Odoo patterns |
-| [packages/odoo-client/examples](./packages/odoo-client/examples/) | Users | Client examples: connection, CRUD, search, context, modules |
-| [packages/odoo-introspection/examples](./packages/odoo-introspection/examples/) | Users | Introspection examples: schema discovery, type generation |
-| [packages/odoo-state-manager/examples](./packages/odoo-state-manager/examples/) | Users | State manager examples: drift detection, plan/apply |
-| [DEVELOPMENT.md](./DEVELOPMENT.md) | Contributors | Setup, testing, contributing |
-| [AGENTS.md](./AGENTS.md) | AI Assistants | Coding patterns, Odoo knowledge |
-| [ROADMAP.md](./ROADMAP.md) | All | Future vision and design decisions |
-| [TODO.md](./TODO.md) | Contributors | Implementation tasks |
+| Package | Description |
+|---------|-------------|
+| **[@odoo-toolbox/create-skills](./packages/create-skills)** | CLI to scaffold Odoo skill projects |
+| [@odoo-toolbox/client](./packages/odoo-client) | TypeScript RPC client for Odoo |
+| [@odoo-toolbox/introspection](./packages/odoo-introspection) | Schema introspection and type generation |
+
+## Future: Infrastructure as Code
+
+We're building toward **Terraform for Odoo** - declare desired state, detect drift, plan and apply changes:
+
+| Package | Status |
+|---------|--------|
+| [@odoo-toolbox/state-manager](./packages/odoo-state-manager) | In Development |
+
+See [ROADMAP.md](./ROADMAP.md) for the full vision.
 
 ## Status
 
 **Stage**: Early Development
-**Current Focus**: State Manager Foundation (Compare, Plan, Apply)
-**Odoo Versions**: v17 (v14+ planned)
-**TypeScript**: 5.0+ | **Node.js**: 18+
+**Odoo**: v17 (v14+ planned) | **Node.js**: 18+ | **TypeScript**: 5.0+
+
+## Resources
+
+- [DEVELOPMENT.md](./DEVELOPMENT.md) - Setup, testing, contributing
+- [AGENTS.md](./AGENTS.md) - For AI assistants working on this codebase
+- [ROADMAP.md](./ROADMAP.md) - Future plans and design decisions
 
 ## License
 

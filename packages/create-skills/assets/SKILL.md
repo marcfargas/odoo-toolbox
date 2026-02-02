@@ -1,3 +1,8 @@
+---
+name: odoo
+description: Odoo ERP integration - connect, introspect, and automate your Odoo instance
+---
+
 # /odoo
 
 Odoo ERP integration with progressive module loading. Connect, introspect, and automate.

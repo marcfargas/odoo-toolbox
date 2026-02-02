@@ -22,6 +22,7 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces",
+    "build:dist": "node scripts/build-dist.js",
     "test": "vitest run",
     "test:unit": "vitest run",
     "test:integration": "vitest run --config vitest.integration.config.ts",
@@ -38,7 +39,8 @@
     "docker:down": "docker compose -f docker-compose.test.yml down",
     "docker:clean": "docker compose -f docker-compose.test.yml down -v",
     "docker:logs": "docker compose -f docker-compose.test.yml logs -f",
-    "clean": "rm -rf packages/*/dist",
+    "clean": "rm -rf packages/*/dist dist",
+    "build:skills-zip": "node scripts/build-skills-zip.js",
     "addon:install": "node scripts/manage-addon.js install",
     "addon:uninstall": "node scripts/manage-addon.js uninstall",
     "addon:list": "node scripts/manage-addon.js list",
@@ -47,6 +49,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "archiver": "^7.0.0",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "@vitest/coverage-v8": "^4.0.18",

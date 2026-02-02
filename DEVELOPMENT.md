@@ -154,6 +154,23 @@ export ODOO_DB_USER=admin
 export ODOO_DB_PASSWORD=admin
 ```
 
+### Programmatic Module Management
+
+For programmatic usage in your code:
+
+```typescript
+import { OdooClient, ModuleManager } from '@odoo-toolbox/client';
+
+const client = new OdooClient({ /* config */ });
+await client.authenticate();
+
+const moduleManager = new ModuleManager(client);
+await moduleManager.installModule('project');
+await moduleManager.uninstallModule('project');
+```
+
+See [packages/odoo-client/examples/5-module-management.ts](./packages/odoo-client/examples/5-module-management.ts) for complete examples.
+
 ### Test Infrastructure Guidelines
 
 **Test Helper Location:**
@@ -243,9 +260,55 @@ npm run build
 
 # Run all checks (lint, test, type)
 npm run check
+```
 
-# Publish to npm (maintainers only)
-npm run publish
+## Building the Skills Zip
+
+The `odoo-skills.zip` contains a ready-to-use skill project for AI agents.
+
+### Build Locally
+
+```bash
+# Build everything (packages + skills zip)
+npm run build:dist
+
+# Or just the skills zip (requires packages to be built first)
+npm run build:skills-zip
+```
+
+Output: `dist/odoo-skills.zip`
+
+### CI Artifacts
+
+Every CI run builds and uploads `odoo-skills.zip` as an artifact. Download from the [Actions tab](https://github.com/telenieko/odoo-toolbox/actions).
+
+## Publishing a New Release
+
+> **Note**: Automated releases are not yet configured. This section documents the current manual workflow.
+
+### Manual Release (current)
+
+Until automated releases are set up:
+
+1. Update version in `package.json` files
+2. Build: `npm run build`
+3. Build skills zip: `npm run build:skills-zip`
+4. Create GitHub release manually with `dist/odoo-skills.zip`
+5. Publish to npm: `npm publish --workspace=packages/odoo-client` (etc.)
+
+### Future: Changesets
+
+We plan to use [Changesets](https://github.com/changesets/changesets) for version management:
+
+```bash
+# Create a changeset describing your changes
+npm run changeset
+
+# Bump versions and update changelogs
+npm run version
+
+# Build and publish to npm
+npm run release
 ```
 
 ## Contributing
@@ -257,6 +320,18 @@ This is designed as a FOSS project. Code should be:
 - Following the project's design principles
 
 See [AGENTS.md](./AGENTS.md) for implementation patterns and Odoo-specific knowledge.
+
+## Documentation & Examples
+
+| Document | Audience | Purpose |
+|----------|----------|---------|
+| [packages/create-skills/assets/](./packages/create-skills/assets/) | AI Agents | Tested examples and knowledge base for Odoo patterns |
+| [packages/odoo-client/examples](./packages/odoo-client/examples/) | Users | Client examples: connection, CRUD, search, context, modules |
+| [packages/odoo-introspection/examples](./packages/odoo-introspection/examples/) | Users | Introspection examples: schema discovery, type generation |
+| [packages/odoo-state-manager/examples](./packages/odoo-state-manager/examples/) | Users | State manager examples: drift detection, plan/apply |
+| [AGENTS.md](./AGENTS.md) | AI Assistants | Coding patterns, Odoo knowledge |
+| [ROADMAP.md](./ROADMAP.md) | All | Future vision and design decisions |
+| [TODO.md](./TODO.md) | Contributors | Implementation tasks |
 
 ## Resources
 
