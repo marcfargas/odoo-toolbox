@@ -38,6 +38,7 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+.odoo.env
 
 # Generated
 packages/*/generated/

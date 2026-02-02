@@ -42,7 +42,9 @@
     "addon:install": "node scripts/manage-addon.js install",
     "addon:uninstall": "node scripts/manage-addon.js uninstall",
     "addon:list": "node scripts/manage-addon.js list",
-    "addon:info": "node scripts/manage-addon.js info"
+    "addon:info": "node scripts/manage-addon.js info",
+    "skills:generate": "npx ts-node packages/odoo-skills/src/cli/generate.ts",
+    "skills:install": "npm run skills:generate && npx ts-node packages/odoo-skills/src/cli/install.ts"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
