@@ -122,10 +122,15 @@ odoo-introspect generate \
   --output src/models
 ```
 
+## Tested Examples
+
+For comprehensive, tested examples of Odoo patterns including CRUD operations, search patterns, and field handling, see the knowledge base in [@odoo-toolbox/create-skills](../create-skills/assets/base/).
+
 ## Related Packages
 
 - [@odoo-toolbox/introspection](../odoo-introspection) - Schema introspection and code generation
 - [@odoo-toolbox/state-manager](../odoo-state-manager) - State management and drift detection
+- [@odoo-toolbox/create-skills](../create-skills) - CLI for scaffolding AI agent skill projects
 
 ## License
 

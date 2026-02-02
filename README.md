@@ -20,6 +20,7 @@
 | **@odoo-toolbox/client** | Lightweight RPC client for Odoo operations | [README](./packages/odoo-client/README.md) |
 | **@odoo-toolbox/introspection** | Schema introspection and TypeScript code generation | [README](./packages/odoo-introspection/README.md) |
 | **@odoo-toolbox/state-manager** | Drift detection and plan/apply workflow | [README](./packages/odoo-state-manager/README.md) |
+| **@odoo-toolbox/create-skills** | CLI to scaffold Odoo skill projects for AI agents | [README](./packages/create-skills/README.md) |
 
 ## Installation
 
@@ -90,7 +91,7 @@ See [packages/odoo-client/examples/5-module-management.ts](./packages/odoo-clien
 
 | Document | Audience | Purpose |
 |----------|----------|---------|
-| [docs/meta-skills/](./docs/meta-skills/) | AI Agents | Meta-skills for learning Odoo patterns and generating instance-specific commands |
+| [packages/create-skills/assets/](./packages/create-skills/assets/) | AI Agents | Tested examples and knowledge base for Odoo patterns |
 | [packages/odoo-client/examples](./packages/odoo-client/examples/) | Users | Client examples: connection, CRUD, search, context, modules |
 | [packages/odoo-introspection/examples](./packages/odoo-introspection/examples/) | Users | Introspection examples: schema discovery, type generation |
 | [packages/odoo-state-manager/examples](./packages/odoo-state-manager/examples/) | Users | State manager examples: drift detection, plan/apply |

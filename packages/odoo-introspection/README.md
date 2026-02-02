@@ -228,10 +228,15 @@ DEBUG=odoo-introspection:* npm run test
 DEBUG=odoo-introspection:introspection,odoo-introspection:codegen npm run test
 ```
 
-## Related
+## Tested Examples
+
+For comprehensive, tested examples of introspection patterns and model discovery, see the knowledge base in [@odoo-toolbox/create-skills](../create-skills/assets/base/).
+
+## Related Packages
 
 - [@odoo-toolbox/client](../odoo-client) - RPC client
 - [@odoo-toolbox/state-manager](../odoo-state-manager) - State management and drift detection
+- [@odoo-toolbox/create-skills](../create-skills) - CLI for scaffolding AI agent skill projects
 
 ## License
 

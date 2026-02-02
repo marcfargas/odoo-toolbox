@@ -509,10 +509,15 @@ See the [examples/](../../examples/) directory:
 
 ---
 
+## Tested Examples
+
+For comprehensive, tested examples of Odoo patterns including state management and CRUD operations, see the knowledge base in [@odoo-toolbox/create-skills](../create-skills/assets/base/).
+
 ## Related Packages
 
 - [@odoo-toolbox/client](../odoo-client/README.md) - RPC client
 - [@odoo-toolbox/introspection](../odoo-introspection/README.md) - Schema introspection
+- [@odoo-toolbox/create-skills](../create-skills/README.md) - CLI for scaffolding AI agent skill projects
 
 ## License
 
