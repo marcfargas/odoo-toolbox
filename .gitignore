@@ -46,3 +46,7 @@ packages/*/generated/
 # Temporary
 *.tmp
 .cache/
+
+# OCA test modules (cloned by setup)
+test-addons/*/
+!test-addons/README.md

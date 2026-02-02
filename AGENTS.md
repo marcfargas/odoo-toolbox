@@ -547,6 +547,87 @@ const fields = await client.call('ir.model.fields', 'search_read',
 
 **Best practice**: Start with introspection to understand the schema, then dive into Odoo source code to understand behavior.
 
+### Adding OCA Modules for Introspection
+
+When you need to introspect OCA modules (not included in base Odoo):
+
+**Step 1: Clone the OCA repository to `test-addons/`**
+
+```bash
+cd test-addons
+git clone --depth 1 -b 17.0 https://github.com/OCA/<repo-name>.git
+```
+
+Example for MIS Builder and dependencies:
+```bash
+git clone --depth 1 -b 17.0 https://github.com/OCA/mis-builder.git
+git clone --depth 1 -b 17.0 https://github.com/OCA/reporting-engine.git
+git clone --depth 1 -b 17.0 https://github.com/OCA/server-ux.git
+```
+
+**Step 2: Restart Docker (auto-discovers new addons)**
+
+```bash
+npm run docker:down
+npm run docker:up
+node scripts/wait-for-odoo.js
+```
+
+The `docker/odoo-entrypoint.sh` script automatically scans `/mnt/oca` (mounted from `test-addons/`) and adds all addon directories to Odoo's addons-path.
+
+**Step 3: Install the modules**
+
+```bash
+# Install dependencies first, then the target module
+npm run addon:install date_range
+npm run addon:install report_xlsx
+npm run addon:install mis_builder
+```
+
+**Step 4: Introspect the models**
+
+```javascript
+// Find all models from a module
+const models = await client.searchRead('ir.model',
+  [['modules', 'ilike', 'mis_builder']],
+  { fields: ['model', 'name', 'info'] }
+);
+
+// Or find models by name pattern
+const misModels = await client.searchRead('ir.model',
+  [['model', 'like', 'mis.%']],
+  { fields: ['model', 'name'] }
+);
+
+// Get all fields for a specific model
+const fields = await client.searchRead('ir.model.fields',
+  [['model', '=', 'mis.report.instance']],
+  { fields: ['name', 'ttype', 'field_description', 'required', 'readonly', 'relation'] }
+);
+```
+
+**Step 5: Test API methods**
+
+```javascript
+// Call methods on the model
+const reportData = await client.call('mis.report.instance', 'compute', [[instanceId]]);
+
+// Explore the returned structure
+console.log('Keys:', Object.keys(reportData));
+console.log('Body rows:', reportData.body.length);
+```
+
+### Common OCA Repositories
+
+| Repository | Key Modules | Use Case |
+|------------|-------------|----------|
+| OCA/mis-builder | `mis_builder` | Financial reports (PnL, Balance Sheet) |
+| OCA/reporting-engine | `report_xlsx` | Excel exports |
+| OCA/server-ux | `date_range` | Date range utilities |
+| OCA/l10n-spain | `l10n_es_mis_report` | Spanish financial templates |
+| OCA/project | Various project addons | Project management |
+| OCA/hr | HR modules | Human resources |
+
 ## Getting Help
 
 - **Odoo Community (OCA) Documentation**: https://odoo-community.org/

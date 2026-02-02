@@ -26,6 +26,7 @@ Load as needed by reading `base/{name}.md`:
 | search | Search & filtering patterns |
 | properties | Dynamic user-defined fields |
 | modules | Module lifecycle management |
+| mis-builder | MIS Builder financial reports (PnL, Balance Sheet) |
 | skill-generation | How to create new skills |
 
 ## Instance Skills
