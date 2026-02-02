@@ -5,7 +5,7 @@
   "description": "TypeScript infrastructure-as-code toolkit for Odoo ERP",
   "repository": {
     "type": "git",
-    "url": "https://github.com/YOUR_USERNAME/odoo-toolbox.git"
+    "url": "https://github.com/telenieko/odoo-toolbox.git"
   },
   "keywords": [
     "odoo",
@@ -43,8 +43,7 @@
     "addon:uninstall": "node scripts/manage-addon.js uninstall",
     "addon:list": "node scripts/manage-addon.js list",
     "addon:info": "node scripts/manage-addon.js info",
-    "skills:generate": "npx ts-node packages/odoo-skills/src/cli/generate.ts",
-    "skills:install": "npm run skills:generate && npx ts-node packages/odoo-skills/src/cli/install.ts"
+    "test:meta-skills": "vitest run --config vitest.integration.config.ts docs/meta-skills/__tests__/"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

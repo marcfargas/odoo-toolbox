@@ -8,8 +8,11 @@ export default defineConfig({
 
     root: '.',
 
-    // Only integration tests
-    include: ['packages/*/tests/**/*.integration.test.ts'],
+    // Only integration tests (packages and meta-skills docs)
+    include: [
+      'packages/*/tests/**/*.integration.test.ts',
+      'docs/meta-skills/__tests__/**/*.integration.test.ts',
+    ],
 
     // Global setup/teardown for Docker containers
     globalSetup: './tests/helpers/globalSetup.ts',
@@ -20,8 +23,8 @@ export default defineConfig({
       concurrent: false,
     },
 
-    // Pool configuration for integration tests
+    // Use forks pool but allow parallel file processing
     pool: 'forks',
-    singleFork: true,
+    fileParallelism: false,
   },
 });
