@@ -3,10 +3,9 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { SessionManager } from './session/index.js';
 import { registerAllTools } from './tools/index.js';
 import { registerResources } from './resources/index.js';
+import { getServerInstructions } from './instructions.js';
 
-const SERVER_INSTRUCTIONS = `
-This MCP server provides tools and resources for working with Odoo ERP.
-
+const RESOURCE_INSTRUCTIONS = `
 ## Available Resources (Skills)
 This server exposes skill documentation as MCP Resources. Use resources/list
 to discover available skills, then resources/read to fetch specific content.
@@ -23,7 +22,12 @@ to discover available skills, then resources/read to fetch specific content.
 4. Perform operations using CRUD tools
 
 For custom skills tailored to your Odoo instance, see @odoo-toolbox/create-skills.
-`.trim();
+`;
+
+// Combine usage guide with resource documentation
+const SERVER_INSTRUCTIONS = `${getServerInstructions()}
+
+${RESOURCE_INSTRUCTIONS.trim()}`;
 
 export interface OdooMcpServerOptions {
   autoAuth?: {

@@ -5,3 +5,5 @@ export {
   McpErrorCode,
   McpErrorResponse,
 } from './error-handler.js';
+
+export { SchemaBuilder } from './schema-builder.js';
