@@ -68,7 +68,7 @@ export async function testCommand(options: TestOptions): Promise<void> {
   }
 
   let totalPassed = 0;
-  let totalFailed = 0;
+  const totalFailed = 0;
 
   for (const file of filesToTest) {
     const content = fs.readFileSync(file, 'utf-8');

@@ -23,25 +23,6 @@ function copyWithPlaceholders(
   fs.writeFileSync(dest, content);
 }
 
-/**
- * Copy a directory recursively
- */
-function copyDirectory(src: string, dest: string): void {
-  fs.mkdirSync(dest, { recursive: true });
-  const entries = fs.readdirSync(src, { withFileTypes: true });
-
-  for (const entry of entries) {
-    const srcPath = path.join(src, entry.name);
-    const destPath = path.join(dest, entry.name);
-
-    if (entry.isDirectory()) {
-      copyDirectory(srcPath, destPath);
-    } else {
-      fs.copyFileSync(srcPath, destPath);
-    }
-  }
-}
-
 export async function initCommand(
   projectName: string,
   options: InitOptions
@@ -60,6 +41,7 @@ export async function initCommand(
   const directories = [
     projectPath,
     path.join(projectPath, 'base'),
+    path.join(projectPath, 'modules'),
     path.join(projectPath, 'skills'),
   ];
 
@@ -89,6 +71,26 @@ export async function initCommand(
     fs.writeFileSync(
       path.join(projectPath, 'base', '.gitkeep'),
       '# Base modules will be installed here\n'
+    );
+  }
+
+  // Copy module-specific skills from assets/modules
+  const assetsModules = path.join(assetsDir, 'modules');
+  if (fs.existsSync(assetsModules)) {
+    const moduleFiles = fs.readdirSync(assetsModules);
+    for (const file of moduleFiles) {
+      if (file.endsWith('.md')) {
+        fs.copyFileSync(
+          path.join(assetsModules, file),
+          path.join(projectPath, 'modules', file)
+        );
+      }
+    }
+    console.log('✓ Installed module-specific skills');
+  } else {
+    fs.writeFileSync(
+      path.join(projectPath, 'modules', '.gitkeep'),
+      '# Module-specific skills will be installed here\n'
     );
   }
 

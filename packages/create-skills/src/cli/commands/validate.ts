@@ -4,8 +4,8 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { validateSkillMd, ValidationResult } from '../../validation/skill-validator';
-import { checkReferences, ReferenceResult } from '../../validation/reference-checker';
+import { validateSkillMd } from '../../validation/skill-validator';
+import { checkReferences } from '../../validation/reference-checker';
 
 interface ValidateOptions {
   quiet?: boolean;

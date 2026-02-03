@@ -159,7 +159,7 @@ function processImports(code: string): { imports: string[]; bodyCode: string } {
  * @returns Wrapped code ready for execution
  */
 function wrapCodeForExecution(code: string, needs: string[]): string {
-  const { imports, bodyCode } = processImports(code);
+  const { bodyCode } = processImports(code);
 
   const injections: string[] = [];
 
