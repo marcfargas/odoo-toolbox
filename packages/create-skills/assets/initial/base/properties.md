@@ -2,6 +2,8 @@
 
 Working with Odoo's dynamic, user-defined Properties fields.
 
+> **MCP Tools**: Use `odoo_read_properties` to get property values in both raw and simple formats. **IMPORTANT**: Use `odoo_update_properties` for safe partial updates (prevents accidental data loss). Use `odoo_find_properties_field` to discover if a model has properties and `odoo_get_property_definitions` to see available property definitions.
+
 ## Overview
 
 Properties are dynamic fields that can be created via configuration without modifying the database schema. They're commonly used in:

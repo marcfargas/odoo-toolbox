@@ -47,8 +47,8 @@ describe('@odoo-toolbox/mcp exports', () => {
   });
 
   it('has expected number of tools', () => {
-    // 3 connection + 7 CRUD + 5 module + 4 introspection = 19 tools
-    expect(allToolDefinitions.length).toBe(19);
+    // 3 connection + 7 CRUD + 5 module + 4 introspection + 10 mail + 5 properties = 34 tools
+    expect(allToolDefinitions.length).toBe(34);
   });
 
   it('includes all expected tool names', () => {
@@ -80,5 +80,24 @@ describe('@odoo-toolbox/mcp exports', () => {
     expect(toolNames).toContain('odoo_get_fields');
     expect(toolNames).toContain('odoo_get_model_metadata');
     expect(toolNames).toContain('odoo_generate_types');
+
+    // Mail tools
+    expect(toolNames).toContain('odoo_post_internal_note');
+    expect(toolNames).toContain('odoo_post_public_message');
+    expect(toolNames).toContain('odoo_get_messages');
+    expect(toolNames).toContain('odoo_manage_followers');
+    expect(toolNames).toContain('odoo_add_attachment');
+    expect(toolNames).toContain('odoo_schedule_activity');
+    expect(toolNames).toContain('odoo_complete_activity');
+    expect(toolNames).toContain('odoo_get_activities');
+    expect(toolNames).toContain('odoo_channel_message');
+    expect(toolNames).toContain('odoo_list_channels');
+
+    // Properties tools
+    expect(toolNames).toContain('odoo_read_properties');
+    expect(toolNames).toContain('odoo_update_properties');
+    expect(toolNames).toContain('odoo_find_properties_field');
+    expect(toolNames).toContain('odoo_get_property_definitions');
+    expect(toolNames).toContain('odoo_set_property_definitions');
   });
 });

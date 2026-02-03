@@ -32,12 +32,35 @@ import {
   handleGenerateTypes,
   introspectionToolDefinitions,
 } from './introspection.js';
+import {
+  handlePostInternalNote,
+  handlePostPublicMessage,
+  handleGetMessages,
+  handleManageFollowers,
+  handleAddAttachment,
+  handleScheduleActivity,
+  handleCompleteActivity,
+  handleGetActivities,
+  handleChannelMessage,
+  handleListChannels,
+  mailToolDefinitions,
+} from './mail.js';
+import {
+  handleReadProperties,
+  handleUpdateProperties,
+  handleFindPropertiesField,
+  handleGetPropertyDefinitions,
+  handleSetPropertyDefinitions,
+  propertiesToolDefinitions,
+} from './properties.js';
 
 export const allToolDefinitions = [
   ...connectionToolDefinitions,
   ...crudToolDefinitions,
   ...moduleToolDefinitions,
   ...introspectionToolDefinitions,
+  ...mailToolDefinitions,
+  ...propertiesToolDefinitions,
 ];
 
 export function registerAllTools(server: Server, session: SessionManager): void {
@@ -120,6 +143,55 @@ export function registerAllTools(server: Server, session: SessionManager): void 
         result = await handleGenerateTypes(session, args);
         break;
 
+      // Mail tools
+      case 'odoo_post_internal_note':
+        result = await handlePostInternalNote(session, args);
+        break;
+      case 'odoo_post_public_message':
+        result = await handlePostPublicMessage(session, args);
+        break;
+      case 'odoo_get_messages':
+        result = await handleGetMessages(session, args);
+        break;
+      case 'odoo_manage_followers':
+        result = await handleManageFollowers(session, args);
+        break;
+      case 'odoo_add_attachment':
+        result = await handleAddAttachment(session, args);
+        break;
+      case 'odoo_schedule_activity':
+        result = await handleScheduleActivity(session, args);
+        break;
+      case 'odoo_complete_activity':
+        result = await handleCompleteActivity(session, args);
+        break;
+      case 'odoo_get_activities':
+        result = await handleGetActivities(session, args);
+        break;
+      case 'odoo_channel_message':
+        result = await handleChannelMessage(session, args);
+        break;
+      case 'odoo_list_channels':
+        result = await handleListChannels(session, args);
+        break;
+
+      // Properties tools
+      case 'odoo_read_properties':
+        result = await handleReadProperties(session, args);
+        break;
+      case 'odoo_update_properties':
+        result = await handleUpdateProperties(session, args);
+        break;
+      case 'odoo_find_properties_field':
+        result = await handleFindPropertiesField(session, args);
+        break;
+      case 'odoo_get_property_definitions':
+        result = await handleGetPropertyDefinitions(session, args);
+        break;
+      case 'odoo_set_property_definitions':
+        result = await handleSetPropertyDefinitions(session, args);
+        break;
+
       default:
         return {
           content: [
@@ -182,3 +254,26 @@ export {
   handleGenerateTypes,
   introspectionToolDefinitions,
 } from './introspection.js';
+
+export {
+  handlePostInternalNote,
+  handlePostPublicMessage,
+  handleGetMessages,
+  handleManageFollowers,
+  handleAddAttachment,
+  handleScheduleActivity,
+  handleCompleteActivity,
+  handleGetActivities,
+  handleChannelMessage,
+  handleListChannels,
+  mailToolDefinitions,
+} from './mail.js';
+
+export {
+  handleReadProperties,
+  handleUpdateProperties,
+  handleFindPropertiesField,
+  handleGetPropertyDefinitions,
+  handleSetPropertyDefinitions,
+  propertiesToolDefinitions,
+} from './properties.js';

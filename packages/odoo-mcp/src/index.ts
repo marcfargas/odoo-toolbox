@@ -41,6 +41,25 @@ export {
   handleGetModelMetadata,
   handleGenerateTypes,
   introspectionToolDefinitions,
+  // Mail
+  handlePostInternalNote,
+  handlePostPublicMessage,
+  handleGetMessages,
+  handleManageFollowers,
+  handleAddAttachment,
+  handleScheduleActivity,
+  handleCompleteActivity,
+  handleGetActivities,
+  handleChannelMessage,
+  handleListChannels,
+  mailToolDefinitions,
+  // Properties
+  handleReadProperties,
+  handleUpdateProperties,
+  handleFindPropertiesField,
+  handleGetPropertyDefinitions,
+  handleSetPropertyDefinitions,
+  propertiesToolDefinitions,
 } from './tools/index.js';
 
 // Schemas

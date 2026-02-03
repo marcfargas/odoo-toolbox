@@ -2,6 +2,8 @@
 
 Working with the Odoo chatter (mail.thread) system for posting messages and notes on records.
 
+> **MCP Tools**: Use `odoo_post_internal_note` for private notes, `odoo_post_public_message` for messages to followers, `odoo_get_messages` to read chatter history, `odoo_manage_followers` to add/remove followers, and `odoo_add_attachment` to attach files.
+
 ## Overview
 
 The Odoo chatter system allows posting messages, notes, and tracking changes on any model that inherits from `mail.thread`. This includes most business documents like CRM leads, sales orders, invoices, partners, etc.

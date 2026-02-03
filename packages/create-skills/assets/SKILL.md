@@ -54,22 +54,22 @@ This skill set is powered by an MCP server for efficient Odoo operations.
 
 For understanding Odoo concepts, read these modules in `base/`:
 
-| Module | Description |
-|--------|-------------|
-| field-types | Odoo type system (read/write asymmetry) |
-| domains | Query filter syntax |
-| properties | Dynamic user-defined fields |
-| skill-generation | How to create new skills |
+| Module | MCP Tools | Description |
+|--------|-----------|-------------|
+| field-types | - | Odoo type system (read/write asymmetry) |
+| domains | - | Query filter syntax |
+| properties | `odoo_read_properties`, `odoo_update_properties`, `odoo_find_properties_field`, `odoo_get_property_definitions`, `odoo_set_property_definitions` | Dynamic user-defined fields |
+| skill-generation | - | How to create new skills |
 
 ## Mail & Messaging
 
 Skills for Odoo's mail system. Load by reading `mail/{name}.md`:
 
-| Module | Description |
-|--------|-------------|
-| chatter | Post messages and notes on records (mail.thread) |
-| activities | Schedule and manage activities/tasks |
-| discuss | Chat channels and direct messages |
+| Module | MCP Tools | Description |
+|--------|-----------|-------------|
+| chatter | `odoo_post_internal_note`, `odoo_post_public_message`, `odoo_get_messages`, `odoo_manage_followers`, `odoo_add_attachment` | Post messages and notes on records (mail.thread) |
+| activities | `odoo_schedule_activity`, `odoo_complete_activity`, `odoo_get_activities` | Schedule and manage activities/tasks |
+| discuss | `odoo_channel_message`, `odoo_list_channels` | Chat channels and direct messages |
 
 **Note:** The mail module is part of base Odoo and is typically always installed.
 

@@ -2,6 +2,8 @@
 
 Working with Odoo Discuss channels for team communication.
 
+> **MCP Tools**: Use `odoo_list_channels` to discover channels and `odoo_channel_message` to post messages. Version differences (Odoo 15 vs 16+) are handled automatically.
+
 ## Overview
 
 Odoo Discuss provides real-time chat and messaging through channels. Channels can be public, private (groups), or direct messages between users.

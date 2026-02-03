@@ -2,6 +2,8 @@
 
 Working with Odoo activities (mail.activity) for task and reminder management.
 
+> **MCP Tools**: Use `odoo_schedule_activity` to create activities, `odoo_complete_activity` to mark done or cancel, and `odoo_get_activities` to list activities by model, record, or user.
+
 ## Overview
 
 Activities are tasks, reminders, or scheduled actions on records. Any model inheriting from `mail.activity.mixin` can have activities. This provides a unified way to track to-dos, calls, meetings, and other actions across the system.
