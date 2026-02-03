@@ -28,6 +28,18 @@ Load as needed by reading `base/{name}.md`:
 | modules | Module lifecycle management |
 | skill-generation | How to create new skills |
 
+## Mail & Messaging
+
+Skills for Odoo's mail system. Load by reading `mail/{name}.md`:
+
+| Module | Description |
+|--------|-------------|
+| chatter | Post messages and notes on records (mail.thread) |
+| activities | Schedule and manage activities/tasks |
+| discuss | Chat channels and direct messages |
+
+**Note:** The mail module is part of base Odoo and is typically always installed.
+
 ## Module-Specific Skills
 
 Skills that require specific Odoo modules to be installed. Before loading, verify the required modules are present using `base/modules.md` introspection.
