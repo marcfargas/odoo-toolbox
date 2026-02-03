@@ -42,6 +42,50 @@ The project includes tested and validated Odoo knowledge in `packages/create-ski
 - **Pragmatic Choices**: Choose practical solutions over theoretical perfection
 - **FOSS First**: This is designed to be a standalone open-source project
 
+## Package Architecture
+
+### Separation of Concerns
+
+| Package | Responsibility |
+|---------|----------------|
+| `@odoo-toolbox/client` | Odoo business logic, services, domain operations (mail, activities, properties, etc.) |
+| `@odoo-toolbox/introspection` | Schema discovery, type generation |
+| `@odoo-toolbox/state-manager` | Drift detection, plan/apply workflow |
+| `@odoo-toolbox/mcp` | Thin MCP protocol adapter only |
+
+### When Adding New Functionality
+
+1. **Business logic** goes in `odoo-client` (services for mail, activities, properties, modules, etc.)
+2. **MCP tools** are thin wrappers that delegate to client services
+3. **MCP layer** handles only: input validation, error formatting, response structure
+
+### Anti-patterns to Avoid
+
+- ❌ Putting Odoo-specific logic directly in MCP handlers
+- ❌ Duplicating client utilities in MCP layer
+- ❌ Hard-coding Odoo model knowledge in protocol adapters
+
+### Good Example
+
+```typescript
+// Business logic in odoo-client
+export class MailService {
+  async postInternalNote(model: string, resId: number, body: string): Promise<number> {
+    // All Odoo-specific logic here (HTML wrapping, subtype selection, etc.)
+  }
+}
+
+// Thin wrapper in odoo-mcp
+export async function handlePostInternalNote(session, input) {
+  const params = PostInternalNoteInputSchema.parse(input);
+  const mailService = session.getMailService();
+  const messageId = await mailService.postInternalNote(params.model, params.res_id, params.body);
+  return { success: true, message_id: messageId };
+}
+```
+
+See [GitHub Issue #7](https://github.com/telenieko/odoo-toolbox/issues/7) for current refactoring status.
+
 ## Key Architectural Decisions
 
 ### Type Generation Philosophy

@@ -243,6 +243,36 @@ examples/                # Usage examples
 4. Update relevant README in package
 5. Update ROADMAP.md with status
 
+### Adding New MCP Tools
+
+When adding tools to `@odoo-toolbox/mcp`:
+
+1. **First**: Implement business logic in `odoo-client` (or relevant package)
+2. **Then**: Create thin MCP wrapper that delegates to client
+3. **Avoid**: Odoo-specific logic directly in MCP handlers
+
+**Good pattern:**
+```typescript
+// In odoo-client - all business logic
+export class SomeService {
+  constructor(private client: OdooClient) {}
+
+  async doOperation(params: Params): Promise<Result> {
+    // Odoo-specific logic here
+  }
+}
+
+// In odoo-mcp - thin wrapper only
+export async function handleOperation(session, input) {
+  const params = OperationInputSchema.parse(input);  // Validation
+  const service = session.getSomeService();
+  const result = await service.doOperation(params);  // Delegate
+  return { success: true, result };                  // Format response
+}
+```
+
+See [AGENTS.md](./AGENTS.md#package-architecture) for the full package architecture guidelines.
+
 ### Debugging Tests
 
 ```bash
