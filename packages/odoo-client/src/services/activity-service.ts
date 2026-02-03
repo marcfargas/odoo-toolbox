@@ -157,8 +157,20 @@ export class ActivityService {
     // Resolve activity type to numeric ID
     const resolvedTypeId = await resolveActivityTypeId(this.client, activityTypeId);
 
+    // Get the model ID for res_model_id field
+    const modelRecords = await this.client.searchRead<{ id: number }>(
+      'ir.model',
+      [['model', '=', model]],
+      { fields: ['id'], limit: 1 }
+    );
+
+    if (modelRecords.length === 0) {
+      throw new Error(`Model not found: ${model}`);
+    }
+
     const values: Record<string, any> = {
       res_model: model,
+      res_model_id: modelRecords[0].id,
       res_id: resId,
       activity_type_id: resolvedTypeId,
     };

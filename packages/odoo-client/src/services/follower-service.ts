@@ -94,10 +94,7 @@ export class FollowerService {
 
     log('Adding %d followers to %s/%d', partnerIds.length, model, resId);
 
-    await this.client.call(model, 'message_subscribe', [[resId]], {
-      partner_ids: partnerIds,
-      context,
-    });
+    await this.client.call(model, 'message_subscribe', [[resId], partnerIds], { context });
 
     log('Added followers successfully');
   }
@@ -132,10 +129,7 @@ export class FollowerService {
 
     log('Removing %d followers from %s/%d', partnerIds.length, model, resId);
 
-    await this.client.call(model, 'message_unsubscribe', [[resId]], {
-      partner_ids: partnerIds,
-      context,
-    });
+    await this.client.call(model, 'message_unsubscribe', [[resId], partnerIds], { context });
 
     log('Removed followers successfully');
   }

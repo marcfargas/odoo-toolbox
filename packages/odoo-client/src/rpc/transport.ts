@@ -142,11 +142,14 @@ export class JsonRpcTransport {
         });
       }
 
-      if (data.result === undefined) {
-        throw new OdooRpcError('Invalid RPC response: missing result field');
+      // Some Odoo methods don't return a result (they return success implicitly)
+      // In this case, the response will only have jsonrpc and id fields
+      if (!Object.prototype.hasOwnProperty.call(data, 'result')) {
+        // No result field means success with no return value
+        return null as T;
       }
 
-      return data.result;
+      return data.result as T;
     } catch (error) {
       if (error instanceof OdooRpcError || error instanceof OdooNetworkError) {
         throw error;
