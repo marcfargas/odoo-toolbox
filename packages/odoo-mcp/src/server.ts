@@ -2,6 +2,28 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { SessionManager } from './session/index.js';
 import { registerAllTools } from './tools/index.js';
+import { registerResources } from './resources/index.js';
+
+const SERVER_INSTRUCTIONS = `
+This MCP server provides tools and resources for working with Odoo ERP.
+
+## Available Resources (Skills)
+This server exposes skill documentation as MCP Resources. Use resources/list
+to discover available skills, then resources/read to fetch specific content.
+
+### Skill Categories:
+- skill://base/* - Core Odoo operations (connection, CRUD, domains, etc.)
+- skill://mail/* - Mail system (chatter, activities, discuss)
+- skill://oca-modules/* - OCA community modules
+
+### Recommended Workflow:
+1. Check connection status with odoo_connection_status
+2. Read relevant skill documentation for guidance on complex operations
+3. Use introspection tools to understand the data model
+4. Perform operations using CRUD tools
+
+For custom skills tailored to your Odoo instance, see @odoo-toolbox/create-skills.
+`.trim();
 
 export interface OdooMcpServerOptions {
   autoAuth?: {
@@ -28,12 +50,17 @@ export function createOdooMcpServer(_options: OdooMcpServerOptions = {}): OdooMc
     {
       capabilities: {
         tools: {},
+        resources: {},
       },
+      instructions: SERVER_INSTRUCTIONS,
     }
   );
 
   // Register all tools with the session manager
   registerAllTools(server, session);
+
+  // Register resource handlers for skills
+  registerResources(server);
 
   return { server, session };
 }

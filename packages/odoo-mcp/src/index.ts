@@ -62,6 +62,9 @@ export {
   propertiesToolDefinitions,
 } from './tools/index.js';
 
+// Resources
+export { registerResources, discoverSkillResources, readSkillContent } from './resources/index.js';
+
 // Schemas
 export * from './schemas/index.js';
 

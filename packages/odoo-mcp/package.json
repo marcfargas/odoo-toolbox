@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "postbuild": "node scripts/postbuild.js",
     "dev": "tsc --watch",
     "test": "vitest run",
     "test:watch": "vitest"

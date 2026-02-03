@@ -6,7 +6,7 @@
  * - dist/odoo-client.zip
  * - dist/odoo-introspection.zip
  * - dist/odoo-state-manager.zip
- * - dist/odoo-mcp.zip
+ * - dist/odoo-mcp.mcpb (MCP bundle with manifest.json)
  * - dist/create-skills.zip
  * - dist/odoo-skills.zip
  *
@@ -85,7 +85,10 @@ async function buildDist() {
     const pkgDistSrc = path.join(pkgDir, 'dist');
 
     if (fs.existsSync(pkgDistSrc)) {
-      const zipPath = path.join(distDir, `${pkg}.zip`);
+      // odoo-mcp gets .mcpb extension (MCP bundle format)
+      const isMcp = pkg === 'odoo-mcp';
+      const ext = isMcp ? '.mcpb' : '.zip';
+      const zipPath = path.join(distDir, `${pkg}${ext}`);
       const tempPkgDir = path.join(tempDir, pkg);
 
       // Prepare temp directory with package contents
@@ -104,10 +107,18 @@ async function buildDist() {
         fs.copyFileSync(readmeSrc, path.join(tempPkgDir, 'README.md'));
       }
 
-      // Create zip
+      // Copy manifest.json for MCP bundle
+      if (isMcp) {
+        const manifestSrc = path.join(pkgDir, 'manifest.json');
+        if (fs.existsSync(manifestSrc)) {
+          fs.copyFileSync(manifestSrc, path.join(tempPkgDir, 'manifest.json'));
+        }
+      }
+
+      // Create zip/mcpb
       await createZip(tempPkgDir, zipPath, pkg);
 
-      console.log(`   - ${pkg}.zip`);
+      console.log(`   - ${pkg}${ext}`);
     } else {
       console.log(`   - ${pkg} (no dist folder, skipping)`);
     }

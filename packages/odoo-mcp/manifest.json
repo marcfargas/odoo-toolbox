@@ -1,0 +1,203 @@
+{
+  "manifest_version": "0.3",
+  "name": "odoo-mcp",
+  "display_name": "Odoo MCP Server",
+  "version": "0.1.0",
+  "description": "MCP server for Odoo - exposes Odoo ERP operations to AI agents via Model Context Protocol",
+  "long_description": "A comprehensive MCP server providing 34 tools for interacting with Odoo ERP systems. Includes CRUD operations, search capabilities, mail/chatter management, properties handling, workflow execution, report generation, and session management. Designed for AI agents to perform complex Odoo operations safely and efficiently.",
+  "author": {
+    "name": "Marc"
+  },
+  "license": "LGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/odoo-toolbox/odoo-toolbox.git"
+  },
+  "keywords": [
+    "odoo",
+    "erp",
+    "crm",
+    "business",
+    "rpc",
+    "automation"
+  ],
+  "server": {
+    "type": "node",
+    "entry_point": "dist/bin/odoo-mcp.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["dist/bin/odoo-mcp.js"]
+    }
+  },
+  "compatibility": {
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
+  },
+  "user_config": {
+    "url": {
+      "type": "string",
+      "title": "Odoo URL",
+      "description": "Odoo server URL (e.g., https://mycompany.odoo.com)",
+      "required": true
+    },
+    "database": {
+      "type": "string",
+      "title": "Database",
+      "description": "Odoo database name",
+      "required": true
+    },
+    "username": {
+      "type": "string",
+      "title": "Username",
+      "description": "Odoo username or email",
+      "required": true
+    },
+    "password": {
+      "type": "string",
+      "title": "Password",
+      "description": "Odoo password or API key",
+      "required": true,
+      "sensitive": true
+    }
+  },
+  "tools": [
+    {
+      "name": "odoo_connect",
+      "description": "Authenticate and establish session with Odoo server"
+    },
+    {
+      "name": "odoo_search_read",
+      "description": "Search records with domain filters and return specified fields"
+    },
+    {
+      "name": "odoo_read",
+      "description": "Read specific records by ID"
+    },
+    {
+      "name": "odoo_create",
+      "description": "Create new records in Odoo"
+    },
+    {
+      "name": "odoo_write",
+      "description": "Update existing records"
+    },
+    {
+      "name": "odoo_unlink",
+      "description": "Delete records from Odoo"
+    },
+    {
+      "name": "odoo_search_count",
+      "description": "Count records matching domain"
+    },
+    {
+      "name": "odoo_fields_get",
+      "description": "Get field definitions for a model"
+    },
+    {
+      "name": "odoo_call",
+      "description": "Call arbitrary model methods"
+    },
+    {
+      "name": "odoo_get_metadata",
+      "description": "Get record metadata (create/write info)"
+    },
+    {
+      "name": "odoo_list_models",
+      "description": "List available Odoo models"
+    },
+    {
+      "name": "odoo_check_access",
+      "description": "Check user access rights on models"
+    },
+    {
+      "name": "odoo_name_search",
+      "description": "Search records by name pattern"
+    },
+    {
+      "name": "odoo_execute_workflow",
+      "description": "Execute workflow actions on records"
+    },
+    {
+      "name": "odoo_get_report",
+      "description": "Generate and retrieve PDF reports"
+    },
+    {
+      "name": "odoo_search_with_groups",
+      "description": "Perform grouped searches with aggregations"
+    },
+    {
+      "name": "odoo_manage_relation",
+      "description": "Manage Many2many and One2many relations"
+    },
+    {
+      "name": "odoo_get_session_info",
+      "description": "Get current session information"
+    },
+    {
+      "name": "odoo_disconnect",
+      "description": "End the Odoo session"
+    },
+    {
+      "name": "odoo_post_internal_note",
+      "description": "Post private internal note on record chatter"
+    },
+    {
+      "name": "odoo_post_public_message",
+      "description": "Post public message to followers (triggers notifications)"
+    },
+    {
+      "name": "odoo_get_messages",
+      "description": "Read messages from record chatter"
+    },
+    {
+      "name": "odoo_manage_followers",
+      "description": "Add, remove, or list record followers"
+    },
+    {
+      "name": "odoo_add_attachment",
+      "description": "Create and attach file to a record"
+    },
+    {
+      "name": "odoo_schedule_activity",
+      "description": "Schedule activity on a record"
+    },
+    {
+      "name": "odoo_complete_activity",
+      "description": "Mark activity as done or cancel"
+    },
+    {
+      "name": "odoo_get_activities",
+      "description": "Get activities by record or user"
+    },
+    {
+      "name": "odoo_channel_message",
+      "description": "Post message to discuss channel"
+    },
+    {
+      "name": "odoo_list_channels",
+      "description": "List available discuss channels"
+    },
+    {
+      "name": "odoo_read_properties",
+      "description": "Read dynamic properties in raw or simple format"
+    },
+    {
+      "name": "odoo_update_properties",
+      "description": "Safely update properties (read-modify-write pattern)"
+    },
+    {
+      "name": "odoo_find_properties_field",
+      "description": "Discover properties field on a model"
+    },
+    {
+      "name": "odoo_get_property_definitions",
+      "description": "Get property definitions from parent model"
+    },
+    {
+      "name": "odoo_set_property_definitions",
+      "description": "Define or update property definitions"
+    }
+  ]
+}
