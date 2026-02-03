@@ -46,8 +46,8 @@ export async function initCommand(projectName: string, options: InitOptions): Pr
   // Path to assets directory (relative to compiled JS location)
   const assetsDir = path.resolve(__dirname, '..', '..', '..', 'assets');
 
-  // Copy base modules from assets/base
-  const assetsBase = path.join(assetsDir, 'base');
+  // Copy base modules from assets/initial/base
+  const assetsBase = path.join(assetsDir, 'initial', 'base');
   if (fs.existsSync(assetsBase)) {
     const baseFiles = fs.readdirSync(assetsBase);
     for (const file of baseFiles) {
@@ -64,8 +64,8 @@ export async function initCommand(projectName: string, options: InitOptions): Pr
     );
   }
 
-  // Copy module-specific skills from assets/modules
-  const assetsModules = path.join(assetsDir, 'modules');
+  // Copy module-specific skills from assets/initial/modules
+  const assetsModules = path.join(assetsDir, 'initial', 'modules');
   if (fs.existsSync(assetsModules)) {
     const moduleFiles = fs.readdirSync(assetsModules);
     for (const file of moduleFiles) {

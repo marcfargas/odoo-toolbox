@@ -64,12 +64,12 @@ describe('E2E: Skill Creator Workflow', () => {
     });
 
     it('should have all base modules from assets', () => {
-      const assetsBase = path.join(assetsDir, 'base');
+      const assetsBase = path.join(assetsDir, 'initial', 'base');
       const projectBase = path.join(projectDir, 'base');
 
       expect(fs.existsSync(projectBase)).toBe(true);
 
-      // Dynamically get modules from assets/base
+      // Dynamically get modules from assets/initial/base
       const assetModules = fs.readdirSync(assetsBase).filter((f) => f.endsWith('.md'));
 
       expect(assetModules.length).toBeGreaterThan(0);
