@@ -63,20 +63,24 @@ npm run test:integration
 
 ```bash
 # Start Odoo test environment
-npm run docker:up
+npm run odoo:up
 
 # View logs in another terminal
-npm run docker:logs
+npm run odoo:logs
 
 # Run tests
 npm run test:integration
 
 # Stop when done
-npm run docker:down
+npm run odoo:down
 
 # Full cleanup (removes volumes)
-npm run docker:clean
+npm run odoo:clean
 ```
+
+**Environment variables for test control:**
+- `KEEP_CONTAINERS=true` - Keep Docker containers running after tests complete
+- `SKIP_TEARDOWN=true` - Skip teardown phase during integration tests
 
 ### Configuration
 
@@ -134,16 +138,16 @@ Manage modules from the command line:
 
 ```bash
 # List installed modules
-npm run addon:list installed
+npm run odoo:addon:list installed
 
 # Get module information
-npm run addon:info project
+npm run odoo:addon:info project
 
 # Install a module (useful for testing specific scenarios)
-npm run addon:install project
+npm run odoo:addon:install project
 
 # Uninstall a module
-npm run addon:uninstall project
+npm run odoo:addon:uninstall project
 ```
 
 Environment variables (defaults shown):
@@ -243,10 +247,10 @@ examples/                # Usage examples
 
 ```bash
 # Keep Docker containers after tests
-npm run test:debug
+KEEP_CONTAINERS=true npm run test:integration
 
 # Docker logs in separate terminal
-npm run docker:logs
+npm run odoo:logs
 
 # Inspect container state
 docker-compose -f docker-compose.test.yml exec odoo /bin/bash
