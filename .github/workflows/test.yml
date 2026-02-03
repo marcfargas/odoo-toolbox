@@ -200,7 +200,7 @@ jobs:
   build-skills-zip:
     name: Build Skills Zip
     runs-on: ubuntu-latest
-    needs: setup
+    needs: [lint, unit-tests]
     steps:
       - uses: actions/checkout@v4
 
