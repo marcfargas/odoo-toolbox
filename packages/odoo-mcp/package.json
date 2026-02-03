@@ -1,0 +1,39 @@
+{
+  "name": "@odoo-toolbox/mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Odoo - exposes Odoo operations to AI agents",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "odoo-mcp": "dist/bin/odoo-mcp.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "odoo",
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "typescript"
+  ],
+  "author": "Marc",
+  "license": "LGPL-3.0",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@odoo-toolbox/client": "^0.1.0",
+    "@odoo-toolbox/introspection": "^0.1.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

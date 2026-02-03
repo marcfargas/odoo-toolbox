@@ -2,9 +2,11 @@
 
 How to discover and understand models and fields available in an Odoo instance.
 
+> **MCP Tools**: Use `odoo_get_models`, `odoo_get_fields`, `odoo_get_model_metadata`, and `odoo_generate_types` for introspection.
+
 ## Overview
 
-Before working with Odoo data, you need to know what models (tables) exist and what fields they have. The `@odoo-toolbox/introspection` package provides tools for this.
+Before working with Odoo data, you need to know what models (tables) exist and what fields they have. When using the MCP server, introspection tools are available directly. The underlying `@odoo-toolbox/introspection` package provides these capabilities.
 
 ## Using the Introspector
 

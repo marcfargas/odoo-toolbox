@@ -2,15 +2,39 @@
 
 > Teach AI agents to work with your Odoo instance
 
-**odoo-toolbox** provides tested, validated skills that enable AI agents (Claude Code, Cursor, etc.) to interact with Odoo ERP. Use the base knowledge modules directly or scaffold a custom skill project for your instance.
+**odoo-toolbox** provides an MCP server and tested skills that enable AI agents (Claude Code, Cursor, etc.) to interact with Odoo ERP.
 
 ## Quick Start
 
-### Option 1: Download Pre-built Skills
+### Option 1: MCP Server (Recommended)
+
+Add the MCP server to your Claude Desktop or Claude Code configuration:
+
+```json
+{
+  "mcpServers": {
+    "odoo": {
+      "command": "npx",
+      "args": ["@odoo-toolbox/mcp"],
+      "env": {
+        "ODOO_URL": "http://localhost:8069",
+        "ODOO_DB_NAME": "odoo",
+        "ODOO_DB_USER": "admin",
+        "ODOO_DB_PASSWORD": "admin"
+      }
+    }
+  }
+}
+```
+
+Then ask your AI agent to:
+- "Connect to Odoo and list available models"
+- "Introspect the crm.lead model"
+- "Create a new sales order"
+
+### Option 2: Download Pre-built Skills
 
 Download `odoo-skills.zip` from the [latest CI build](https://github.com/telenieko/odoo-toolbox/actions) (look for the "odoo-skills" artifact).
-
-Extract and configure:
 
 ```bash
 unzip odoo-skills.zip
@@ -18,12 +42,7 @@ cd odoo-skills
 cp .env.example .env  # Add your Odoo credentials
 ```
 
-Then point your AI agent to the project and ask it to:
-- "Connect to Odoo and list available models"
-- "Introspect the crm.lead model"
-- "Create a new sales order"
-
-### Option 2: Create a Custom Skill Project
+### Option 3: Create a Custom Skill Project
 
 For instance-specific skills with your Odoo configuration:
 
@@ -50,7 +69,8 @@ All examples are **tested against real Odoo v17 instances** in CI:
 
 | Package | Description |
 |---------|-------------|
-| **[@odoo-toolbox/create-skills](./packages/create-skills)** | CLI to scaffold Odoo skill projects |
+| **[@odoo-toolbox/mcp](./packages/odoo-mcp)** | MCP server for AI agent integration |
+| [@odoo-toolbox/create-skills](./packages/create-skills) | CLI to scaffold Odoo skill projects |
 | [@odoo-toolbox/client](./packages/odoo-client) | TypeScript RPC client for Odoo |
 | [@odoo-toolbox/introspection](./packages/odoo-introspection) | Schema introspection and type generation |
 

@@ -2,9 +2,11 @@
 
 Working with Odoo modules: checking, installing, and dependencies.
 
+> **MCP Tools**: Use `odoo_module_list`, `odoo_module_info`, `odoo_module_install`, `odoo_module_uninstall`, `odoo_module_upgrade` for module operations.
+
 ## Overview
 
-Odoo functionality is organized into modules. Before using module-specific features (CRM, Sales, etc.), you must verify the module is installed.
+Odoo functionality is organized into modules. Before using module-specific features (CRM, Sales, etc.), you must verify the module is installed. When using the MCP server, module operations are available through dedicated tools.
 
 ## Using ModuleManager
 

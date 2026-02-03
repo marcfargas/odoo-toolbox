@@ -6,6 +6,7 @@
  * - dist/odoo-client.zip
  * - dist/odoo-introspection.zip
  * - dist/odoo-state-manager.zip
+ * - dist/odoo-mcp.zip
  * - dist/create-skills.zip
  * - dist/odoo-skills.zip
  *
@@ -25,6 +26,7 @@ const PACKAGES = [
   'odoo-client',
   'odoo-introspection',
   'odoo-state-manager',
+  'odoo-mcp',
   'create-skills',
 ];
 

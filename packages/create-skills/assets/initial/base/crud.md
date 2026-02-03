@@ -2,9 +2,11 @@
 
 Patterns for Create, Read, Update, and Delete operations in Odoo.
 
+> **MCP Tools**: Use `odoo_create`, `odoo_read`, `odoo_search_read`, `odoo_write`, `odoo_unlink` for data operations.
+
 ## Overview
 
-All Odoo data manipulation follows CRUD patterns. Understanding these patterns is essential for any Odoo integration.
+All Odoo data manipulation follows CRUD patterns. When using the MCP server, these operations are available through dedicated tools. Understanding the patterns below is essential for any Odoo integration.
 
 ## Create
 

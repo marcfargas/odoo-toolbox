@@ -2,9 +2,11 @@
 
 How to establish an authenticated connection to an Odoo instance.
 
+> **MCP Tool**: Use `odoo_authenticate` for connection. The MCP server handles authentication automatically if environment variables are configured.
+
 ## Overview
 
-All Odoo operations require an authenticated connection. The `@odoo-toolbox/client` package provides `OdooClient` for this purpose.
+All Odoo operations require an authenticated connection. When using the MCP server, authentication is handled via the `odoo_authenticate` tool or automatically through environment variables. The underlying `@odoo-toolbox/client` package provides `OdooClient` for direct JavaScript usage.
 
 ## Connection Parameters
 

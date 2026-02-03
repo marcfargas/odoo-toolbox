@@ -2,9 +2,11 @@
 
 Patterns for finding and filtering records in Odoo.
 
+> **MCP Tools**: Use `odoo_search` for IDs only, `odoo_search_read` for records with data, `odoo_read` for records by ID.
+
 ## Overview
 
-Odoo provides several methods for searching records. Choosing the right one affects performance and code clarity.
+Odoo provides several methods for searching records. When using the MCP server, search operations are available through dedicated tools. Choosing the right one affects performance and code clarity.
 
 ## Search Methods Comparison
 

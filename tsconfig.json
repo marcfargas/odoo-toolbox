@@ -17,6 +17,7 @@
     { "path": "packages/odoo-client" },
     { "path": "packages/odoo-introspection" },
     { "path": "packages/odoo-state-manager" },
-    { "path": "packages/create-skills" }
+    { "path": "packages/create-skills" },
+    { "path": "packages/odoo-mcp" }
   ]
 }

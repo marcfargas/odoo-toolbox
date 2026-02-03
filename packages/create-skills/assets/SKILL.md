@@ -5,27 +5,60 @@ description: Odoo ERP integration - connect, introspect, and automate your Odoo 
 
 # /odoo
 
-Odoo ERP integration with progressive module loading. Connect, introspect, and automate.
+Odoo ERP integration via MCP server. Connect, introspect, and automate.
 
-## Prerequisites (Must Read First)
+## MCP Server Setup
 
-Before any Odoo operation, load these foundational modules:
+This skill set is powered by an MCP server for efficient Odoo operations.
 
-1. `base/connection.md` - Authentication & session management
-2. `base/field-types.md` - Odoo type system (read/write asymmetry)
-3. `base/domains.md` - Query filter syntax
+**Configuration** - Add to your MCP settings:
+```json
+{
+  "mcpServers": {
+    "odoo": {
+      "command": "npx",
+      "args": ["@odoo-toolbox/mcp"],
+      "env": {
+        "ODOO_URL": "http://localhost:8069",
+        "ODOO_DB_NAME": "odoo",
+        "ODOO_DB_USER": "admin",
+        "ODOO_DB_PASSWORD": "admin"
+      }
+    }
+  }
+}
+```
 
-## Additional Modules
+## Available MCP Tools
 
-Load as needed by reading `base/{name}.md`:
+| Tool | Description |
+|------|-------------|
+| `odoo_authenticate` | Connect to Odoo server |
+| `odoo_logout` | Close connection |
+| `odoo_connection_status` | Check connection state |
+| `odoo_search` | Search for record IDs |
+| `odoo_read` | Read records by ID |
+| `odoo_search_read` | Combined search + read |
+| `odoo_create` | Create new record |
+| `odoo_write` | Update records |
+| `odoo_unlink` | Delete records |
+| `odoo_call` | Call any model method |
+| `odoo_module_list` | List installed modules |
+| `odoo_module_install` | Install a module |
+| `odoo_get_models` | List available models |
+| `odoo_get_fields` | Get field definitions |
+| `odoo_get_model_metadata` | Get complete model schema |
+| `odoo_generate_types` | Generate TypeScript interfaces |
+
+## Conceptual Reference
+
+For understanding Odoo concepts, read these modules in `base/`:
 
 | Module | Description |
 |--------|-------------|
-| introspection | Discover models & fields |
-| crud | Create, read, update, delete patterns |
-| search | Search & filtering patterns |
+| field-types | Odoo type system (read/write asymmetry) |
+| domains | Query filter syntax |
 | properties | Dynamic user-defined fields |
-| modules | Module lifecycle management |
 | skill-generation | How to create new skills |
 
 ## Mail & Messaging
@@ -42,9 +75,9 @@ Skills for Odoo's mail system. Load by reading `mail/{name}.md`:
 
 ## Module-Specific Skills
 
-Skills that require specific Odoo modules to be installed. Before loading, verify the required modules are present using `base/modules.md` introspection.
+Skills that require specific Odoo modules to be installed. Use `odoo_module_list` to verify required modules are present.
 
-Load by reading `modules/{name}.md`:
+Load by reading `oca-modules/{name}.md`:
 
 | Skill | Required Modules | Description |
 |-------|------------------|-------------|
@@ -66,16 +99,17 @@ Custom skills for this Odoo instance in `skills/`:
 
 ## Quick Start
 
-1. Read the 3 prerequisite modules above
-2. Connect to Odoo using credentials from `.env`
-3. List available models with introspection
-4. Generate instance-specific skills in `skills/`
+1. Ensure MCP server is configured (see setup above)
+2. Use `odoo_authenticate` to connect (or configure env vars for auto-auth)
+3. Use `odoo_get_models` to list available models
+4. Use `odoo_get_model_metadata` to understand a model's schema
+5. Use CRUD tools (`odoo_create`, `odoo_read`, etc.) to work with data
 
 ## Skill Generation Workflow
 
-1. Read `base/introspection.md`
-2. Introspect target model schema
-3. Create `skills/{model-action}.md` following the format in `base/skill-generation.md`
+1. Use `odoo_get_model_metadata` to introspect target model
+2. Read `base/skill-generation.md` for the skill format
+3. Create `skills/{model-action}.md` with the introspected schema
 4. Update this SKILL.md to reference the new skill
 
 ---
