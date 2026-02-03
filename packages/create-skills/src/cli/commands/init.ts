@@ -64,8 +64,8 @@ export async function initCommand(projectName: string, options: InitOptions): Pr
     );
   }
 
-  // Copy module-specific skills from assets/initial/modules
-  const assetsModules = path.join(assetsDir, 'initial', 'modules');
+  // Copy OCA module-specific skills from assets/initial/oca-modules
+  const assetsModules = path.join(assetsDir, 'initial', 'oca-modules');
   if (fs.existsSync(assetsModules)) {
     const moduleFiles = fs.readdirSync(assetsModules);
     for (const file of moduleFiles) {
