@@ -84,7 +84,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-artifacts
-          path: .
+          path: packages
 
       - name: Run linter
         run: npm run lint
@@ -115,7 +115,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-artifacts
-          path: .
+          path: packages
 
       - name: Run unit tests
         run: npm run test:unit
@@ -154,7 +154,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-artifacts
-          path: .
+          path: packages
 
       - name: Start Docker services
         run: docker compose -f docker-compose.test.yml up -d --wait
@@ -221,7 +221,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-artifacts
-          path: .
+          path: packages
 
       - name: Build skills zip
         run: npm run build:skills-zip
