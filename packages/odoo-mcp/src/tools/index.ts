@@ -70,6 +70,12 @@ export const allToolDefinitions = [
 
 /**
  * Create and initialize the tool registry with core tools.
+ *
+ * Note: Tool definitions use 'as any' because existing tool definitions
+ * use string literals ('object') instead of const assertions ("object" as const).
+ * This is a known limitation of the current tool definition structure.
+ * Handlers also use 'any' to avoid complex union type inference issues
+ * when multiple handlers with different signatures are in the same Map.
  */
 export function createToolRegistry(): DynamicToolRegistry {
   const registry = new DynamicToolRegistry();

@@ -9,6 +9,9 @@
  * 2. Register conditionally based on installed modules
  * 3. Call registry.register(saleModuleTools) when module is installed
  * 4. Call registry.unregister('sale') when module is uninstalled
+ *
+ * Note: This example uses 'any' types for handlers to avoid type complexity.
+ * In production code, consider using proper types or the ToolHandler type.
  */
 
 import { ModuleToolConfig } from './registry.js';
