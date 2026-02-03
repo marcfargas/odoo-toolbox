@@ -24,11 +24,6 @@ to discover available skills, then resources/read to fetch specific content.
 For custom skills tailored to your Odoo instance, see @odoo-toolbox/create-skills.
 `;
 
-// Combine usage guide with resource documentation
-const SERVER_INSTRUCTIONS = `${getServerInstructions()}
-
-${RESOURCE_INSTRUCTIONS.trim()}`;
-
 export interface OdooMcpServerOptions {
   autoAuth?: {
     url: string;
@@ -43,8 +38,40 @@ export interface OdooMcpServer {
   session: SessionManager;
 }
 
-export function createOdooMcpServer(_options: OdooMcpServerOptions = {}): OdooMcpServer {
+/**
+ * Build server instructions, including connection info if available.
+ */
+function buildServerInstructions(options: OdooMcpServerOptions): string {
+  const parts: string[] = [];
+
+  // Add connection status information
+  if (options.autoAuth) {
+    const { url, database, username } = options.autoAuth;
+    parts.push(`## Connection Configuration
+This server has been pre-configured with Odoo credentials:
+- **Server**: ${url}
+- **Database**: ${database}
+- **User**: ${username}
+
+The connection will be established automatically. You do not need to ask the user for credentials.
+If the user wants to connect to a different server or database, use \`odoo_connect\` with the new credentials.
+`);
+  } else {
+    parts.push(`## Connection Required
+No credentials have been pre-configured. Use the \`odoo_connect\` tool to authenticate before performing operations.
+`);
+  }
+
+  // Add the standard instructions
+  parts.push(getServerInstructions());
+  parts.push(RESOURCE_INSTRUCTIONS.trim());
+
+  return parts.join('\n\n');
+}
+
+export function createOdooMcpServer(options: OdooMcpServerOptions = {}): OdooMcpServer {
   const session = new SessionManager();
+  const instructions = buildServerInstructions(options);
 
   const server = new Server(
     {
@@ -56,7 +83,7 @@ export function createOdooMcpServer(_options: OdooMcpServerOptions = {}): OdooMc
         tools: {},
         resources: {},
       },
-      instructions: SERVER_INSTRUCTIONS,
+      instructions,
     }
   );
 
@@ -71,6 +98,13 @@ export function createOdooMcpServer(_options: OdooMcpServerOptions = {}): OdooMc
 
 export async function startServer(options: OdooMcpServerOptions = {}): Promise<void> {
   const { server, session } = createOdooMcpServer(options);
+
+  // Log connection info for debugging
+  if (options.autoAuth) {
+    console.error(
+      `[odoo-mcp] Configured for ${options.autoAuth.url} database "${options.autoAuth.database}" as user "${options.autoAuth.username}"`
+    );
+  }
 
   // Auto-authenticate if credentials are provided
   if (options.autoAuth) {
