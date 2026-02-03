@@ -31,7 +31,7 @@
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint packages --ext .ts,.tsx --fix",
     "format": "prettier --write \"**/*.{ts,json,md}\"",
-    "format:check": "prettier --check 'packages/**/*.ts'",
+    "format:check": "prettier --check \"packages/**/*.ts\"",
     "test:debug": "cross-env KEEP_CONTAINERS=true vitest run --config vitest.integration.config.ts --reporter=verbose",
     "test:integration:keep-containers": "cross-env SKIP_TEARDOWN=true vitest run --config vitest.integration.config.ts",
     "test:local": "act --secret-file .env.test",
@@ -45,17 +45,19 @@
     "addon:uninstall": "node scripts/manage-addon.js uninstall",
     "addon:list": "node scripts/manage-addon.js list",
     "addon:info": "node scripts/manage-addon.js info",
-    "test:create-skills": "vitest run --config vitest.integration.config.ts packages/create-skills/tests/"
+    "test:create-skills": "vitest run --config vitest.integration.config.ts packages/create-skills/tests/",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "archiver": "^7.0.0",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "@vitest/coverage-v8": "^4.0.18",
+    "archiver": "^7.0.0",
     "cross-env": "^10.1.0",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
     "prettier": "^3.8.0",
     "typescript": "^5.0.0",
     "vitest": "^4.0.18"
