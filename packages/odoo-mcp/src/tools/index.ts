@@ -1,6 +1,7 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { SessionManager } from '../session/index.js';
+import { DynamicToolRegistry } from './registry.js';
 import {
   handleAuthenticate,
   handleLogout,
@@ -54,6 +55,10 @@ import {
   propertiesToolDefinitions,
 } from './properties.js';
 
+/**
+ * Legacy export for backward compatibility.
+ * @deprecated Use DynamicToolRegistry instead
+ */
 export const allToolDefinitions = [
   ...connectionToolDefinitions,
   ...crudToolDefinitions,
@@ -63,151 +68,138 @@ export const allToolDefinitions = [
   ...propertiesToolDefinitions,
 ];
 
-export function registerAllTools(server: Server, session: SessionManager): void {
-  // Register tool list handler
+/**
+ * Create and initialize the tool registry with core tools.
+ */
+export function createToolRegistry(): DynamicToolRegistry {
+  const registry = new DynamicToolRegistry();
+
+  // Register core connection tools (always available)
+  registry.register({
+    moduleName: 'core-connection',
+    requiredModules: [],
+    tools: connectionToolDefinitions as any,
+    handlers: new Map<string, any>([
+      ['odoo_authenticate', handleAuthenticate],
+      ['odoo_logout', handleLogout],
+      ['odoo_connection_status', handleConnectionStatus],
+    ]),
+  });
+
+  // Register core CRUD tools (always available)
+  registry.register({
+    moduleName: 'core-crud',
+    requiredModules: [],
+    tools: crudToolDefinitions as any,
+    handlers: new Map<string, any>([
+      ['odoo_search', handleSearch],
+      ['odoo_read', handleRead],
+      ['odoo_search_read', handleSearchRead],
+      ['odoo_create', handleCreate],
+      ['odoo_write', handleWrite],
+      ['odoo_unlink', handleUnlink],
+      ['odoo_call', handleCall],
+    ]),
+  });
+
+  // Register core module tools (always available)
+  registry.register({
+    moduleName: 'core-modules',
+    requiredModules: [],
+    tools: moduleToolDefinitions as any,
+    handlers: new Map<string, any>([
+      ['odoo_module_install', handleModuleInstall],
+      ['odoo_module_uninstall', handleModuleUninstall],
+      ['odoo_module_upgrade', handleModuleUpgrade],
+      ['odoo_module_list', handleModuleList],
+      ['odoo_module_info', handleModuleInfo],
+    ]),
+  });
+
+  // Register core introspection tools (always available)
+  registry.register({
+    moduleName: 'core-introspection',
+    requiredModules: [],
+    tools: introspectionToolDefinitions as any,
+    handlers: new Map<string, any>([
+      ['odoo_get_models', handleGetModels],
+      ['odoo_get_fields', handleGetFields],
+      ['odoo_get_model_metadata', handleGetModelMetadata],
+      ['odoo_generate_types', handleGenerateTypes],
+    ]),
+  });
+
+  // Register mail tools (require mail module in Odoo)
+  registry.register({
+    moduleName: 'mail',
+    requiredModules: ['mail'],
+    tools: mailToolDefinitions as any,
+    handlers: new Map<string, any>([
+      ['odoo_post_internal_note', handlePostInternalNote],
+      ['odoo_post_public_message', handlePostPublicMessage],
+      ['odoo_get_messages', handleGetMessages],
+      ['odoo_manage_followers', handleManageFollowers],
+      ['odoo_add_attachment', handleAddAttachment],
+      ['odoo_schedule_activity', handleScheduleActivity],
+      ['odoo_complete_activity', handleCompleteActivity],
+      ['odoo_get_activities', handleGetActivities],
+      ['odoo_channel_message', handleChannelMessage],
+      ['odoo_list_channels', handleListChannels],
+    ]),
+  });
+
+  // Register properties tools (always available - properties are core in Odoo 17+)
+  registry.register({
+    moduleName: 'core-properties',
+    requiredModules: [],
+    tools: propertiesToolDefinitions as any,
+    handlers: new Map<string, any>([
+      ['odoo_read_properties', handleReadProperties],
+      ['odoo_update_properties', handleUpdateProperties],
+      ['odoo_find_properties_field', handleFindPropertiesField],
+      ['odoo_get_property_definitions', handleGetPropertyDefinitions],
+      ['odoo_set_property_definitions', handleSetPropertyDefinitions],
+    ]),
+  });
+
+  return registry;
+}
+
+export function registerAllTools(server: Server, session: SessionManager): DynamicToolRegistry {
+  const registry = createToolRegistry();
+
+  // Register tool list handler - returns current tools from registry
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
-      tools: allToolDefinitions,
+      tools: registry.getTools(),
     };
   });
 
-  // Register tool call handler
+  // Register tool call handler - uses registry for dispatch
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
 
-    let result: unknown;
-
-    switch (name) {
-      // Connection tools
-      case 'odoo_authenticate':
-        result = await handleAuthenticate(session, args);
-        break;
-      case 'odoo_logout':
-        result = handleLogout(session);
-        break;
-      case 'odoo_connection_status':
-        result = handleConnectionStatus(session);
-        break;
-
-      // CRUD tools
-      case 'odoo_search':
-        result = await handleSearch(session, args);
-        break;
-      case 'odoo_read':
-        result = await handleRead(session, args);
-        break;
-      case 'odoo_search_read':
-        result = await handleSearchRead(session, args);
-        break;
-      case 'odoo_create':
-        result = await handleCreate(session, args);
-        break;
-      case 'odoo_write':
-        result = await handleWrite(session, args);
-        break;
-      case 'odoo_unlink':
-        result = await handleUnlink(session, args);
-        break;
-      case 'odoo_call':
-        result = await handleCall(session, args);
-        break;
-
-      // Module tools
-      case 'odoo_module_install':
-        result = await handleModuleInstall(session, args);
-        break;
-      case 'odoo_module_uninstall':
-        result = await handleModuleUninstall(session, args);
-        break;
-      case 'odoo_module_upgrade':
-        result = await handleModuleUpgrade(session, args);
-        break;
-      case 'odoo_module_list':
-        result = await handleModuleList(session, args);
-        break;
-      case 'odoo_module_info':
-        result = await handleModuleInfo(session, args);
-        break;
-
-      // Introspection tools
-      case 'odoo_get_models':
-        result = await handleGetModels(session, args);
-        break;
-      case 'odoo_get_fields':
-        result = await handleGetFields(session, args);
-        break;
-      case 'odoo_get_model_metadata':
-        result = await handleGetModelMetadata(session, args);
-        break;
-      case 'odoo_generate_types':
-        result = await handleGenerateTypes(session, args);
-        break;
-
-      // Mail tools
-      case 'odoo_post_internal_note':
-        result = await handlePostInternalNote(session, args);
-        break;
-      case 'odoo_post_public_message':
-        result = await handlePostPublicMessage(session, args);
-        break;
-      case 'odoo_get_messages':
-        result = await handleGetMessages(session, args);
-        break;
-      case 'odoo_manage_followers':
-        result = await handleManageFollowers(session, args);
-        break;
-      case 'odoo_add_attachment':
-        result = await handleAddAttachment(session, args);
-        break;
-      case 'odoo_schedule_activity':
-        result = await handleScheduleActivity(session, args);
-        break;
-      case 'odoo_complete_activity':
-        result = await handleCompleteActivity(session, args);
-        break;
-      case 'odoo_get_activities':
-        result = await handleGetActivities(session, args);
-        break;
-      case 'odoo_channel_message':
-        result = await handleChannelMessage(session, args);
-        break;
-      case 'odoo_list_channels':
-        result = await handleListChannels(session, args);
-        break;
-
-      // Properties tools
-      case 'odoo_read_properties':
-        result = await handleReadProperties(session, args);
-        break;
-      case 'odoo_update_properties':
-        result = await handleUpdateProperties(session, args);
-        break;
-      case 'odoo_find_properties_field':
-        result = await handleFindPropertiesField(session, args);
-        break;
-      case 'odoo_get_property_definitions':
-        result = await handleGetPropertyDefinitions(session, args);
-        break;
-      case 'odoo_set_property_definitions':
-        result = await handleSetPropertyDefinitions(session, args);
-        break;
-
-      default:
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                success: false,
-                error: {
-                  code: 'UNKNOWN_TOOL',
-                  message: `Unknown tool: ${name}`,
-                },
-              }),
-            },
-          ],
-        };
+    // Look up handler in registry
+    const handler = registry.getHandler(name);
+    if (!handler) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              error: {
+                code: 'UNKNOWN_TOOL',
+                message: `Unknown tool: ${name}`,
+              },
+            }),
+          },
+        ],
+      };
     }
+
+    // Execute handler
+    const result = await handler(session, args);
 
     return {
       content: [
@@ -218,7 +210,12 @@ export function registerAllTools(server: Server, session: SessionManager): void 
       ],
     };
   });
+
+  return registry;
 }
+
+// Re-export registry types
+export { DynamicToolRegistry, ModuleToolConfig, ToolHandler } from './registry.js';
 
 export {
   handleAuthenticate,

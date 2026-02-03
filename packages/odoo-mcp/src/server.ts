@@ -1,7 +1,7 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { SessionManager } from './session/index.js';
-import { registerAllTools } from './tools/index.js';
+import { registerAllTools, DynamicToolRegistry } from './tools/index.js';
 import { registerResources } from './resources/index.js';
 import { getServerInstructions } from './instructions.js';
 
@@ -36,6 +36,7 @@ export interface OdooMcpServerOptions {
 export interface OdooMcpServer {
   server: Server;
   session: SessionManager;
+  registry: DynamicToolRegistry;
 }
 
 /**
@@ -87,13 +88,13 @@ export function createOdooMcpServer(options: OdooMcpServerOptions = {}): OdooMcp
     }
   );
 
-  // Register all tools with the session manager
-  registerAllTools(server, session);
+  // Register all tools with the session manager and get registry
+  const registry = registerAllTools(server, session);
 
   // Register resource handlers for skills
   registerResources(server);
 
-  return { server, session };
+  return { server, session, registry };
 }
 
 export async function startServer(options: OdooMcpServerOptions = {}): Promise<void> {
