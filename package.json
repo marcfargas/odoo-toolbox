@@ -21,10 +21,12 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces",
+    "build": "npm run build:clean && npm run build --workspaces --if-present",
+    "build:clean": "find packages -name 'tsconfig.tsbuildinfo' -delete",
     "build:dist": "node scripts/build-dist.js",
     "build:skills-zip": "node scripts/build-skills-zip.js",
     "clean": "rm -rf packages/*/dist dist",
+    "pretest": "npm run build",
     "test": "vitest run",
     "test:unit": "vitest run",
     "test:integration": "vitest run --config vitest.integration.config.mts",
