@@ -15,11 +15,11 @@ cd test-addons
 git clone --depth 1 -b 17.0 https://github.com/OCA/<repo-name>.git
 
 # Restart Docker to detect new addons
-npm run docker:down && npm run docker:up
+npm run odoo:down && npm run odoo:up
 node scripts/wait-for-odoo.js
 
 # Install the module
-npm run addon:install <module-name>
+npm run odoo:addon:install <module-name>
 ```
 
 ## Example: MIS Builder
@@ -32,10 +32,10 @@ git clone --depth 1 -b 17.0 https://github.com/OCA/server-ux.git
 git clone --depth 1 -b 17.0 https://github.com/OCA/l10n-spain.git
 
 # After Docker restart, install:
-npm run addon:install date_range
-npm run addon:install report_xlsx
-npm run addon:install mis_builder
-npm run addon:install l10n_es_mis_report
+npm run odoo:addon:install date_range
+npm run odoo:addon:install report_xlsx
+npm run odoo:addon:install mis_builder
+npm run odoo:addon:install l10n_es_mis_report
 ```
 
 ## Directory Structure

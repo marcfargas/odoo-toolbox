@@ -429,7 +429,7 @@ interface ActivityContext {
 Start the local Odoo test server before running introspection:
 
 ```bash
-npm run docker:up
+npm run odoo:up
 ```
 
 This starts an Odoo instance at `http://localhost:8069` with default credentials (admin/admin).
@@ -568,8 +568,8 @@ git clone --depth 1 -b 17.0 https://github.com/OCA/server-ux.git
 **Step 2: Restart Docker (auto-discovers new addons)**
 
 ```bash
-npm run docker:down
-npm run docker:up
+npm run odoo:down
+npm run odoo:up
 node scripts/wait-for-odoo.js
 ```
 
@@ -579,9 +579,9 @@ The `docker/odoo-entrypoint.sh` script automatically scans `/mnt/oca` (mounted f
 
 ```bash
 # Install dependencies first, then the target module
-npm run addon:install date_range
-npm run addon:install report_xlsx
-npm run addon:install mis_builder
+npm run odoo:addon:install date_range
+npm run odoo:addon:install report_xlsx
+npm run odoo:addon:install mis_builder
 ```
 
 **Step 4: Introspect the models**
