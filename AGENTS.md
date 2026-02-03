@@ -109,6 +109,52 @@ Similar to Terraform:
 4. Generate execution plan
 5. Apply changes atomically
 
+### Service Layer Architecture
+
+The `@odoo-toolbox/client` package provides two layers of abstraction:
+
+1. **Low-level RPC Client** (`OdooClient`): Direct Odoo API access
+   - Raw `call()` method for any Odoo RPC operation
+   - CRUD operations: `search`, `read`, `create`, `write`, `unlink`
+   - `searchRead` convenience method
+
+2. **High-level Service Classes**: Reusable business logic
+   - `MailService`: Message posting, internal notes, message history
+   - `ActivityService`: Activity scheduling, completion, cancellation
+   - `FollowerService`: Follower management (list, add, remove)
+   - `PropertiesService`: Properties field operations with safe updates
+
+**When to use services:**
+- When building MCP servers, CLIs, or other tools that need Odoo business logic
+- To avoid duplicating common Odoo patterns (message posting, activity management, etc.)
+- For safe property updates that preserve unmodified values
+
+**When to use raw RPC client:**
+- For model-specific operations not covered by services
+- When you need maximum flexibility
+- For operations where services would add unnecessary overhead
+
+**Example: Using services**
+```typescript
+import { OdooClient, MailService, ActivityService } from '@odoo-toolbox/client';
+
+const client = new OdooClient(config);
+await client.authenticate();
+
+const mailService = new MailService(client);
+const activityService = new ActivityService(client);
+
+// Post an internal note
+await mailService.postInternalNote('project.task', taskId, 'Work completed');
+
+// Schedule a follow-up activity
+await activityService.schedule('project.task', taskId, {
+  activityTypeId: 'mail.mail_activity_data_call',
+  summary: 'Follow up with customer',
+  dateDeadline: '2025-01-15'
+});
+```
+
 ### Technology Choices
 - **TypeScript**: Full type safety, great DX
 - **JSON-RPC/XML-RPC**: Odoo v17 standard protocols

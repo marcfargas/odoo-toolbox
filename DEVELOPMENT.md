@@ -213,10 +213,11 @@ For detailed coding patterns, logging conventions, and Odoo-specific implementat
 
 ```
 packages/
-  odoo-client/           # RPC client
+  odoo-client/           # RPC client + Service layer
     src/
       client/            # OdooClient class
       rpc/               # RPC transport
+      services/          # High-level business logic services
       types/             # Type definitions
   odoo-introspection/    # Schema introspection + codegen
     src/
@@ -232,6 +233,52 @@ tests/
   helpers/               # Shared test utilities
 examples/                # Usage examples
 ```
+
+### Package Responsibilities
+
+#### @odoo-toolbox/client
+
+**Purpose**: Lightweight RPC client with high-level service abstractions
+
+**Responsibilities**:
+- RPC transport (JSON-RPC, authentication, session management)
+- Low-level CRUD operations (search, read, create, write, unlink)
+- High-level service classes for common Odoo operations:
+  - `MailService`: Message posting, internal notes, message retrieval
+  - `ActivityService`: Activity scheduling, completion, cancellation
+  - `FollowerService`: Follower management (list, add, remove)
+  - `PropertiesService`: Safe property field operations
+- Type definitions for Odoo field types (many2one, properties, etc.)
+
+**When to add code here**:
+- Reusable business logic that multiple consumers (MCP servers, CLIs, scripts) need
+- Odoo-specific patterns (message posting, activity management, etc.)
+- Helper functions that abstract Odoo quirks (many2one asymmetry, properties read/write)
+
+**When NOT to add code here**:
+- MCP protocol handling (belongs in `@odoo-toolbox/mcp`)
+- Schema introspection (belongs in `@odoo-toolbox/introspection`)
+- State comparison logic (belongs in `@odoo-toolbox/state-manager`)
+
+#### @odoo-toolbox/introspection
+
+**Purpose**: Schema discovery and TypeScript code generation
+
+**Responsibilities**:
+- Introspect live Odoo instances via `ir.model` and `ir.model.fields`
+- Generate TypeScript interfaces from Odoo models
+- CLI tool for code generation
+- Cache management for performance
+
+#### @odoo-toolbox/state-manager
+
+**Purpose**: Infrastructure-as-code capabilities (drift detection, plan/apply)
+
+**Responsibilities**:
+- Deep comparison of desired vs current state
+- Generate execution plans (create, update, delete operations)
+- Apply plans atomically
+- Handle relationships and dependencies
 
 ## Common Tasks
 
