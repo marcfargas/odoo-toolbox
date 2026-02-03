@@ -41,11 +41,7 @@ async function main() {
     console.log('📝 Part 1: Creating Property Definitions\n');
 
     // Get a CRM team to define properties on
-    const teams = await client.searchRead(
-      'crm.team',
-      [],
-      { fields: ['id', 'name'], limit: 1 }
-    );
+    const teams = await client.searchRead('crm.team', [], { fields: ['id', 'name'], limit: 1 });
 
     if (teams.length === 0) {
       console.log('❌ No CRM teams found. Install CRM module first.');
@@ -98,9 +94,7 @@ async function main() {
     console.log('✅ Property definitions created\n');
 
     // Read back the definitions
-    const teamData = await client.read('crm.team', teamId, [
-      'lead_properties_definition',
-    ]);
+    const teamData = await client.read('crm.team', teamId, ['lead_properties_definition']);
 
     console.log('Stored property definitions:');
     teamData[0].lead_properties_definition.forEach((def: any) => {
@@ -138,10 +132,7 @@ async function main() {
     console.log('📝 Part 3: Reading Properties\n');
 
     // When reading, Odoo returns full metadata
-    const leadData = await client.read('crm.lead', leadId, [
-      'name',
-      'lead_properties',
-    ]);
+    const leadData = await client.read('crm.lead', leadId, ['name', 'lead_properties']);
 
     const lead = leadData[0];
     console.log(`Lead: ${lead.name}`);
@@ -157,10 +148,7 @@ async function main() {
 
     // Extract specific property value
     const priorityLevel = getPropertyValue(lead.lead_properties, 'priority_level');
-    const estimatedRevenue = getPropertyValue(
-      lead.lead_properties,
-      'estimated_revenue'
-    );
+    const estimatedRevenue = getPropertyValue(lead.lead_properties, 'estimated_revenue');
 
     console.log('Extracted values:');
     console.log(`  Priority Level: ${priorityLevel}`);
@@ -194,10 +182,7 @@ async function main() {
     console.log('✅ Properties updated\n');
 
     // Read updated lead
-    const updatedLead = await client.read('crm.lead', leadId, [
-      'name',
-      'lead_properties',
-    ]);
+    const updatedLead = await client.read('crm.lead', leadId, ['name', 'lead_properties']);
 
     console.log('Updated properties:');
     updatedLead[0].lead_properties.forEach((prop: any) => {
@@ -236,14 +221,8 @@ async function main() {
     });
 
     const finalLead = await client.read('crm.lead', leadId, ['lead_properties']);
-    const contactAttempts = getPropertyValue(
-      finalLead[0].lead_properties,
-      'contact_attempts'
-    );
-    const finalPriorityLevel = getPropertyValue(
-      finalLead[0].lead_properties,
-      'priority_level'
-    );
+    const contactAttempts = getPropertyValue(finalLead[0].lead_properties, 'contact_attempts');
+    const finalPriorityLevel = getPropertyValue(finalLead[0].lead_properties, 'priority_level');
 
     console.log(`✅ Contact attempts updated to: ${contactAttempts}`);
     console.log(`✅ Priority level preserved: ${finalPriorityLevel}\n`);

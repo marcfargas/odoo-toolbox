@@ -4,11 +4,7 @@
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { OdooClient } from '@odoo-toolbox/client';
-import {
-  compareRecords,
-  generatePlan,
-  dryRunPlan,
-} from '../src';
+import { compareRecords, generatePlan, dryRunPlan } from '../src';
 
 describe('odoo-state-manager examples', () => {
   let client: OdooClient;
@@ -34,9 +30,7 @@ describe('odoo-state-manager examples', () => {
       expect(Array.isArray(partnerIds)).toBe(true);
 
       if (partnerIds.length > 0) {
-        const partners = await client.searchRead('res.partner', [
-          ['id', 'in', partnerIds],
-        ]);
+        const partners = await client.searchRead('res.partner', [['id', 'in', partnerIds]]);
         expect(partners).toBeDefined();
         expect(partners.length).toBeGreaterThan(0);
       }

@@ -39,9 +39,7 @@ async function main() {
   console.log(`Found ${installed.length} installed modules:\n`);
   installed.forEach((module) => {
     const app = module.application ? '📱' : '  ';
-    console.log(
-      `${app} ${module.name.padEnd(30)} ${module.shortdesc || module.summary || ''}`
-    );
+    console.log(`${app} ${module.name.padEnd(30)} ${module.shortdesc || module.summary || ''}`);
   });
 
   // ========================================

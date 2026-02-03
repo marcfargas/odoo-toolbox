@@ -88,9 +88,7 @@ export class ModuleManager {
     }
 
     if (module.state === 'uninstallable') {
-      throw new Error(
-        `Module '${moduleName}' is not installable (state: ${module.state})`
-      );
+      throw new Error(`Module '${moduleName}' is not installable (state: ${module.state})`);
     }
 
     // Install the module using button_immediate_install
@@ -103,15 +101,7 @@ export class ModuleManager {
       'ir.module.module',
       [['id', '=', module.id]],
       {
-        fields: [
-          'id',
-          'name',
-          'state',
-          'shortdesc',
-          'summary',
-          'installed_version',
-          'application',
-        ],
+        fields: ['id', 'name', 'state', 'shortdesc', 'summary', 'installed_version', 'application'],
       }
     );
 
@@ -171,15 +161,7 @@ export class ModuleManager {
       'ir.module.module',
       [['id', '=', module.id]],
       {
-        fields: [
-          'id',
-          'name',
-          'state',
-          'shortdesc',
-          'summary',
-          'installed_version',
-          'application',
-        ],
+        fields: ['id', 'name', 'state', 'shortdesc', 'summary', 'installed_version', 'application'],
       }
     );
 
@@ -233,15 +215,7 @@ export class ModuleManager {
       'ir.module.module',
       [['id', '=', module.id]],
       {
-        fields: [
-          'id',
-          'name',
-          'state',
-          'shortdesc',
-          'summary',
-          'installed_version',
-          'application',
-        ],
+        fields: ['id', 'name', 'state', 'shortdesc', 'summary', 'installed_version', 'application'],
       }
     );
 

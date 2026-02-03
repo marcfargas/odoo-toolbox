@@ -38,25 +38,19 @@ async function main() {
 
     // Search with exact match
     console.log('\n🔍 Search: Companies only');
-    const companyIds = await client.search('res.partner', [
-      ['is_company', '=', true],
-    ]);
+    const companyIds = await client.search('res.partner', [['is_company', '=', true]]);
     console.log(`✅ Found ${companyIds.length} companies`);
 
     // Search with comparison operators
     console.log('\n🔍 Search: Partners created after 2024-01-01');
-    const recentIds = await client.search('res.partner', [
-      ['create_date', '>=', '2024-01-01'],
-    ]);
+    const recentIds = await client.search('res.partner', [['create_date', '>=', '2024-01-01']]);
     console.log(`✅ Found ${recentIds.length} recent partners`);
 
     // Search with IN operator (list membership)
     console.log('\n🔍 Search: Partners in specific list');
     const targetIds = allIds.slice(0, Math.min(3, allIds.length));
     if (targetIds.length > 0) {
-      const matchingIds = await client.search('res.partner', [
-        ['id', 'in', targetIds],
-      ]);
+      const matchingIds = await client.search('res.partner', [['id', 'in', targetIds]]);
       console.log(`✅ Found ${matchingIds.length} matching partners`);
     }
 
@@ -82,14 +76,10 @@ async function main() {
 
     // Search with ordering
     console.log('\n🔍 Search: Companies ordered by name');
-    const orderedIds = await client.search(
-      'res.partner',
-      [['is_company', '=', true]],
-      {
-        order: 'name ASC',
-        limit: 5,
-      }
-    );
+    const orderedIds = await client.search('res.partner', [['is_company', '=', true]], {
+      order: 'name ASC',
+      limit: 5,
+    });
     console.log(`✅ Found ${orderedIds.length} companies (first 5, ordered by name)`);
 
     // SearchRead - combined search + read in one call (more efficient!)
@@ -98,9 +88,7 @@ async function main() {
       ['is_company', '=', true],
       ['active', '=', true],
     ]);
-    console.log(
-      `✅ Found ${results.length} active companies (search + read in 1 call)`
-    );
+    console.log(`✅ Found ${results.length} active companies (search + read in 1 call)`);
     if (results.length > 0) {
       console.log('\nFirst company details:');
       const first = results[0];

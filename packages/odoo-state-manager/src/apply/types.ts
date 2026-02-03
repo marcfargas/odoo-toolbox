@@ -1,6 +1,6 @@
 /**
  * Type definitions for plan application and execution.
- * 
+ *
  * Tracks the execution of operations and results.
  */
 

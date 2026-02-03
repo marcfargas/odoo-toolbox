@@ -1,9 +1,9 @@
 /**
  * Maps Odoo field types to TypeScript type definitions.
- * 
+ *
  * Odoo's field type system is defined in:
  * @see https://github.com/odoo/odoo/blob/17.0/odoo/fields.py
- * 
+ *
  * This module handles the conversion from Odoo's ttype values to TypeScript type expressions.
  */
 
@@ -17,13 +17,13 @@ export type TypeScriptTypeExpression = string;
 
 /**
  * Maps a single Odoo field to its TypeScript type expression.
- * 
+ *
  * Handles:
  * - Primitive types (char, text, integer, float, boolean, date, datetime)
  * - Relational types (many2one, one2many, many2many)
  * - Special types (selection, binary, html, monetary)
  * - Required vs optional (via boolean return)
- * 
+ *
  * @param field - The Odoo field metadata
  * @returns TypeScript type expression for this field
  */
@@ -78,39 +78,39 @@ export function mapFieldType(field: OdooField): TypeScriptTypeExpression {
 
 /**
  * Gets the TypeScript type expression for a field, including optional modifier.
- * 
+ *
  * Respects Odoo's `required` attribute:
  * - If required: field is non-optional (e.g., 'string')
  * - If not required: field is optional (e.g., 'string | undefined')
- * 
+ *
  * Readonly fields (computed fields) are not marked as such in the type,
  * since the state manager will handle write constraints. The type definition
  * includes all fields for read operations, and write operations are validated
  * at the application level.
- * 
+ *
  * @param field - The Odoo field metadata
  * @returns TypeScript type expression with optional modifier if needed
  */
 export function getFieldTypeExpression(field: OdooField): TypeScriptTypeExpression {
   const baseType = mapFieldType(field);
-  
+
   // If field is required, it's non-optional
   if (field.required) {
     return baseType;
   }
-  
+
   // If field is optional, add undefined
   return `${baseType} | undefined`;
 }
 
 /**
  * Determines if a field can be written to (for method signature generation).
- * 
+ *
  * Returns false for:
  * - Computed/readonly fields (not writeable)
  * - id field (never writeable)
  * - System fields (create_date, write_date, etc.)
- * 
+ *
  * @param field - The Odoo field metadata
  * @returns true if field can be written in create/write operations
  */
@@ -122,7 +122,7 @@ export function isWritableField(field: OdooField): boolean {
     'create_uid',
     'write_date',
     'write_uid',
-    '__last_update'
+    '__last_update',
   ];
 
   if (systemFields.includes(field.name)) {
@@ -139,12 +139,12 @@ export function isWritableField(field: OdooField): boolean {
 
 /**
  * Generates a JSDoc type comment for a field.
- * 
+ *
  * Includes:
  * - Field type
  * - Help text from Odoo if available
  * - Whether field is required
- * 
+ *
  * @param field - The Odoo field metadata
  * @returns JSDoc comment for the field
  */
@@ -162,10 +162,10 @@ export function generateFieldJSDoc(field: OdooField): string {
     // Clean up multiline help text
     const helpText = field.help
       .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
       .join(' ');
-    
+
     if (helpText) {
       lines.push(` * `);
       lines.push(` * ${helpText}`);
@@ -174,7 +174,7 @@ export function generateFieldJSDoc(field: OdooField): string {
 
   // Add metadata
   lines.push(' *');
-  
+
   if (field.required) {
     lines.push(' * @required');
   }
@@ -184,7 +184,10 @@ export function generateFieldJSDoc(field: OdooField): string {
   }
 
   // For relational fields, note the related model
-  if (field.relation && (field.ttype === 'many2one' || field.ttype === 'one2many' || field.ttype === 'many2many')) {
+  if (
+    field.relation &&
+    (field.ttype === 'many2one' || field.ttype === 'one2many' || field.ttype === 'many2many')
+  ) {
     lines.push(` * @relation ${field.relation}`);
   }
 

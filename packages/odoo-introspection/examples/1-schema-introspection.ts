@@ -58,9 +58,7 @@ async function main() {
     partnerFields.slice(0, 5).forEach((field) => {
       console.log(`   ${field.name} (${field.field_description})`);
       console.log(`      Type: ${field.ttype}`);
-      console.log(
-        `      Required: ${field.required}, Readonly: ${field.readonly}`
-      );
+      console.log(`      Required: ${field.required}, Readonly: ${field.readonly}`);
       if (field.relation) {
         console.log(`      Relates to: ${field.relation}`);
       }

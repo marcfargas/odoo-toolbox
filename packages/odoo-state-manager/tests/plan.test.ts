@@ -1,6 +1,6 @@
 /**
  * Tests for plan generation module.
- * 
+ *
  * Tests cover:
  * - Plan generation from diffs
  * - Operation type determination (create, update, delete)
@@ -52,7 +52,9 @@ describe('Plan Generation Module', () => {
         {
           model: 'project.task',
           id: 1,
-          changes: [{ path: 'name', operation: 'update', newValue: 'Updated Task', oldValue: 'Old Task' }],
+          changes: [
+            { path: 'name', operation: 'update', newValue: 'Updated Task', oldValue: 'Old Task' },
+          ],
           isNew: false,
         },
       ];
@@ -92,7 +94,9 @@ describe('Plan Generation Module', () => {
         {
           model: 'project.task',
           id: 1,
-          changes: [{ path: 'name', operation: 'update', newValue: 'Task Updated', oldValue: 'Task' }],
+          changes: [
+            { path: 'name', operation: 'update', newValue: 'Task Updated', oldValue: 'Task' },
+          ],
           isNew: false,
         },
       ];
@@ -149,15 +153,15 @@ describe('Plan Generation Module', () => {
       const plan = generatePlan(diffs2);
 
       // Verify create comes before update
-      const createOps = plan.operations.filter(op => op.type === 'create');
-      const updateOps = plan.operations.filter(op => op.type === 'update');
+      const createOps = plan.operations.filter((op) => op.type === 'create');
+      const updateOps = plan.operations.filter((op) => op.type === 'update');
 
       expect(createOps.length).toBeGreaterThanOrEqual(1);
       expect(updateOps.length).toBeGreaterThanOrEqual(1);
 
       // Create ops should come first in the overall operations array
-      const firstCreateIdx = plan.operations.findIndex(op => op.type === 'create');
-      const firstUpdateIdx = plan.operations.findIndex(op => op.type === 'update');
+      const firstCreateIdx = plan.operations.findIndex((op) => op.type === 'create');
+      const firstUpdateIdx = plan.operations.findIndex((op) => op.type === 'update');
 
       if (createOps.length > 0 && updateOps.length > 0) {
         expect(firstCreateIdx).toBeLessThan(firstUpdateIdx);
@@ -183,7 +187,9 @@ describe('Plan Generation Module', () => {
         {
           model: 'res.partner',
           id: 1,
-          changes: [{ path: 'name', operation: 'update', newValue: 'Partner Name', oldValue: 'Old Name' }],
+          changes: [
+            { path: 'name', operation: 'update', newValue: 'Partner Name', oldValue: 'Old Name' },
+          ],
           isNew: false,
         },
       ];

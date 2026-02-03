@@ -1,6 +1,6 @@
 /**
  * Tests for the Apply module.
- * 
+ *
  * Tests cover:
  * - Basic operation execution (create, update, delete)
  * - ID mapping for created records
@@ -95,9 +95,7 @@ describe('Apply Module', () => {
         ],
         metadata: {
           timestamp: new Date(),
-          affectedModels: new Map([
-            ['project.task', { creates: 1, updates: 0, deletes: 0 }],
-          ]),
+          affectedModels: new Map([['project.task', { creates: 1, updates: 0, deletes: 0 }]]),
           totalChanges: 1,
         },
         summary: {
@@ -181,9 +179,7 @@ describe('Apply Module', () => {
         ],
         metadata: {
           timestamp: new Date(),
-          affectedModels: new Map([
-            ['project.task', { creates: 0, updates: 1, deletes: 0 }],
-          ]),
+          affectedModels: new Map([['project.task', { creates: 0, updates: 1, deletes: 0 }]]),
           totalChanges: 1,
         },
         summary: {
@@ -213,9 +209,7 @@ describe('Apply Module', () => {
         ],
         metadata: {
           timestamp: new Date(),
-          affectedModels: new Map([
-            ['project.task', { creates: 0, updates: 0, deletes: 1 }],
-          ]),
+          affectedModels: new Map([['project.task', { creates: 0, updates: 0, deletes: 1 }]]),
           totalChanges: 1,
         },
         summary: {

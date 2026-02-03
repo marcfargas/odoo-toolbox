@@ -84,9 +84,7 @@ async function main() {
     console.log('🔍 Inspecting crm.lead model...');
     const leadFields = await introspector.getFields('crm.lead');
     const keyLeadFields = leadFields.filter((f) =>
-      ['name', 'email_from', 'phone', 'partner_id', 'expected_revenue'].includes(
-        f.name
-      )
+      ['name', 'email_from', 'phone', 'partner_id', 'expected_revenue'].includes(f.name)
     );
 
     console.log('   Key fields for crm.lead:');
@@ -113,9 +111,7 @@ async function main() {
     console.log('\n🔍 Inspecting sale.order model...');
     const saleFields = await introspector.getFields('sale.order');
     const keySaleFields = saleFields.filter((f) =>
-      ['name', 'partner_id', 'opportunity_id', 'state', 'amount_total'].includes(
-        f.name
-      )
+      ['name', 'partner_id', 'opportunity_id', 'state', 'amount_total'].includes(f.name)
     );
 
     console.log('   Key fields for sale.order:');
@@ -143,8 +139,7 @@ async function main() {
       email_from: 'john.smith@example.com',
       phone: '+1 555-0123',
       expected_revenue: 50000,
-      description:
-        'Interested in annual enterprise license.\nCreated via odoo-toolbox example.',
+      description: 'Interested in annual enterprise license.\nCreated via odoo-toolbox example.',
     };
 
     console.log('\n📝 Creating CRM lead...');
@@ -166,9 +161,7 @@ async function main() {
 
     console.log('   Lead details after creation:');
     console.log(`   - Stage: ${lead.stage_id ? lead.stage_id[1] : 'None'}`);
-    console.log(
-      `   - Partner: ${lead.partner_id ? lead.partner_id[1] : 'None (not yet linked)'}`
-    );
+    console.log(`   - Partner: ${lead.partner_id ? lead.partner_id[1] : 'None (not yet linked)'}`);
     console.log(`   - Created: ${lead.create_date}`);
 
     // ============================================================
@@ -258,9 +251,7 @@ async function main() {
       await client.create('sale.order', badQuotationData);
 
       // If we get here, something unexpected happened
-      console.log(
-        '❓ Unexpectedly succeeded - your Odoo may have different constraints'
-      );
+      console.log('❓ Unexpectedly succeeded - your Odoo may have different constraints');
     } catch (error) {
       console.log('❌ EXPECTED ERROR: Quotation creation failed!');
       if (error instanceof Error) {
@@ -321,12 +312,8 @@ async function main() {
     }>('crm.lead', [leadId], ['partner_id']);
 
     console.log('   Verification:');
-    console.log(
-      `   - partner_id read value: ${JSON.stringify(updatedLead.partner_id)}`
-    );
-    console.log(
-      '   💡 Note: When READING many2one, Odoo returns [id, display_name]'
-    );
+    console.log(`   - partner_id read value: ${JSON.stringify(updatedLead.partner_id)}`);
+    console.log('   💡 Note: When READING many2one, Odoo returns [id, display_name]');
     console.log('      When WRITING many2one, we just pass the numeric ID.');
 
     // ============================================================
@@ -357,13 +344,11 @@ async function main() {
       partner_id: [number, string];
       opportunity_id: [number, string] | false;
       amount_total: number;
-    }>('sale.order', [saleOrderId], [
-      'name',
-      'state',
-      'partner_id',
-      'opportunity_id',
-      'amount_total',
-    ]);
+    }>(
+      'sale.order',
+      [saleOrderId],
+      ['name', 'state', 'partner_id', 'opportunity_id', 'amount_total']
+    );
 
     console.log('   Quotation details:');
     console.log(`   - Reference: ${quotation.name}`);
@@ -382,9 +367,7 @@ async function main() {
     console.log('='.repeat(60));
 
     console.log('\n📝 Confirming quotation (converting to Sales Order)...');
-    console.log(
-      "   Using: client.call('sale.order', 'action_confirm', [[orderId]])"
-    );
+    console.log("   Using: client.call('sale.order', 'action_confirm', [[orderId]])");
 
     // To confirm a quotation, we call the action_confirm method
     // This is how you invoke Odoo action methods via RPC
@@ -484,10 +467,7 @@ async function ensureModulesInstalled(client: OdooClient): Promise<void> {
  * - Delete lead (references partner)
  * - Delete partner last
  */
-async function cleanup(
-  client: OdooClient,
-  records: CreatedRecords
-): Promise<void> {
+async function cleanup(client: OdooClient, records: CreatedRecords): Promise<void> {
   // Delete in reverse dependency order
   if (records.saleOrder) {
     try {
@@ -498,9 +478,7 @@ async function cleanup(
       await client.unlink('sale.order', records.saleOrder);
       console.log('   ✅ Deleted');
     } catch (e) {
-      console.log(
-        `   ⚠️  Could not delete: ${e instanceof Error ? e.message : 'Unknown error'}`
-      );
+      console.log(`   ⚠️  Could not delete: ${e instanceof Error ? e.message : 'Unknown error'}`);
     }
   }
 
@@ -510,9 +488,7 @@ async function cleanup(
       await client.unlink('mail.activity', records.activity);
       console.log('   ✅ Deleted');
     } catch (e) {
-      console.log(
-        `   ⚠️  Could not delete: ${e instanceof Error ? e.message : 'Unknown error'}`
-      );
+      console.log(`   ⚠️  Could not delete: ${e instanceof Error ? e.message : 'Unknown error'}`);
     }
   }
 
@@ -522,9 +498,7 @@ async function cleanup(
       await client.unlink('crm.lead', records.lead);
       console.log('   ✅ Deleted');
     } catch (e) {
-      console.log(
-        `   ⚠️  Could not delete: ${e instanceof Error ? e.message : 'Unknown error'}`
-      );
+      console.log(`   ⚠️  Could not delete: ${e instanceof Error ? e.message : 'Unknown error'}`);
     }
   }
 
@@ -534,9 +508,7 @@ async function cleanup(
       await client.unlink('res.partner', records.partner);
       console.log('   ✅ Deleted');
     } catch (e) {
-      console.log(
-        `   ⚠️  Could not delete: ${e instanceof Error ? e.message : 'Unknown error'}`
-      );
+      console.log(`   ⚠️  Could not delete: ${e instanceof Error ? e.message : 'Unknown error'}`);
     }
   }
 }

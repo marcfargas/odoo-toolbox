@@ -1,6 +1,6 @@
 /**
  * Plan formatting for console output.
- * 
+ *
  * Formats execution plans in a Terraform-like style for human review before applying.
  * Uses ANSI colors and symbols to show changes clearly.
  */
@@ -13,34 +13,37 @@ import { ExecutionPlan, Operation } from './types';
 const colors = {
   reset: '\x1b[0m',
   bold: '\x1b[1m',
-  green: '\x1b[32m',    // Creates
-  yellow: '\x1b[33m',   // Updates
-  red: '\x1b[31m',      // Deletes
-  cyan: '\x1b[36m',     // Metadata
-  gray: '\x1b[90m',     // Comments
+  green: '\x1b[32m', // Creates
+  yellow: '\x1b[33m', // Updates
+  red: '\x1b[31m', // Deletes
+  cyan: '\x1b[36m', // Metadata
+  gray: '\x1b[90m', // Comments
 };
 
 /**
  * Format an execution plan for console display.
- * 
+ *
  * Output style:
  * ```
  * # project.project[1]
  * ~ name: "Q1" -> "Q1 Planning"
  * + task_ids: [] -> [1, 2, 3]
- * 
+ *
  * + project.task[new:1]
  *   + name: "Research"
  *   + priority: "high"
- * 
+ *
  * Plan: 2 to add, 1 to change, 0 to destroy.
  * ```
- * 
+ *
  * @param plan Execution plan to format
  * @param colorize Whether to use ANSI colors (default: true for tty, false for piped output)
  * @returns Formatted plan string
  */
-export function formatPlanForConsole(plan: ExecutionPlan, colorize: boolean = isTtyOutput()): string {
+export function formatPlanForConsole(
+  plan: ExecutionPlan,
+  colorize: boolean = isTtyOutput()
+): string {
   const lines: string[] = [];
 
   // Show errors if any
@@ -115,7 +118,12 @@ function formatOperation(op: Operation, colorize: boolean): string {
 /**
  * Format a single field change.
  */
-function formatFieldChange(opType: string, field: string, newValue: any, colorize: boolean): string {
+function formatFieldChange(
+  opType: string,
+  field: string,
+  newValue: any,
+  colorize: boolean
+): string {
   const symbol = getOperationSymbol(opType);
   const color = getOperationColor(opType, colorize);
   const reset = colorize ? colors.reset : '';
@@ -198,7 +206,7 @@ function formatValue(value: any): string {
 
 /**
  * Extract ID from operation ID string.
- * 
+ *
  * Examples:
  * - "project.task:1" -> "1"
  * - "project.task:temp_1" -> "new:1"
@@ -247,7 +255,7 @@ function formatSummary(summary: any, colorize: boolean): string {
 
 /**
  * Check if output is being written to a terminal (TTY).
- * 
+ *
  * Used to decide whether to include ANSI color codes.
  */
 function isTtyOutput(): boolean {

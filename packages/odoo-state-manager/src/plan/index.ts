@@ -1,6 +1,6 @@
 /**
  * Plan generation module.
- * 
+ *
  * Generates ordered execution plans from comparison results.
  * Handles dependency ordering (creates before updates/deletes) and
  * respects parent-child relationships in relational fields.
@@ -11,19 +11,19 @@ import { Operation, ExecutionPlan, PlanOptions, PlanMetadata, PlanSummary } from
 
 /**
  * Generate an execution plan from model diffs.
- * 
+ *
  * Converts comparison results into an ordered list of operations that can be
  * safely applied to Odoo. Respects dependency ordering (creates before updates).
- * 
+ *
  * Handles Odoo-specific patterns:
  * - one2many creates reference parent via parentReference
  * - many2one updates set the ID directly
  * - Batch operations where possible
- * 
+ *
  * @param diffs Model differences to plan for
  * @param options Plan generation options
  * @returns Execution plan with ordered operations
- * 
+ *
  * @example
  * ```typescript
  * const diffs = [
@@ -34,15 +34,8 @@ import { Operation, ExecutionPlan, PlanOptions, PlanMetadata, PlanSummary } from
  * console.log(plan.operations); // Ordered operations
  * ```
  */
-export function generatePlan(
-  diffs: ModelDiff[],
-  options: PlanOptions = {}
-): ExecutionPlan {
-  const {
-    validateDependencies = true,
-    autoReorder = true,
-    maxOperations = 10000,
-  } = options;
+export function generatePlan(diffs: ModelDiff[], options: PlanOptions = {}): ExecutionPlan {
+  const { validateDependencies = true, autoReorder = true, maxOperations = 10000 } = options;
 
   // Convert diffs to operations
   let operations: Operation[] = [];
@@ -92,7 +85,7 @@ export function generatePlan(
 
 /**
  * Convert a ModelDiff to an Operation.
- * 
+ *
  * Determines operation type based on isNew flag and handles values.
  */
 function diffToOperation(diff: ModelDiff): Operation | null {
@@ -111,7 +104,9 @@ function diffToOperation(diff: ModelDiff): Operation | null {
       model,
       id: `${model}:temp_${id}`, // Temporary ID for newly created records
       values,
-      reason: parentReference ? `Create child of ${parentReference.parentModel}[${parentReference.parentId}]` : 'Create new record',
+      reason: parentReference
+        ? `Create child of ${parentReference.parentModel}[${parentReference.parentId}]`
+        : 'Create new record',
     };
   }
 
@@ -143,7 +138,7 @@ function extractValues(changes: FieldChange[]): Record<string, any> {
 
 /**
  * Determine dependencies for an operation.
- * 
+ *
  * Rules:
  * - Create operations for child models (via one2many) depend on parent create
  * - Update operations don't depend on creates (values are set on create)
@@ -163,7 +158,7 @@ function resolveDependencies(
       // Check if value is a temp ID (newly created record)
       if (typeof value === 'string' && value.includes(':temp_')) {
         // Find the operation that creates this record
-        const depOp = allOperations.find(op => op.id === value);
+        const depOp = allOperations.find((op) => op.id === value);
         if (depOp) {
           dependencies.push(value);
         }
@@ -176,15 +171,15 @@ function resolveDependencies(
 
 /**
  * Topological sort of operations by dependencies.
- * 
+ *
  * Uses DFS to detect cycles and order operations safely.
  * Creates come before updates, updates before deletes.
  */
 function topologicalSort(operations: Operation[]): Operation[] {
   // First, separate by type to maintain create -> update -> delete ordering
-  const creates = operations.filter(op => op.type === 'create');
-  const updates = operations.filter(op => op.type === 'update');
-  const deletes = operations.filter(op => op.type === 'delete');
+  const creates = operations.filter((op) => op.type === 'create');
+  const updates = operations.filter((op) => op.type === 'update');
+  const deletes = operations.filter((op) => op.type === 'delete');
 
   // Sort creates by dependencies
   const sortedCreates = sortByDependencies(creates);
@@ -217,7 +212,7 @@ function sortByDependencies(operations: Operation[]): Operation[] {
     // Visit dependencies first
     if (op.dependencies) {
       for (const depId of op.dependencies) {
-        const depOp = operations.find(o => o.id === depId);
+        const depOp = operations.find((o) => o.id === depId);
         if (depOp) {
           visit(depOp);
         }
@@ -238,14 +233,14 @@ function sortByDependencies(operations: Operation[]): Operation[] {
 
 /**
  * Validate operation dependencies.
- * 
+ *
  * Checks for:
  * - Circular dependencies
  * - Missing dependencies
  */
 function validateOperationDependencies(operations: Operation[]): string[] {
   const errors: string[] = [];
-  const opMap = new Map(operations.map(op => [op.id, op]));
+  const opMap = new Map(operations.map((op) => [op.id, op]));
 
   // Check each operation's dependencies
   for (const op of operations) {
@@ -297,9 +292,9 @@ function createPlanMetadata(diffs: ModelDiff[]): PlanMetadata {
  * Create summary statistics for a plan.
  */
 function createPlanSummary(operations: Operation[]): PlanSummary {
-  const creates = operations.filter(op => op.type === 'create').length;
-  const updates = operations.filter(op => op.type === 'update').length;
-  const deletes = operations.filter(op => op.type === 'delete').length;
+  const creates = operations.filter((op) => op.type === 'create').length;
+  const updates = operations.filter((op) => op.type === 'update').length;
+  const deletes = operations.filter((op) => op.type === 'delete').length;
 
   return {
     totalOperations: operations.length,

@@ -9,9 +9,7 @@ export default defineConfig({
     root: '.',
 
     // Only integration tests (packages)
-    include: [
-      'packages/*/tests/**/*.integration.test.ts',
-    ],
+    include: ['packages/*/tests/**/*.integration.test.ts'],
 
     // Global setup/teardown for Docker containers
     globalSetup: './tests/helpers/globalSetup.ts',

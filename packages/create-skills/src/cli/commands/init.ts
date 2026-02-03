@@ -13,20 +13,13 @@ interface InitOptions {
 /**
  * Copy a file with placeholder substitution
  */
-function copyWithPlaceholders(
-  src: string,
-  dest: string,
-  projectName: string
-): void {
+function copyWithPlaceholders(src: string, dest: string, projectName: string): void {
   let content = fs.readFileSync(src, 'utf-8');
   content = content.replace(/\{\{PROJECT_NAME\}\}/g, projectName);
   fs.writeFileSync(dest, content);
 }
 
-export async function initCommand(
-  projectName: string,
-  options: InitOptions
-): Promise<void> {
+export async function initCommand(projectName: string, options: InitOptions): Promise<void> {
   const projectPath = path.resolve(process.cwd(), projectName);
 
   // Check if directory already exists
@@ -59,10 +52,7 @@ export async function initCommand(
     const baseFiles = fs.readdirSync(assetsBase);
     for (const file of baseFiles) {
       if (file.endsWith('.md')) {
-        fs.copyFileSync(
-          path.join(assetsBase, file),
-          path.join(projectPath, 'base', file)
-        );
+        fs.copyFileSync(path.join(assetsBase, file), path.join(projectPath, 'base', file));
       }
     }
     console.log('✓ Installed base modules');
@@ -80,10 +70,7 @@ export async function initCommand(
     const moduleFiles = fs.readdirSync(assetsModules);
     for (const file of moduleFiles) {
       if (file.endsWith('.md')) {
-        fs.copyFileSync(
-          path.join(assetsModules, file),
-          path.join(projectPath, 'modules', file)
-        );
+        fs.copyFileSync(path.join(assetsModules, file), path.join(projectPath, 'modules', file));
       }
     }
     console.log('✓ Installed module-specific skills');
@@ -120,10 +107,7 @@ export async function initCommand(
   }
 
   // Generate package.json (only dynamic template)
-  fs.writeFileSync(
-    path.join(projectPath, 'package.json'),
-    generatePackageJson(projectName)
-  );
+  fs.writeFileSync(path.join(projectPath, 'package.json'), generatePackageJson(projectName));
   console.log('✓ Created package.json');
 
   // Create .gitignore

@@ -1,9 +1,9 @@
 /**
  * CLI for odoo-introspection code generation.
- * 
+ *
  * Usage:
  *   odoo-introspect generate [options]
- * 
+ *
  * Options:
  *   --url <url>              Odoo instance URL (env: ODOO_URL)
  *   --db <database>          Database name (env: ODOO_DB)
@@ -14,7 +14,7 @@
  *   --modules <list>         Filter by modules (comma-separated)
  *   --bypass-cache           Force fresh introspection query
  *   --help                   Show this help message
- * 
+ *
  * Example:
  *   odoo-introspect generate \\
  *     --url http://localhost:8069 \\
@@ -45,7 +45,7 @@ interface CliArgs {
 
 /**
  * Parse command line arguments.
- * 
+ *
  * @param args - Process argv slice (usually process.argv.slice(2))
  * @returns Parsed arguments
  */
@@ -83,7 +83,7 @@ function parseArgs(args: string[]): CliArgs {
         result.includeTransient = true;
         break;
       case '--modules':
-        result.modules = value.split(',').map(m => m.trim());
+        result.modules = value.split(',').map((m) => m.trim());
         i++;
         break;
       case '--bypass-cache':
@@ -142,7 +142,7 @@ Environment Variables:
 
 /**
  * Validate required arguments.
- * 
+ *
  * @param args - Parsed arguments
  * @throws Error if required arguments are missing
  */
@@ -162,7 +162,7 @@ function validateArgs(args: CliArgs): void {
 
 /**
  * Run the CLI command.
- * 
+ *
  * @param args - Process argv slice
  */
 export async function runCli(args: string[]): Promise<void> {
@@ -200,7 +200,6 @@ export async function runCli(args: string[]): Promise<void> {
     const outputPath = parsed.output || path.join(process.cwd(), 'src', 'models');
     console.log(`✅ Generated ${code.split('\n').length} lines of TypeScript code`);
     console.log(`📦 Output: ${path.join(outputPath, 'generated.ts')}`);
-
   } catch (error) {
     console.error('❌ Generation failed:', error);
     process.exit(1);

@@ -83,17 +83,13 @@ describe('Properties Fields Integration', () => {
       });
 
       // Read back
-      const team = await client.read('crm.team', teamId, [
-        'lead_properties_definition',
-      ]);
+      const team = await client.read('crm.team', teamId, ['lead_properties_definition']);
 
       expect(team[0].lead_properties_definition).toBeDefined();
       expect(Array.isArray(team[0].lead_properties_definition)).toBe(true);
       expect(team[0].lead_properties_definition.length).toBe(4);
 
-      const charDef = team[0].lead_properties_definition.find(
-        (d: any) => d.name === 'test_char'
-      );
+      const charDef = team[0].lead_properties_definition.find((d: any) => d.name === 'test_char');
       expect(charDef).toBeDefined();
       expect(charDef.type).toBe('char');
       expect(charDef.string).toBe('Test Character Field');
@@ -142,10 +138,7 @@ describe('Properties Fields Integration', () => {
       const charValue = getPropertyValue(lead[0].lead_properties, 'test_char');
       const intValue = getPropertyValue(lead[0].lead_properties, 'test_integer');
       const boolValue = getPropertyValue(lead[0].lead_properties, 'test_boolean');
-      const selValue = getPropertyValue(
-        lead[0].lead_properties,
-        'test_selection'
-      );
+      const selValue = getPropertyValue(lead[0].lead_properties, 'test_selection');
 
       expect(charValue).toBe('Updated Text');
       expect(intValue).toBe(100);
@@ -166,18 +159,10 @@ describe('Properties Fields Integration', () => {
         lead_properties: currentProps,
       });
 
-      const updatedLead = await client.read('crm.lead', leadId, [
-        'lead_properties',
-      ]);
+      const updatedLead = await client.read('crm.lead', leadId, ['lead_properties']);
 
-      const intValue = getPropertyValue(
-        updatedLead[0].lead_properties,
-        'test_integer'
-      );
-      const charValue = getPropertyValue(
-        updatedLead[0].lead_properties,
-        'test_char'
-      );
+      const intValue = getPropertyValue(updatedLead[0].lead_properties, 'test_integer');
+      const charValue = getPropertyValue(updatedLead[0].lead_properties, 'test_char');
 
       expect(intValue).toBe(999);
       expect(charValue).toBe('Updated Text'); // Preserved because we wrote all properties
@@ -203,10 +188,7 @@ describe('Properties Fields Integration', () => {
       const value = getPropertyValue(lead[0].lead_properties, 'test_char');
       expect(value).toBe('Known Value');
 
-      const nonExistent = getPropertyValue(
-        lead[0].lead_properties,
-        'non_existent'
-      );
+      const nonExistent = getPropertyValue(lead[0].lead_properties, 'non_existent');
       expect(nonExistent).toBeUndefined();
     });
 
@@ -224,22 +206,14 @@ describe('Properties Fields Integration', () => {
     });
 
     it('should get property definition by name', async () => {
-      const team = await client.read('crm.team', teamId, [
-        'lead_properties_definition',
-      ]);
+      const team = await client.read('crm.team', teamId, ['lead_properties_definition']);
 
-      const charDef = getPropertyDefinition(
-        team[0].lead_properties_definition,
-        'test_char'
-      );
+      const charDef = getPropertyDefinition(team[0].lead_properties_definition, 'test_char');
       expect(charDef).toBeDefined();
       expect(charDef?.type).toBe('char');
       expect(charDef?.string).toBe('Test Character Field');
 
-      const nonExistent = getPropertyDefinition(
-        team[0].lead_properties_definition,
-        'non_existent'
-      );
+      const nonExistent = getPropertyDefinition(team[0].lead_properties_definition, 'non_existent');
       expect(nonExistent).toBeUndefined();
     });
   });
@@ -310,10 +284,7 @@ describe('Properties Fields Integration', () => {
       });
 
       const lead = await client.read('crm.lead', leadId, ['lead_properties']);
-      const datetimeValue = getPropertyValue(
-        lead[0].lead_properties,
-        'test_datetime'
-      );
+      const datetimeValue = getPropertyValue(lead[0].lead_properties, 'test_datetime');
 
       expect(datetimeValue).toBe(testDateTime);
     });

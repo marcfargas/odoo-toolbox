@@ -1,6 +1,6 @@
 /**
  * Introspection and code generation CLI entrypoint.
- * 
+ *
  * This file is used as the bin entry for the odoo-introspect command.
  */
 

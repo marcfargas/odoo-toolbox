@@ -1,8 +1,8 @@
 /**
  * State comparison module.
- * 
+ *
  * Compares desired state against actual Odoo state to detect drift.
- * 
+ *
  * Handles Odoo-specific field types and quirks:
  * - many2one fields return [id, display_name] from Odoo but accept just id
  * - one2many/many2many return arrays of IDs from read() operations
@@ -39,19 +39,19 @@ export interface CompareOptions {
 
 /**
  * Deep compare desired state against actual Odoo state.
- * 
+ *
  * Handles Odoo-specific field types:
  * - many2one: Normalizes [id, name] from read() to just id
  * - one2many/many2many: Compares as ID arrays
  * - computed/readonly: Skips if field metadata available
- * 
+ *
  * @param model Odoo model name
  * @param id Record ID
  * @param desiredState Desired field values
  * @param actualState Actual field values from Odoo
  * @param options Comparison options (field metadata, custom comparators)
  * @returns Array of field changes detected
- * 
+ *
  * @example
  * ```typescript
  * const changes = compareRecord(
@@ -108,10 +108,13 @@ export function compareRecord(
 
     // Check if this is a relational field (one2many or many2many)
     const fieldInfo = modelFields?.get(fieldName);
-    const isRelationalField = fieldInfo?.ttype === 'one2many' || fieldInfo?.ttype === 'many2many' ||
-                            (Array.isArray(normalizedDesired) && Array.isArray(normalizedActual) && 
-                             normalizedDesired.every(v => typeof v === 'number') &&
-                             normalizedActual.every(v => typeof v === 'number'));
+    const isRelationalField =
+      fieldInfo?.ttype === 'one2many' ||
+      fieldInfo?.ttype === 'many2many' ||
+      (Array.isArray(normalizedDesired) &&
+        Array.isArray(normalizedActual) &&
+        normalizedDesired.every((v) => typeof v === 'number') &&
+        normalizedActual.every((v) => typeof v === 'number'));
 
     // Compare normalized values
     if (!deepEqual(normalizedDesired, normalizedActual, isRelationalField)) {
@@ -142,7 +145,7 @@ function arraySetEqual(a: any[], b: any[]): boolean {
 
 /**
  * Compare multiple model instances.
- * 
+ *
  * @param model Odoo model name
  * @param desiredStates Map of id -> desired fields
  * @param actualStates Map of id -> actual fields from Odoo
@@ -176,16 +179,16 @@ export function compareRecords(
 
 /**
  * Normalize Odoo field values for comparison.
- * 
+ *
  * Handles Odoo-specific quirks:
  * - many2one: [id, display_name] → id
  * - one2many/many2many: IDs remain as arrays
  * - null/undefined: normalized to null for consistency
- * 
+ *
  * Handled in Odoo source:
  * - addons/base/models/ir_model_fields.py: Field type definitions
  * - odoo/fields.py: Many2one.convert_to_read() returns [id, name] tuples
- * 
+ *
  * @see https://github.com/odoo/odoo/blob/17.0/odoo/fields.py#L2156
  */
 function normalizeOdooValue(
@@ -202,7 +205,13 @@ function normalizeOdooValue(
   const fieldType = fieldInfo?.ttype;
 
   // many2one: Odoo returns [id, display_name], normalize to id
-  if (fieldType === 'many2one' || Array.isArray(value) && value.length === 2 && typeof value[0] === 'number' && typeof value[1] === 'string') {
+  if (
+    fieldType === 'many2one' ||
+    (Array.isArray(value) &&
+      value.length === 2 &&
+      typeof value[0] === 'number' &&
+      typeof value[1] === 'string')
+  ) {
     if (Array.isArray(value)) {
       return value[0];
     }
@@ -221,12 +230,12 @@ function normalizeOdooValue(
 
 /**
  * Deep equality comparison.
- * 
+ *
  * Handles:
  * - Primitives and null
  * - Arrays (order-sensitive, except for relational field IDs)
  * - Objects (recursive)
- * 
+ *
  * @param a First value
  * @param b Second value
  * @param isRelationalField Whether this is a relational field (array of IDs)
@@ -252,7 +261,7 @@ function deepEqual(a: any, b: any, isRelationalField = false): boolean {
     if (isRelationalField) {
       return arraySetEqual(a, b);
     }
-    
+
     if (a.length !== b.length) {
       return false;
     }
@@ -271,7 +280,7 @@ function deepEqual(a: any, b: any, isRelationalField = false): boolean {
     return false;
   }
 
-  return keysA.every(key => deepEqual(a[key], b[key]));
+  return keysA.every((key) => deepEqual(a[key], b[key]));
 }
 
 export type { FieldChange, ModelDiff, ComparisonResult } from '../types';

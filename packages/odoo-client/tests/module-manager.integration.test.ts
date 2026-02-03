@@ -30,18 +30,18 @@ describe('ModuleManager integration tests', () => {
     } catch (error) {
       console.warn('Failed to cleanup project module:', error);
     }
-    
+
     client.logout();
   });
 
   describe('listModules', () => {
     it('should list all modules', async () => {
       const modules = await moduleManager.listModules();
-      
+
       expect(modules).toBeDefined();
       expect(Array.isArray(modules)).toBe(true);
       expect(modules.length).toBeGreaterThan(0);
-      
+
       // Check structure of first module
       const firstModule = modules[0];
       expect(firstModule).toHaveProperty('id');
@@ -51,37 +51,37 @@ describe('ModuleManager integration tests', () => {
 
     it('should list installed modules only', async () => {
       const modules = await moduleManager.listModules({ state: 'installed' });
-      
+
       expect(modules).toBeDefined();
       expect(Array.isArray(modules)).toBe(true);
       expect(modules.length).toBeGreaterThan(0);
-      
+
       // All modules should have state 'installed'
-      modules.forEach(module => {
+      modules.forEach((module) => {
         expect(module.state).toBe('installed');
       });
     });
 
     it('should list uninstalled modules only', async () => {
       const modules = await moduleManager.listModules({ state: 'uninstalled' });
-      
+
       expect(modules).toBeDefined();
       expect(Array.isArray(modules)).toBe(true);
-      
+
       // All modules should have state 'uninstalled'
-      modules.forEach(module => {
+      modules.forEach((module) => {
         expect(module.state).toBe('uninstalled');
       });
     });
 
     it('should filter by application flag', async () => {
       const apps = await moduleManager.listModules({ application: true });
-      
+
       expect(apps).toBeDefined();
       expect(Array.isArray(apps)).toBe(true);
-      
+
       // All modules should have application flag set
-      apps.forEach(module => {
+      apps.forEach((module) => {
         expect(module.application).toBe(true);
       });
     });
@@ -89,7 +89,7 @@ describe('ModuleManager integration tests', () => {
     it('should support pagination', async () => {
       const page1 = await moduleManager.listModules({ limit: 5, offset: 0 });
       const page2 = await moduleManager.listModules({ limit: 5, offset: 5 });
-      
+
       // Note: Odoo's search_read doesn't always respect limit for ir.module.module
       // This is a known Odoo quirk, so we just verify the method doesn't error
       expect(page1.length).toBeGreaterThan(0);
@@ -102,7 +102,7 @@ describe('ModuleManager integration tests', () => {
   describe('getModuleInfo', () => {
     it('should get info for base module', async () => {
       const moduleInfo = await moduleManager.getModuleInfo('base');
-      
+
       expect(moduleInfo).toBeDefined();
       expect(moduleInfo.name).toBe('base');
       expect(moduleInfo.state).toBe('installed');
@@ -112,7 +112,7 @@ describe('ModuleManager integration tests', () => {
 
     it('should get info for project module', async () => {
       const moduleInfo = await moduleManager.getModuleInfo('project');
-      
+
       expect(moduleInfo).toBeDefined();
       expect(moduleInfo.name).toBe('project');
       expect(moduleInfo).toHaveProperty('state');
@@ -121,9 +121,9 @@ describe('ModuleManager integration tests', () => {
     });
 
     it('should throw error for non-existent module', async () => {
-      await expect(
-        moduleManager.getModuleInfo('non_existent_module_xyz')
-      ).rejects.toThrow("Module 'non_existent_module_xyz' not found");
+      await expect(moduleManager.getModuleInfo('non_existent_module_xyz')).rejects.toThrow(
+        "Module 'non_existent_module_xyz' not found"
+      );
     });
   });
 
@@ -139,7 +139,7 @@ describe('ModuleManager integration tests', () => {
       if (projectInfo.state === 'installed') {
         await moduleManager.uninstallModule('project');
       }
-      
+
       const isInstalled = await moduleManager.isModuleInstalled('project');
       expect(isInstalled).toBe(false);
     });
@@ -176,11 +176,11 @@ describe('ModuleManager integration tests', () => {
     it('should handle installing already installed module', async () => {
       // Install project if not installed
       await moduleManager.installModule('project');
-      
+
       // Try to install again - should not throw error
       const moduleInfo = await moduleManager.installModule('project');
       expect(moduleInfo.state).toBe('installed');
-      
+
       // Cleanup
       await moduleManager.uninstallModule('project');
     });
@@ -191,22 +191,22 @@ describe('ModuleManager integration tests', () => {
       if (info.state === 'installed') {
         await moduleManager.uninstallModule('project');
       }
-      
+
       // Try to uninstall again - should not throw error
       const moduleInfo = await moduleManager.uninstallModule('project');
       expect(moduleInfo.state).toBe('uninstalled');
     });
 
     it('should throw error when installing non-existent module', async () => {
-      await expect(
-        moduleManager.installModule('non_existent_module_xyz')
-      ).rejects.toThrow("Module 'non_existent_module_xyz' not found");
+      await expect(moduleManager.installModule('non_existent_module_xyz')).rejects.toThrow(
+        "Module 'non_existent_module_xyz' not found"
+      );
     });
 
     it('should throw error when uninstalling non-existent module', async () => {
-      await expect(
-        moduleManager.uninstallModule('non_existent_module_xyz')
-      ).rejects.toThrow("Module 'non_existent_module_xyz' not found");
+      await expect(moduleManager.uninstallModule('non_existent_module_xyz')).rejects.toThrow(
+        "Module 'non_existent_module_xyz' not found"
+      );
     });
 
     it('should not allow installing uninstallable module', async () => {
@@ -215,13 +215,11 @@ describe('ModuleManager integration tests', () => {
         state: 'uninstallable',
         limit: 1,
       });
-      
+
       if (uninstallableModules.length > 0) {
         const moduleName = uninstallableModules[0].name;
-        
-        await expect(
-          moduleManager.installModule(moduleName)
-        ).rejects.toThrow(/not installable/);
+
+        await expect(moduleManager.installModule(moduleName)).rejects.toThrow(/not installable/);
       }
     });
   });
@@ -230,12 +228,12 @@ describe('ModuleManager integration tests', () => {
     it('should upgrade installed module', async () => {
       // Install project first
       await moduleManager.installModule('project');
-      
+
       // Try to upgrade (might be a no-op if already at latest version)
       const upgradedInfo = await moduleManager.upgradeModule('project');
       expect(upgradedInfo.name).toBe('project');
       expect(upgradedInfo.state).toBe('installed');
-      
+
       // Cleanup
       await moduleManager.uninstallModule('project');
     });
@@ -246,10 +244,10 @@ describe('ModuleManager integration tests', () => {
       if (info.state === 'installed') {
         await moduleManager.uninstallModule('project');
       }
-      
-      await expect(
-        moduleManager.upgradeModule('project')
-      ).rejects.toThrow(/must be installed to upgrade/);
+
+      await expect(moduleManager.upgradeModule('project')).rejects.toThrow(
+        /must be installed to upgrade/
+      );
     });
   });
 });

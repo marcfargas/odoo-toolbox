@@ -1,11 +1,11 @@
 /**
  * Unit tests for examples
- * 
+ *
  * Validates that all example files:
  * - Have correct TypeScript syntax
  * - Import available modules correctly
  * - Follow expected patterns
- * 
+ *
  * Note: We do NOT run the examples end-to-end (that would require Odoo).
  * Instead, we validate syntax and structure.
  */
@@ -44,18 +44,18 @@ describe('Examples', () => {
       exampleFiles.forEach((file) => {
         const filePath = path.join(examplesDir, file);
         const content = fs.readFileSync(filePath, 'utf-8');
-        
+
         // Should have JSDoc header
         expect(content).toContain('/**');
         expect(content).toContain('* Example');
-        
+
         // Should have main function
         expect(content).toContain('async function main()');
-        
+
         // Should have error handling
         expect(content).toContain('try');
         expect(content).toContain('catch');
-        
+
         // Should call logout
         expect(content).toContain('logout()');
       });
@@ -64,7 +64,7 @@ describe('Examples', () => {
     it('example 1 should demonstrate authentication', () => {
       const filePath = path.join(examplesDir, '1-basic-connection.ts');
       const content = fs.readFileSync(filePath, 'utf-8');
-      
+
       expect(content).toContain('authenticate');
       expect(content).toContain('sessionInfo');
       expect(content).toContain('read');
@@ -73,7 +73,7 @@ describe('Examples', () => {
     it('example 2 should demonstrate CRUD', () => {
       const filePath = path.join(examplesDir, '2-crud-operations.ts');
       const content = fs.readFileSync(filePath, 'utf-8');
-      
+
       expect(content).toContain('create');
       expect(content).toContain('read');
       expect(content).toContain('write');
@@ -83,7 +83,7 @@ describe('Examples', () => {
     it('example 3 should demonstrate search', () => {
       const filePath = path.join(examplesDir, '3-search-and-filter.ts');
       const content = fs.readFileSync(filePath, 'utf-8');
-      
+
       expect(content).toContain('search');
       expect(content).toContain('searchRead');
       expect(content).toContain('domain');
@@ -94,7 +94,7 @@ describe('Examples', () => {
     it('example 4 should demonstrate context and batch', () => {
       const filePath = path.join(examplesDir, '4-context-and-batch.ts');
       const content = fs.readFileSync(filePath, 'utf-8');
-      
+
       expect(content).toContain('context');
       expect(content).toContain('batch');
       // Check for batch operations (using write with array of IDs)
@@ -107,13 +107,13 @@ describe('Examples', () => {
     it('should document each example in README', () => {
       const readmePath = path.join(examplesDir, 'README.md');
       const content = fs.readFileSync(readmePath, 'utf-8');
-      
+
       // Check each example is documented
       expect(content).toContain('1. Basic Connection');
       expect(content).toContain('2. CRUD Operations');
       expect(content).toContain('3. Search and Filtering');
       expect(content).toContain('4. Context Variables');
-      
+
       // Check common patterns section
       expect(content).toContain('Quick Start');
       expect(content).toContain('Troubleshooting');
@@ -122,7 +122,7 @@ describe('Examples', () => {
     it('should include quick start in README', () => {
       const readmePath = path.join(examplesDir, 'README.md');
       const content = fs.readFileSync(readmePath, 'utf-8');
-      
+
       expect(content).toContain('Quick Start');
       expect(content).toContain('Prerequisites');
       expect(content).toContain('npx ts-node');
@@ -134,9 +134,9 @@ describe('Examples', () => {
       exampleFiles.forEach((file) => {
         const filePath = path.join(examplesDir, file);
         const content = fs.readFileSync(filePath, 'utf-8');
-        
+
         // Should import OdooClient
-        expect(content).toContain("import { OdooClient }");
+        expect(content).toContain('import { OdooClient }');
         expect(content).toContain('odoo-client');
       });
     });
@@ -145,7 +145,7 @@ describe('Examples', () => {
       exampleFiles.forEach((file) => {
         const filePath = path.join(examplesDir, file);
         const content = fs.readFileSync(filePath, 'utf-8');
-        
+
         // Should have async main
         expect(content).toContain('async');
         expect(content).toContain('await');

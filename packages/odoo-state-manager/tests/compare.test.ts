@@ -1,6 +1,6 @@
 /**
  * Tests for state comparison module.
- * 
+ *
  * Tests cover:
  * - Basic field comparison (primitives, objects)
  * - Odoo-specific field types (many2one, one2many, many2many)
@@ -26,12 +26,7 @@ describe('State Comparison Module', () => {
     });
 
     it('detects string field changes', () => {
-      const changes = compareRecord(
-        'project.project',
-        1,
-        { name: 'Q1 Planning' },
-        { name: 'Q1' }
-      );
+      const changes = compareRecord('project.project', 1, { name: 'Q1 Planning' }, { name: 'Q1' });
 
       expect(changes).toHaveLength(1);
       expect(changes[0]).toEqual({
@@ -43,12 +38,7 @@ describe('State Comparison Module', () => {
     });
 
     it('detects numeric field changes', () => {
-      const changes = compareRecord(
-        'project.project',
-        1,
-        { sequence: 10 },
-        { sequence: 5 }
-      );
+      const changes = compareRecord('project.project', 1, { sequence: 10 }, { sequence: 5 });
 
       expect(changes).toHaveLength(1);
       expect(changes[0].operation).toBe('update');
@@ -57,12 +47,7 @@ describe('State Comparison Module', () => {
     });
 
     it('detects boolean field changes', () => {
-      const changes = compareRecord(
-        'project.project',
-        1,
-        { active: true },
-        { active: false }
-      );
+      const changes = compareRecord('project.project', 1, { active: true }, { active: false });
 
       expect(changes).toHaveLength(1);
       expect(changes[0].newValue).toBe(true);
@@ -70,12 +55,7 @@ describe('State Comparison Module', () => {
     });
 
     it('detects new fields (not in actual state)', () => {
-      const changes = compareRecord(
-        'project.project',
-        1,
-        { name: 'Q1 Planning' },
-        {}
-      );
+      const changes = compareRecord('project.project', 1, { name: 'Q1 Planning' }, {});
 
       expect(changes).toHaveLength(1);
       expect(changes[0]).toEqual({
@@ -139,12 +119,7 @@ describe('State Comparison Module', () => {
     });
 
     it('detects null to non-null many2one changes', () => {
-      const changes = compareRecord(
-        'project.task',
-        1,
-        { manager_id: 5 },
-        { manager_id: null }
-      );
+      const changes = compareRecord('project.task', 1, { manager_id: 5 }, { manager_id: null });
 
       expect(changes).toHaveLength(1);
       expect(changes[0].operation).toBe('update');
@@ -225,12 +200,7 @@ describe('State Comparison Module', () => {
     });
 
     it('handles empty one2many arrays', () => {
-      const changes = compareRecord(
-        'project.project',
-        1,
-        { task_ids: [] },
-        { task_ids: [1, 2] }
-      );
+      const changes = compareRecord('project.project', 1, { task_ids: [] }, { task_ids: [1, 2] });
 
       expect(changes).toHaveLength(1);
       expect(changes[0].newValue).toEqual([]);
@@ -408,13 +378,9 @@ describe('State Comparison Module', () => {
     });
 
     it('returns empty array when no changes detected', () => {
-      const desiredStates = new Map([
-        [1, { name: 'Task 1', priority: 'high' }],
-      ]);
+      const desiredStates = new Map([[1, { name: 'Task 1', priority: 'high' }]]);
 
-      const actualStates = new Map([
-        [1, { name: 'Task 1', priority: 'high' }],
-      ]);
+      const actualStates = new Map([[1, { name: 'Task 1', priority: 'high' }]]);
 
       const diffs = compareRecords('project.task', desiredStates, actualStates);
 

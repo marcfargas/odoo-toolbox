@@ -110,10 +110,10 @@ export async function waitFor(
 
 /**
  * Install a module for testing
- * 
+ *
  * Uses the ModuleManager to install a module and tracks it for cleanup.
  * If the module is already installed, does nothing.
- * 
+ *
  * @param moduleManager - ModuleManager instance
  * @param moduleName - Technical name of the module
  * @param installedModules - Array to track installed modules for cleanup (optional)
@@ -125,49 +125,46 @@ export async function installModuleForTest(
   installedModules?: string[]
 ): Promise<any> {
   const isInstalled = await moduleManager.isModuleInstalled(moduleName);
-  
+
   if (!isInstalled) {
     const moduleInfo = await moduleManager.installModule(moduleName);
-    
+
     if (installedModules) {
       installedModules.push(moduleName);
     }
-    
+
     return moduleInfo;
   }
-  
+
   return moduleManager.getModuleInfo(moduleName);
 }
 
 /**
  * Uninstall a module after testing
- * 
+ *
  * Uses the ModuleManager to uninstall a module.
  * If the module is already uninstalled, does nothing.
- * 
+ *
  * @param moduleManager - ModuleManager instance
  * @param moduleName - Technical name of the module
  * @returns Module info after uninstallation
  */
-export async function uninstallModuleForTest(
-  moduleManager: any,
-  moduleName: string
-): Promise<any> {
+export async function uninstallModuleForTest(moduleManager: any, moduleName: string): Promise<any> {
   const isInstalled = await moduleManager.isModuleInstalled(moduleName);
-  
+
   if (isInstalled) {
     return await moduleManager.uninstallModule(moduleName);
   }
-  
+
   return moduleManager.getModuleInfo(moduleName);
 }
 
 /**
  * Cleanup installed modules after tests
- * 
+ *
  * Uninstalls all modules in the tracking array.
  * Useful for afterAll/afterEach cleanup.
- * 
+ *
  * @param moduleManager - ModuleManager instance
  * @param installedModules - Array of module names to uninstall
  */
@@ -182,6 +179,6 @@ export async function cleanupInstalledModules(
       console.warn(`Failed to cleanup module ${moduleName}: ${error}`);
     }
   }
-  
+
   installedModules.length = 0; // Clear the array
 }

@@ -1,8 +1,8 @@
 /**
  * Plan application module.
- * 
+ *
  * Applies generated plans to Odoo.
- * 
+ *
  * Handles:
  * - Executing operations in order
  * - Tracking temporary ID to real ID mappings for created records
@@ -16,15 +16,15 @@ import { ApplyResult, OperationResult, ApplyOptions } from './types';
 
 /**
  * Apply an execution plan to Odoo.
- * 
+ *
  * Executes operations in order, handling creates, updates, and deletes.
  * Maps temporary IDs to real database IDs for created records.
- * 
+ *
  * @param plan - The execution plan to apply
  * @param client - OdooClient authenticated instance
  * @param options - Execution options (dry-run, stop on error, etc)
  * @returns Apply result with all operation outcomes and final ID mappings
- * 
+ *
  * @example
  * ```typescript
  * const result = await applyPlan(plan, client, {
@@ -32,7 +32,7 @@ import { ApplyResult, OperationResult, ApplyOptions } from './types';
  *   stopOnError: true,
  *   onProgress: (current, total) => console.log(`${current}/${total}`),
  * });
- * 
+ *
  * console.log(`Applied ${result.applied}/${result.total} operations`);
  * if (result.failed > 0) {
  *   console.log('Errors:', result.errors);
@@ -161,7 +161,7 @@ export async function applyPlan(
 
 /**
  * Execute a single operation on Odoo.
- * 
+ *
  * @param operation - The operation to execute
  * @param client - OdooClient instance
  * @param baseContext - Base context to use for all operations
@@ -188,11 +188,11 @@ async function executeOperation(
     case 'create': {
       /**
        * Create operation.
-       * 
+       *
        * Handled in: odoo/models.py:BaseModel.create()
        * Creates a new record with the provided values.
        * Context variables are used for defaults and behavior control.
-       * 
+       *
        * @see https://github.com/odoo/odoo/blob/17.0/odoo/models.py#L3800
        */
       return await client.create(model, resolvedValues, operationContext);
@@ -201,11 +201,11 @@ async function executeOperation(
     case 'update': {
       /**
        * Update operation.
-       * 
+       *
        * Handled in: odoo/models.py:BaseModel.write()
        * Updates existing record(s) with the provided values.
        * Multiple IDs can be passed for bulk update.
-       * 
+       *
        * @see https://github.com/odoo/odoo/blob/17.0/odoo/models.py#L4100
        */
       const recordId = extractId(id);
@@ -215,11 +215,11 @@ async function executeOperation(
     case 'delete': {
       /**
        * Delete operation.
-       * 
+       *
        * Handled in: odoo/models.py:BaseModel.unlink()
        * Permanently removes record(s) from the database.
        * Triggers cascading deletes for related records based on field definitions.
-       * 
+       *
        * @see https://github.com/odoo/odoo/blob/17.0/odoo/models.py#L4400
        */
       const recordId = extractId(id);
@@ -233,12 +233,12 @@ async function executeOperation(
 
 /**
  * Validate an operation before execution.
- * 
+ *
  * Checks for:
  * - References to non-existent IDs in idMapping
  * - Dependency resolution
  * - Valid operation structure
- * 
+ *
  * @param operation - The operation to validate
  * @param idMapping - Current ID mapping
  * @throws If validation fails
@@ -248,9 +248,7 @@ function validateOperation(operation: Operation, idMapping: Map<string, number>)
 
   // Validate required fields
   if (!type || !model || !id) {
-    throw new Error(
-      `Invalid operation structure: missing required fields (type, model, id)`
-    );
+    throw new Error(`Invalid operation structure: missing required fields (type, model, id)`);
   }
 
   // Validate operation type
@@ -260,9 +258,7 @@ function validateOperation(operation: Operation, idMapping: Map<string, number>)
 
   // For updates/deletes, validate that ID is resolvable
   if ((type === 'update' || type === 'delete') && id.startsWith('temp_')) {
-    throw new Error(
-      `Cannot ${type} record with temporary ID ${id}. Record must be created first.`
-    );
+    throw new Error(`Cannot ${type} record with temporary ID ${id}. Record must be created first.`);
   }
 
   // Check for unresolved ID references in values
@@ -271,9 +267,9 @@ function validateOperation(operation: Operation, idMapping: Map<string, number>)
 
 /**
  * Check if there are unresolved ID references in values.
- * 
+ *
  * Recursively checks objects and arrays for string values matching 'model:temp_id' pattern.
- * 
+ *
  * @param values - Values to check
  * @param idMapping - Current ID mapping
  * @throws If unresolved references found
@@ -300,10 +296,10 @@ function checkUnresolvedReferences(values: any, idMapping: Map<string, number>):
 
 /**
  * Resolve temporary ID references in operation values.
- * 
+ *
  * Replaces strings matching 'model:temp_1' with actual database IDs from idMapping.
  * Handles nested objects and arrays recursively.
- * 
+ *
  * @param values - Values that may contain ID references
  * @param idMapping - Mapping of temp IDs to real IDs
  * @returns Values with resolved IDs
@@ -323,7 +319,7 @@ function resolveIdReferences(
 
 /**
  * Recursively resolve a single value.
- * 
+ *
  * @param value - The value to resolve
  * @param idMapping - ID mapping for reference resolution
  * @returns Resolved value (real ID if reference, original otherwise)
@@ -357,7 +353,7 @@ function resolveValue(value: any, idMapping: Map<string, number>): any {
 
 /**
  * Extract numeric ID from 'model:id' format.
- * 
+ *
  * @param id - ID in format 'model:id' or just numeric
  * @returns Numeric ID
  * @throws If ID cannot be parsed
@@ -376,21 +372,21 @@ function extractId(id: string): number {
 
 /**
  * Apply a plan with dry-run mode.
- * 
+ *
  * Validates the plan without making actual changes to Odoo.
  * Useful for reviewing plans before applying.
- * 
+ *
  * @param plan - The execution plan to validate
  * @param client - OdooClient instance
  * @param options - Apply options (will be merged with dryRun: true)
  * @returns Apply result as if operations were executed
- * 
+ *
  * @example
  * ```typescript
  * const dryRunResult = await dryRunPlan(plan, client, {
  *   validate: true,
  * });
- * 
+ *
  * console.log(`Would apply ${dryRunResult.applied} operations`);
  * ```
  */

@@ -108,7 +108,7 @@ describe('odoo-introspection examples', () => {
     it('should generate code from metadata', async () => {
       const metadata = await introspector.getModelMetadata('res.partner');
       const { generateCompleteFile } = await import('../src/codegen');
-      
+
       const code = generateCompleteFile([metadata]);
       expect(code).toBeDefined();
       expect(typeof code).toBe('string');

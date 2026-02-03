@@ -1,6 +1,6 @@
 /**
  * Tests for plan validation utilities.
- * 
+ *
  * Tests relational record validation, error suggestion, and fix recommendations.
  */
 
@@ -331,35 +331,35 @@ describe('Plan Validation', () => {
       const error = new Error('Access denied');
       const fixes = suggestErrorFixes(error);
 
-      expect(fixes.some(f => f.match(/permission|security|group/i))).toBe(true);
+      expect(fixes.some((f) => f.match(/permission|security|group/i))).toBe(true);
     });
 
     it('should suggest fixes for does not exist errors', () => {
       const error = new Error('Record does not exist');
       const fixes = suggestErrorFixes(error, { model: 'res.partner' });
 
-      expect(fixes.some(f => f.match(/record ID|deleted|Search/i))).toBe(true);
+      expect(fixes.some((f) => f.match(/record ID|deleted|Search/i))).toBe(true);
     });
 
     it('should suggest fixes for required field errors', () => {
       const error = new Error('Missing required field: name');
       const fixes = suggestErrorFixes(error);
 
-      expect(fixes.some(f => f.match(/required field/i))).toBe(true);
+      expect(fixes.some((f) => f.match(/required field/i))).toBe(true);
     });
 
     it('should suggest fixes for validation errors', () => {
       const error = new Error('ValidationError: Field constraint violated');
       const fixes = suggestErrorFixes(error);
 
-      expect(fixes.some(f => f.match(/constraint|field value/i))).toBe(true);
+      expect(fixes.some((f) => f.match(/constraint|field value/i))).toBe(true);
     });
 
     it('should suggest fixes for many2one errors', () => {
       const error = new Error('Invalid many2one reference');
       const fixes = suggestErrorFixes(error);
 
-      expect(fixes.some(f => f.match(/relational field|record ID|valid record/i))).toBe(true);
+      expect(fixes.some((f) => f.match(/relational field|record ID|valid record/i))).toBe(true);
     });
 
     it('should provide generic suggestions for unknown errors', () => {
@@ -367,7 +367,7 @@ describe('Plan Validation', () => {
       const fixes = suggestErrorFixes(error);
 
       expect(fixes.length).toBeGreaterThan(0);
-      expect(fixes.some(f => f.match(/error message|values|permissions/))).toBe(true);
+      expect(fixes.some((f) => f.match(/error message|values|permissions/))).toBe(true);
     });
 
     it('should accept string errors', () => {
@@ -384,7 +384,7 @@ describe('Plan Validation', () => {
         },
       });
 
-      expect(fixes.some(f => f.includes('project.task'))).toBe(true);
+      expect(fixes.some((f) => f.includes('project.task'))).toBe(true);
     });
   });
 });

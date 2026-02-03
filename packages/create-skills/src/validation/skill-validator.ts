@@ -22,7 +22,10 @@ export function validateSkillMd(content: string): ValidationResult {
   }
 
   // Check for Prerequisites section
-  if (!content.includes('## Prerequisites') && !content.includes('## Prerequisites (Must Read First)')) {
+  if (
+    !content.includes('## Prerequisites') &&
+    !content.includes('## Prerequisites (Must Read First)')
+  ) {
     warnings.push('Missing Prerequisites section');
   }
 

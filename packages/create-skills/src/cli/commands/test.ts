@@ -16,7 +16,9 @@ export async function testCommand(options: TestOptions): Promise<void> {
   // Check for .env file
   const envPath = path.join(cwd, '.env');
   if (!fs.existsSync(envPath)) {
-    console.error('Error: .env file not found. Copy .env.example and configure your Odoo credentials.');
+    console.error(
+      'Error: .env file not found. Copy .env.example and configure your Odoo credentials.'
+    );
     process.exit(1);
   }
 
@@ -48,14 +50,16 @@ export async function testCommand(options: TestOptions): Promise<void> {
     const skillsDir = path.join(cwd, 'skills');
 
     if (fs.existsSync(baseDir)) {
-      const baseFiles = fs.readdirSync(baseDir)
+      const baseFiles = fs
+        .readdirSync(baseDir)
         .filter((f) => f.endsWith('.md'))
         .map((f) => path.join(baseDir, f));
       filesToTest.push(...baseFiles);
     }
 
     if (fs.existsSync(skillsDir)) {
-      const skillFiles = fs.readdirSync(skillsDir)
+      const skillFiles = fs
+        .readdirSync(skillsDir)
         .filter((f) => f.endsWith('.md'))
         .map((f) => path.join(skillsDir, f));
       filesToTest.push(...skillFiles);
@@ -94,7 +98,9 @@ export async function testCommand(options: TestOptions): Promise<void> {
     return;
   }
 
-  console.log(`\n${totalFailed === 0 ? 'All' : totalPassed} ${totalPassed === 1 ? 'example' : 'examples'} found.`);
+  console.log(
+    `\n${totalFailed === 0 ? 'All' : totalPassed} ${totalPassed === 1 ? 'example' : 'examples'} found.`
+  );
 
   // TODO: Actually execute the code blocks and report pass/fail
   console.log('\nNote: Full test execution requires @odoo-toolbox/client.');
@@ -118,8 +124,10 @@ function parseEnv(content: string): Record<string, string> {
       const key = trimmed.substring(0, eqIndex).trim();
       let value = trimmed.substring(eqIndex + 1).trim();
       // Remove quotes if present
-      if ((value.startsWith('"') && value.endsWith('"')) ||
-          (value.startsWith("'") && value.endsWith("'"))) {
+      if (
+        (value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))
+      ) {
         value = value.slice(1, -1);
       }
       vars[key] = value;

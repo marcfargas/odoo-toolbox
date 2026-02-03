@@ -1,6 +1,6 @@
 /**
  * Formats generated TypeScript code for model interfaces.
- * 
+ *
  * Handles:
  * - Generating model interface definitions
  * - Creating method signature documentation
@@ -13,28 +13,28 @@ import { getFieldTypeExpression, generateFieldJSDoc, isWritableField } from './t
 
 /**
  * Converts a model name like 'res.partner' to TypeScript interface name 'ResPartner'.
- * 
+ *
  * Logic:
  * 1. Split on '.'
  * 2. Remove common prefixes (res, sale, project, etc. at first segment only)
  * 3. Join segments
  * 4. CamelCase each segment
  * 5. Capitalize first letter
- * 
+ *
  * Examples:
  * - res.partner → ResPartner
  * - sale.order → SaleOrder
  * - project.project → ProjectProject
  * - account.move → AccountMove
- * 
+ *
  * @param modelName - Odoo model name (e.g., 'res.partner')
  * @returns TypeScript interface name (e.g., 'ResPartner')
  */
 export function modelNameToInterfaceName(modelName: string): string {
   const parts = modelName.split('.');
-  
+
   // Capitalize each part: 'res' -> 'Res', 'partner' -> 'Partner'
-  const capitalized = parts.map(part => {
+  const capitalized = parts.map((part) => {
     return part.charAt(0).toUpperCase() + part.slice(1);
   });
 
@@ -43,13 +43,13 @@ export function modelNameToInterfaceName(modelName: string): string {
 
 /**
  * Generates a TypeScript interface definition for a model.
- * 
+ *
  * Produces:
  * - Interface declaration with all fields
  * - JSDoc comments on fields with descriptions
  * - Proper handling of optional vs required fields
  * - Method signatures as JSDoc comments
- * 
+ *
  * @param metadata - Complete model metadata (model + fields)
  * @returns Formatted TypeScript interface code
  */
@@ -63,8 +63,8 @@ export function generateModelInterface(metadata: ModelMetadata): string {
   if (metadata.model.info) {
     const info = metadata.model.info
       .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
       .join(' ');
     if (info) {
       lines.push(` * `);
@@ -108,8 +108,8 @@ export function generateModelInterface(metadata: ModelMetadata): string {
   lines.push('');
 
   const writableFields = metadata.fields.filter(isWritableField);
-  writableFields.map(f => f.name).join(' | ');
-  
+  writableFields.map((f) => f.name).join(' | ');
+
   lines.push('  /**');
   lines.push('   * Create a new record with the given values.');
   lines.push('   */');
@@ -135,12 +135,12 @@ export function generateModelInterface(metadata: ModelMetadata): string {
 
 /**
  * Generates the complete generated.ts file with all model interfaces and exports.
- * 
+ *
  * Includes:
  * - File header with generation notice
  * - All model interfaces
  * - Index exports
- * 
+ *
  * @param allMetadata - Array of all model metadata
  * @returns Complete file content for src/models/generated.ts
  */
@@ -181,13 +181,13 @@ export function generateCompleteFile(allMetadata: ModelMetadata[]): string {
 
 /**
  * Generates helper type definitions for common patterns.
- * 
+ *
  * Includes:
  * - SearchOptions type
  * - ReadOptions type
  * - CreateOptions type
  * - WriteOptions type
- * 
+ *
  * @returns TypeScript code defining helper types
  */
 export function generateHelperTypes(): string {

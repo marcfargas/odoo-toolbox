@@ -1,13 +1,13 @@
 /**
  * Plan validation utilities.
- * 
+ *
  * Validates execution plans for common issues and provides actionable fix suggestions.
- * 
+ *
  * Handles:
  * - Relational record existence validation (many2one, one2many references)
  * - Error diagnostics with suggested fixes
  * - Pre-apply safety checks
- * 
+ *
  * @see https://github.com/odoo/odoo/blob/17.0/odoo/fields.py#L2000 (Many2one field handling)
  * @see https://github.com/odoo/odoo/blob/17.0/odoo/models.py#L2500 (create/write validation)
  */
@@ -57,18 +57,18 @@ export interface ValidationResult {
 
 /**
  * Validate a plan for relational record existence.
- * 
+ *
  * Checks that:
  * - All many2one references point to existing records
  * - Parent references in one2many creates exist or are being created
  * - Foreign keys are valid before update/delete operations
- * 
+ *
  * Handles temporary IDs (model:temp_N) for newly created records.
- * 
+ *
  * @param plan Plan to validate
  * @param client OdooClient for verification queries (optional for offline validation)
  * @returns Validation result with errors and suggested fixes
- * 
+ *
  * @example
  * ```typescript
  * const result = await validatePlanReferences(plan, client);
@@ -80,7 +80,7 @@ export interface ValidationResult {
  *   }
  * }
  * ```
- * 
+ *
  * @see https://github.com/odoo/odoo/blob/17.0/odoo/fields.py#L2156 (Many2one conversion)
  */
 export async function validatePlanReferences(
@@ -105,12 +105,7 @@ export async function validatePlanReferences(
 
     // For create/update operations, check field references
     if ((op.type === 'create' || op.type === 'update') && op.values) {
-      const fieldErrors = validateOperationValues(
-        op,
-        plan.operations,
-        createdRecords,
-        i
-      );
+      const fieldErrors = validateOperationValues(op, plan.operations, createdRecords, i);
       errors.push(...fieldErrors);
 
       // Collect record references for verification
@@ -118,7 +113,7 @@ export async function validatePlanReferences(
         if (typeof value === 'number' && fieldName.endsWith('_id')) {
           recordsToVerify.add(`${op.model}:${value}`);
         } else if (Array.isArray(value) && fieldName.endsWith('_ids')) {
-          value.forEach(id => {
+          value.forEach((id) => {
             if (typeof id === 'number') {
               recordsToVerify.add(`${op.model}:${id}`);
             }
@@ -150,7 +145,7 @@ export async function validatePlanReferences(
     isValid: errors.length === 0,
     errors,
     warnings,
-    recordsToVerify: Array.from(recordsToVerify).map(ref => {
+    recordsToVerify: Array.from(recordsToVerify).map((ref) => {
       const [model, id] = ref.split(':');
       return { model, id: parseInt(id, 10) };
     }),
@@ -159,10 +154,10 @@ export async function validatePlanReferences(
 
 /**
  * Validate operation values for reference integrity.
- * 
+ *
  * Checks that many2one and many2many references in operation values
  * either point to existing records or to records being created.
- * 
+ *
  * Handles:
  * - Temporary ID references (model:temp_1)
  * - Direct ID values
@@ -228,7 +223,7 @@ function validateOperationValues(
 
 /**
  * Validate a temporary ID reference.
- * 
+ *
  * Ensures that references to newly created records (model:temp_N) are valid:
  * - The operation being referenced exists in the plan
  * - The operation is a create operation
@@ -245,9 +240,7 @@ function validateTempIdReference(
   const [refModel] = tempId.split(':');
 
   // Find the operation being referenced
-  const referencedOp = allOperations.find(
-    op => op.type === 'create' && op.id === tempId
-  );
+  const referencedOp = allOperations.find((op) => op.type === 'create' && op.id === tempId);
 
   if (!referencedOp) {
     return {
@@ -294,15 +287,15 @@ function validateTempIdReference(
 
 /**
  * Verify that referenced records exist in Odoo.
- * 
+ *
  * Performs existence checks against the Odoo database for all referenced records.
  * This is an optional validation step that requires a connected OdooClient.
- * 
+ *
  * Handles:
  * - Batch queries for efficiency
  * - Detailed error messages with record names when available
  * - Suggested fixes for missing records
- * 
+ *
  * @see https://github.com/odoo/odoo/blob/17.0/odoo/models.py#L2490 (search validation)
  */
 async function verifyRecordsExist(
@@ -328,11 +321,11 @@ async function verifyRecordsExist(
   for (const [model, ids] of recordsByModel) {
     try {
       const existingIds = await client.search(model, [['id', 'in', ids]]);
-      const missingIds = ids.filter(id => !existingIds.includes(id));
+      const missingIds = ids.filter((id) => !existingIds.includes(id));
 
       if (missingIds.length > 0) {
         // Find which operations reference the missing records
-        const affectedOps = operations.filter(op => {
+        const affectedOps = operations.filter((op) => {
           if (!op.values) return false;
           for (const value of Object.values(op.values)) {
             if (typeof value === 'number' && missingIds.includes(value)) {
@@ -361,7 +354,7 @@ async function verifyRecordsExist(
           context: {
             model,
             missingIds,
-            affectedOperations: affectedOps.map(op => op.id),
+            affectedOperations: affectedOps.map((op) => op.id),
           },
         });
       }
@@ -390,9 +383,9 @@ async function verifyRecordsExist(
 
 /**
  * Format validation errors for console output.
- * 
+ *
  * Produces human-readable error messages with suggested fixes.
- * 
+ *
  * @example
  * ```typescript
  * const result = await validatePlanReferences(plan, client);
@@ -445,25 +438,22 @@ export function formatValidationErrors(result: ValidationResult): string {
 
 /**
  * Suggest fixes for common Odoo errors.
- * 
+ *
  * Analyzes error messages and provides actionable suggestions.
- * 
+ *
  * Detects common error patterns:
  * - "Access denied" → Check user permissions
  * - "does not exist" → Check IDs and model names
  * - "missing required field" → Check field mappings
  * - "ValidationError" → Check field constraints
- * 
+ *
  * @param error The error message or Error object
  * @param context Additional context (operation details, etc)
  * @returns List of suggested fixes
- * 
+ *
  * @see https://github.com/odoo/odoo/blob/17.0/odoo/exceptions.py (Odoo error types)
  */
-export function suggestErrorFixes(
-  error: Error | string,
-  context?: Record<string, any>
-): string[] {
+export function suggestErrorFixes(error: Error | string, context?: Record<string, any>): string[] {
   const message = typeof error === 'string' ? error : error.message;
   const suggestions: string[] = [];
 
@@ -490,7 +480,9 @@ export function suggestErrorFixes(
     suggestions.push('Check that all required fields are included in the operation');
     suggestions.push('Review Odoo model definition for field requirements');
     if (context?.operation) {
-      suggestions.push(`Verify operation includes all required fields for ${context.operation.model}`);
+      suggestions.push(
+        `Verify operation includes all required fields for ${context.operation.model}`
+      );
     }
     suggestions.push('Use introspection to get required fields list');
   }

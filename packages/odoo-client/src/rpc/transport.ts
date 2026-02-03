@@ -63,7 +63,7 @@ export class JsonRpcTransport {
    */
   async authenticate(username: string, password: string): Promise<OdooSessionInfo> {
     log(`authenticate ${username}@${this.db}`);
-    
+
     try {
       const startTime = Date.now();
       const uid = await this.callRpc<number>('call', {
@@ -89,8 +89,10 @@ export class JsonRpcTransport {
       log(`authenticated ${username}@${this.db} uid=${uid} (${duration}ms)`);
       return this.sessionInfo;
     } catch (error) {
-      log(`auth failed ${username}@${this.db}: ${error instanceof Error ? error.message : String(error)}`);
-      
+      log(
+        `auth failed ${username}@${this.db}: ${error instanceof Error ? error.message : String(error)}`
+      );
+
       if (error instanceof OdooAuthError) {
         throw error;
       }
@@ -176,7 +178,7 @@ export class JsonRpcTransport {
     kwargs: Record<string, any> = {}
   ): Promise<T> {
     log(`→ ${model}.${method}()`);
-    
+
     const startTime = Date.now();
     try {
       const result = await this.callRpc<T>('call', {
@@ -185,13 +187,15 @@ export class JsonRpcTransport {
         args: [this.db, this.sessionInfo?.uid || 0, this.password, model, method, ...args],
         kwargs,
       });
-      
+
       const duration = Date.now() - startTime;
       log(`← ${model}.${method}() [${duration}ms]`);
       return result;
     } catch (error) {
       const duration = Date.now() - startTime;
-      log(`✗ ${model}.${method}() [${duration}ms]: ${error instanceof Error ? error.message : String(error)}`);
+      log(
+        `✗ ${model}.${method}() [${duration}ms]: ${error instanceof Error ? error.message : String(error)}`
+      );
       throw error;
     }
   }

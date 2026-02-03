@@ -134,9 +134,7 @@ export function extractTestableBlocks(
           }
 
           if (options.filterNeeds && options.filterNeeds.length > 0) {
-            include =
-              include &&
-              options.filterNeeds.some((n) => currentBlock!.needs!.includes(n));
+            include = include && options.filterNeeds.some((n) => currentBlock!.needs!.includes(n));
           }
 
           if (!options.includeSkipped && currentBlock.skip) {
@@ -160,9 +158,7 @@ export function extractTestableBlocks(
 
   // Handle unclosed code block
   if (inCodeBlock && currentBlock) {
-    console.warn(
-      `Warning: unclosed code block starting at ${sourceFile}:${blockStartLine}`
-    );
+    console.warn(`Warning: unclosed code block starting at ${sourceFile}:${blockStartLine}`);
   }
 
   return blocks;
@@ -225,9 +221,7 @@ export async function extractFromDirectory(
  * @param blocks - Array of testable code blocks
  * @returns Map of source file to blocks
  */
-export function groupBySourceFile(
-  blocks: TestableCodeBlock[]
-): Map<string, TestableCodeBlock[]> {
+export function groupBySourceFile(blocks: TestableCodeBlock[]): Map<string, TestableCodeBlock[]> {
   const grouped = new Map<string, TestableCodeBlock[]>();
 
   for (const block of blocks) {

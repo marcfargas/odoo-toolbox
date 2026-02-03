@@ -103,7 +103,9 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
   const validCount = results.filter((r) => r.valid && !r.message.includes('NOT referenced')).length;
   const warningCount = referenceResults.unreferenced.length;
 
-  console.log(`\n${validCount} skills validated${warningCount > 0 ? `, ${warningCount} warning${warningCount > 1 ? 's' : ''}` : ''}.`);
+  console.log(
+    `\n${validCount} skills validated${warningCount > 0 ? `, ${warningCount} warning${warningCount > 1 ? 's' : ''}` : ''}.`
+  );
 
   if (hasErrors) {
     process.exit(1);

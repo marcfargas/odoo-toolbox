@@ -1,6 +1,6 @@
 /**
  * Code generation module.
- * 
+ *
  * Exports:
  * - CodeGenerator - Main orchestrator for code generation
  * - generateCode - Convenience function

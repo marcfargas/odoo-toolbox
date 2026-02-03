@@ -5,5 +5,3 @@ export {
   type JsonRpcResponse,
   type OdooSessionInfo,
 } from './transport';
-
-

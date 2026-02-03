@@ -1,6 +1,6 @@
 /**
  * Tests for plan formatting module.
- * 
+ *
  * Tests cover:
  * - Terraform-style plan output
  * - Color formatting
@@ -52,9 +52,7 @@ describe('Plan Formatter', () => {
         ],
         metadata: {
           timestamp: new Date(),
-          affectedModels: new Map([
-            ['project.task', { creates: 1, updates: 0, deletes: 0 }],
-          ]),
+          affectedModels: new Map([['project.task', { creates: 1, updates: 0, deletes: 0 }]]),
           totalChanges: 1,
         },
         summary: {
@@ -88,9 +86,7 @@ describe('Plan Formatter', () => {
         ],
         metadata: {
           timestamp: new Date(),
-          affectedModels: new Map([
-            ['project.task', { creates: 0, updates: 1, deletes: 0 }],
-          ]),
+          affectedModels: new Map([['project.task', { creates: 0, updates: 1, deletes: 0 }]]),
           totalChanges: 1,
         },
         summary: {
@@ -121,9 +117,7 @@ describe('Plan Formatter', () => {
         ],
         metadata: {
           timestamp: new Date(),
-          affectedModels: new Map([
-            ['project.task', { creates: 0, updates: 0, deletes: 1 }],
-          ]),
+          affectedModels: new Map([['project.task', { creates: 0, updates: 0, deletes: 1 }]]),
           totalChanges: 1,
         },
         summary: {

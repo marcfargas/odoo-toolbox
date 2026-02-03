@@ -41,11 +41,7 @@ async function main() {
 
     // Example 1: Batch create with context
     console.log('📦 Batch create with default context');
-    const partnerNames = [
-      'Batch Partner A',
-      'Batch Partner B',
-      'Batch Partner C',
-    ];
+    const partnerNames = ['Batch Partner A', 'Batch Partner B', 'Batch Partner C'];
     const batchIds = [];
 
     for (const name of partnerNames) {
@@ -83,9 +79,7 @@ async function main() {
 
     // Example 3: Search with context for language/timezone
     console.log('\n🔍 Search with language context');
-    const results = await client.searchRead('res.partner', [
-      ['id', 'in', batchIds],
-    ]);
+    const results = await client.searchRead('res.partner', [['id', 'in', batchIds]]);
     console.log(`✅ Retrieved ${results.length} records with context`);
     if (results.length > 0) {
       console.log(`   Sample: ${results[0].name}`);
@@ -96,16 +90,10 @@ async function main() {
     console.log('   Examples of context variables:');
     console.log('   - lang: "en_US" - Language for translations');
     console.log('   - tz: "America/New_York" - Timezone for date handling');
-    console.log(
-      '   - tracking_disable: true - Skip field tracking/audit trail'
-    );
+    console.log('   - tracking_disable: true - Skip field tracking/audit trail');
     console.log('   - default_<fieldname>: <value> - Set field defaults');
-    console.log(
-      '   - allowed_company_ids: [1, 2] - Multi-company filtering (base module)'
-    );
-    console.log(
-      '   - active_test: false - Include inactive records in search'
-    );
+    console.log('   - allowed_company_ids: [1, 2] - Multi-company filtering (base module)');
+    console.log('   - active_test: false - Include inactive records in search');
     console.log('   - mail_activity_quick_update: true - Skip validations (mail module)');
     console.log('');
     console.log('   For more, see AGENTS.md documentation on Odoo context.');
@@ -128,17 +116,19 @@ async function main() {
 
     // Example 6: Reading data with field selection context
     console.log('\n📖 Advanced: Read with computed fields');
-    const allIds = await client.search('res.partner', [
-      ['is_company', '=', true],
-    ]);
+    const allIds = await client.search('res.partner', [['is_company', '=', true]]);
     if (allIds.length > 0) {
       // Read some fields - server does computations automatically
-      const [company] = await client.read('res.partner', [allIds[0]], [
-        'name',
-        'is_company',
-        // 'display_name' would be computed on the server
-        // 'child_ids' would be computed for relational fields
-      ]);
+      const [company] = await client.read(
+        'res.partner',
+        [allIds[0]],
+        [
+          'name',
+          'is_company',
+          // 'display_name' would be computed on the server
+          // 'child_ids' would be computed for relational fields
+        ]
+      );
       console.log(`✅ Read company with computed fields: ${company.name}`);
     }
 

@@ -37,9 +37,7 @@ describe('Markdown Documentation Examples', () => {
   beforeAll(async () => {
     // Extract blocks from documentation
     allBlocks = await extractFromDirectory(docsDir);
-    console.log(
-      `\nFound ${allBlocks.length} testable code blocks in documentation`
-    );
+    console.log(`\nFound ${allBlocks.length} testable code blocks in documentation`);
 
     if (allBlocks.length > 0) {
       // Collect all unique dependencies
@@ -140,9 +138,7 @@ describe('Markdown Documentation Examples', () => {
 
     // Report results
     const failed = results.filter((r) => !r.success);
-    const skipped = results.filter(
-      (r) => r.success && r.error?.startsWith('Skipped')
-    );
+    const skipped = results.filter((r) => r.success && r.error?.startsWith('Skipped'));
     const passed = results.filter((r) => r.success && !r.error);
 
     console.log(`\nMarkdown Examples Results:`);

@@ -39,10 +39,7 @@ async function main() {
     // Read the current user's partner record
     const [user] = await client.read('res.users', [sessionInfo.uid], ['partner_id']);
     const partnerId = Array.isArray(user.partner_id) ? user.partner_id[0] : user.partner_id;
-    const [partner] = await client.read('res.partner', [partnerId], [
-      'name',
-      'email',
-    ]);
+    const [partner] = await client.read('res.partner', [partnerId], ['name', 'email']);
     console.log('✅ Connection verified');
     console.log(`   Partner: ${partner.name}${partner.email ? ` (${partner.email})` : ''}`);
 
@@ -57,13 +54,9 @@ async function main() {
 
       // Common error patterns:
       if (error.message.includes('connect')) {
-        console.error(
-          '   → Is Odoo running at http://localhost:8069? Try: docker-compose up'
-        );
+        console.error('   → Is Odoo running at http://localhost:8069? Try: docker-compose up');
       } else if (error.message.includes('authentication')) {
-        console.error(
-          '   → Invalid credentials. Check username/password combination.'
-        );
+        console.error('   → Invalid credentials. Check username/password combination.');
       } else if (error.message.includes('database')) {
         console.error('   → Invalid database name. Check ODOO_DB_NAME.');
       }

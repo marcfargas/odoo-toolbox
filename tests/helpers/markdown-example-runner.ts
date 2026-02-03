@@ -164,7 +164,9 @@ function wrapCodeForExecution(code: string, needs: string[]): string {
   const injections: string[] = [];
 
   // Always inject these from context
-  injections.push('const { trackRecord, uniqueTestName, OdooClient, Introspector, ModuleManager } = ctx;');
+  injections.push(
+    'const { trackRecord, uniqueTestName, OdooClient, Introspector, ModuleManager } = ctx;'
+  );
 
   if (needs.includes('client') || needs.length === 0) {
     // Default to providing client if no specific needs
@@ -233,22 +235,12 @@ export async function executeCodeBlock(
  * @param ctx - Test context (for accessing created records, etc.)
  * @returns Whether the expectation passed
  */
-export function evaluateExpect(
-  expectExpr: string,
-  result: any,
-  ctx: TestContext
-): boolean {
+export function evaluateExpect(expectExpr: string, result: any, ctx: TestContext): boolean {
   try {
     // Create a function that evaluates the expression
     // with result and common variables in scope
     // eslint-disable-next-line no-new-func
-    const evalFn = new Function(
-      'result',
-      'ctx',
-      'id',
-      'session',
-      `return (${expectExpr});`
-    );
+    const evalFn = new Function('result', 'ctx', 'id', 'session', `return (${expectExpr});`);
 
     // Extract common variables from result
     const id = typeof result === 'number' ? result : result?.id;
@@ -267,10 +259,7 @@ export function evaluateExpect(
  * @param moduleName - Module to check
  * @returns Whether module is installed
  */
-export async function isModuleInstalled(
-  ctx: TestContext,
-  moduleName: string
-): Promise<boolean> {
+export async function isModuleInstalled(ctx: TestContext, moduleName: string): Promise<boolean> {
   if (!ctx.moduleManager) {
     ctx.moduleManager = new ModuleManager(ctx.client);
   }

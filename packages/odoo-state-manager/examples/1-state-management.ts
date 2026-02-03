@@ -1,22 +1,16 @@
 /**
  * Example 1: State Management - Drift Detection & Planning
- * 
+ *
  * This example demonstrates the full state management workflow:
  * 1. Compare desired state vs actual Odoo state
  * 2. Generate execution plan
  * 3. Review and apply changes
- * 
+ *
  * Use case: Ensure projects have consistent configuration across your Odoo instance
  */
 
 import { OdooClient } from '@odoo-toolbox/client';
-import {
-  compareRecords,
-  generatePlan,
-  formatPlanForConsole,
-  applyPlan,
-  dryRunPlan,
-} from '../src';
+import { compareRecords, generatePlan, formatPlanForConsole, applyPlan, dryRunPlan } from '../src';
 
 async function main() {
   // Initialize client
@@ -110,9 +104,7 @@ async function main() {
   diffs.forEach((diff) => {
     console.log(`\n  Project ${diff.id}:`);
     diff.changes.forEach((change) => {
-      console.log(
-        `    ${change.path}: "${change.oldValue}" → "${change.newValue}"`
-      );
+      console.log(`    ${change.path}: "${change.oldValue}" → "${change.newValue}"`);
     });
   });
   console.log();
@@ -129,7 +121,9 @@ async function main() {
     validateDependencies: true,
   });
 
-  console.log(`Plan summary: ${plan.summary.creates} creates, ${plan.summary.updates} updates, ${plan.summary.deletes} deletes`);
+  console.log(
+    `Plan summary: ${plan.summary.creates} creates, ${plan.summary.updates} updates, ${plan.summary.deletes} deletes`
+  );
   console.log();
 
   // ============================================================================

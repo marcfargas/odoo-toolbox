@@ -1,6 +1,6 @@
 /**
  * Type definitions for plan generation and execution.
- * 
+ *
  * A plan is the ordered list of operations (create, update, delete) needed to
  * transform actual state into desired state. Plans respect dependencies and
  * are designed to be safely applied to Odoo.
@@ -8,7 +8,7 @@
 
 /**
  * Single operation to apply to Odoo.
- * 
+ *
  * Each operation represents one create, update, or delete action on a record.
  * Operations include dependencies tracking for safe execution ordering.
  */
@@ -19,20 +19,20 @@ export interface Operation {
   /** Odoo model name (e.g., 'project.task') */
   model: string;
 
-  /** 
+  /**
    * Record ID or temporary ID for creates.
    * Format: 'model:id' (e.g., 'project.task:1')
    * For creates: 'model:temp_1' to reference the newly created record
    */
   id: string;
 
-  /** 
+  /**
    * Field values to set for create/update operations.
    * For delete operations, this is empty.
    */
   values?: Record<string, any>;
 
-  /** 
+  /**
    * IDs of other operations this operation depends on.
    * Example: A one2many child might depend on its parent create operation.
    * Format: indices in the operations array or operation IDs.
@@ -45,7 +45,7 @@ export interface Operation {
 
 /**
  * Execution plan - ordered list of operations with metadata.
- * 
+ *
  * A plan is the output of the plan generator. It's designed to be:
  * - Readable by humans (before running)
  * - Safe to execute (respects dependencies)

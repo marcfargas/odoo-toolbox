@@ -13,10 +13,7 @@ export interface ReferenceResult {
  * @param skillMdContent Content of SKILL.md
  * @param allFiles List of all markdown files (e.g., ['base/connection.md', 'skills/create-lead.md'])
  */
-export function checkReferences(
-  skillMdContent: string,
-  allFiles: string[]
-): ReferenceResult {
+export function checkReferences(skillMdContent: string, allFiles: string[]): ReferenceResult {
   const referenced: string[] = [];
   const unreferenced: string[] = [];
 
@@ -36,9 +33,7 @@ export function checkReferences(
       `\`${filename}\``, // Backticked filename
     ];
 
-    const isReferenced = patterns.some((pattern) =>
-      skillMdContent.includes(pattern)
-    );
+    const isReferenced = patterns.some((pattern) => skillMdContent.includes(pattern));
 
     if (isReferenced) {
       referenced.push(file);

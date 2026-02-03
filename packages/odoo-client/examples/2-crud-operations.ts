@@ -25,14 +25,10 @@ import { OdooClient } from '../src';
  * Verify that records have been deleted from Odoo
  * Uses search() instead of read() to bypass Odoo's read cache
  */
-async function verifyDeleted(
-  client: OdooClient,
-  model: string,
-  ids: number[]
-): Promise<boolean> {
+async function verifyDeleted(client: OdooClient, model: string, ids: number[]): Promise<boolean> {
   // Wait for Odoo cache to clear
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
   // Search for the IDs - should return empty if deleted
   const foundIds = await client.search(model, [['id', 'in', ids]]);
   return foundIds.length === 0;
@@ -67,14 +63,11 @@ async function main() {
 
     // READ - Get the record back
     console.log('\n📖 READ: Fetching the record...');
-    const [partner] = await client.read('res.partner', [partnerId], [
-      'id',
-      'name',
-      'email',
-      'phone',
-      'city',
-      'is_company',
-    ]);
+    const [partner] = await client.read(
+      'res.partner',
+      [partnerId],
+      ['id', 'name', 'email', 'phone', 'city', 'is_company']
+    );
     console.log('✅ Record retrieved:');
     console.log(`   Name: ${partner.name}`);
     console.log(`   Email: ${partner.email}`);
@@ -93,12 +86,11 @@ async function main() {
 
     // READ again to verify updates
     console.log('\n📖 READ (updated): Fetching again to verify changes...');
-    const [updatedPartner] = await client.read('res.partner', [partnerId], [
-      'email',
-      'phone',
-      'street',
-      'city',
-    ]);
+    const [updatedPartner] = await client.read(
+      'res.partner',
+      [partnerId],
+      ['email', 'phone', 'street', 'city']
+    );
     console.log('✅ Record after update:');
     console.log(`   Email: ${updatedPartner.email}`);
     console.log(`   Phone: ${updatedPartner.phone}`);

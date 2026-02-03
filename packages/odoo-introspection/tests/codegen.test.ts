@@ -1,6 +1,6 @@
 /**
  * Unit tests for code generation modules.
- * 
+ *
  * Tests type mapping, field handling, and code formatting.
  */
 
@@ -115,7 +115,14 @@ describe('Type Mappers', () => {
 
   describe('isWritableField', () => {
     it('excludes system fields', () => {
-      const systemFields = ['id', 'create_date', 'create_uid', 'write_date', 'write_uid', '__last_update'];
+      const systemFields = [
+        'id',
+        'create_date',
+        'create_uid',
+        'write_date',
+        'write_uid',
+        '__last_update',
+      ];
       for (const fieldName of systemFields) {
         const field: OdooField = {
           name: fieldName,
@@ -311,7 +318,9 @@ describe('Code Formatter', () => {
       expect(code).toContain('// search(domain: any[]): Promise<number[]>');
       expect(code).toContain('// read(ids: number[], fields?: string[]): Promise<ResPartner[]>');
       expect(code).toContain('// create(values: Partial<ResPartner>): Promise<number>');
-      expect(code).toContain('// write(ids: number[], values: Partial<ResPartner>): Promise<boolean>');
+      expect(code).toContain(
+        '// write(ids: number[], values: Partial<ResPartner>): Promise<boolean>'
+      );
       expect(code).toContain('// unlink(ids: number[]): Promise<boolean>');
     });
   });

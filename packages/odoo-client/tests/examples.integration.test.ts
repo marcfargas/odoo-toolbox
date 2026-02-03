@@ -31,13 +31,8 @@ describe('odoo-client examples', () => {
 
     it('should verify connection by reading partner', async () => {
       const sessionInfo = await client.authenticate();
-      const [partnerId] = await client.search('res.partner', [
-        ['id', '=', sessionInfo.partner_id],
-      ]);
-      const [partner] = await client.read('res.partner', [partnerId], [
-        'name',
-        'email',
-      ]);
+      const [partnerId] = await client.search('res.partner', [['id', '=', sessionInfo.partner_id]]);
+      const [partner] = await client.read('res.partner', [partnerId], ['name', 'email']);
       expect(partner).toBeDefined();
       expect(partner.name).toBeDefined();
     });
@@ -56,11 +51,7 @@ describe('odoo-client examples', () => {
     });
 
     it('should read the created partner', async () => {
-      const [partner] = await client.read('res.partner', [testPartnerId], [
-        'id',
-        'name',
-        'email',
-      ]);
+      const [partner] = await client.read('res.partner', [testPartnerId], ['id', 'name', 'email']);
       expect(partner).toBeDefined();
       expect(partner.name).toBe('Test Partner');
       expect(partner.email).toBe('test@example.com');
@@ -81,7 +72,7 @@ describe('odoo-client examples', () => {
       expect(success).toBe(true);
 
       // Verify deletion using search (bypasses read cache)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       const foundIds = await client.search('res.partner', [['id', '=', testPartnerId]]);
       expect(foundIds.length).toBe(0);
     });
@@ -98,7 +89,7 @@ describe('odoo-client examples', () => {
 
       // Cleanup and verify deletion
       await client.unlink('res.partner', ids);
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       const foundIds = await client.search('res.partner', [['id', 'in', ids]]);
       expect(foundIds.length).toBe(0);
     });
@@ -112,9 +103,7 @@ describe('odoo-client examples', () => {
     });
 
     it('should search with exact match', async () => {
-      const companyIds = await client.search('res.partner', [
-        ['is_company', '=', true],
-      ]);
+      const companyIds = await client.search('res.partner', [['is_company', '=', true]]);
       expect(companyIds).toBeDefined();
       expect(Array.isArray(companyIds)).toBe(true);
     });
@@ -124,9 +113,7 @@ describe('odoo-client examples', () => {
       const targetIds = allIds.slice(0, Math.min(3, allIds.length));
 
       if (targetIds.length > 0) {
-        const matchingIds = await client.search('res.partner', [
-          ['id', 'in', targetIds],
-        ]);
+        const matchingIds = await client.search('res.partner', [['id', 'in', targetIds]]);
         expect(matchingIds.length).toBeLessThanOrEqual(targetIds.length);
       }
     });
@@ -152,9 +139,7 @@ describe('odoo-client examples', () => {
     });
 
     it('should use searchRead for combined operation', async () => {
-      const results = await client.searchRead('res.partner', [
-        ['is_company', '=', true],
-      ]);
+      const results = await client.searchRead('res.partner', [['is_company', '=', true]]);
       expect(results).toBeDefined();
       expect(Array.isArray(results)).toBe(true);
       if (results.length > 0) {
@@ -164,9 +149,7 @@ describe('odoo-client examples', () => {
     });
 
     it('should filter by many2one relationship', async () => {
-      const usaPartners = await client.search('res.partner', [
-        ['country_id', '=', 1],
-      ]);
+      const usaPartners = await client.search('res.partner', [['country_id', '=', 1]]);
       expect(usaPartners).toBeDefined();
       expect(Array.isArray(usaPartners)).toBe(true);
     });
@@ -205,9 +188,7 @@ describe('odoo-client examples', () => {
     });
 
     it('should search with context', async () => {
-      const results = await client.searchRead('res.partner', [
-        ['id', 'in', batchIds],
-      ]);
+      const results = await client.searchRead('res.partner', [['id', 'in', batchIds]]);
       expect(results).toHaveLength(batchIds.length);
     });
 

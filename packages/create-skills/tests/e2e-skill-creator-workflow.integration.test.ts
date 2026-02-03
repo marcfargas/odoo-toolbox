@@ -70,9 +70,7 @@ describe('E2E: Skill Creator Workflow', () => {
       expect(fs.existsSync(projectBase)).toBe(true);
 
       // Dynamically get modules from assets/base
-      const assetModules = fs
-        .readdirSync(assetsBase)
-        .filter((f) => f.endsWith('.md'));
+      const assetModules = fs.readdirSync(assetsBase).filter((f) => f.endsWith('.md'));
 
       expect(assetModules.length).toBeGreaterThan(0);
 

@@ -1,20 +1,15 @@
 /**
  * Example 2: Planning Without Applying - CI/CD Validation
- * 
+ *
  * This example shows how to use the planning and dry-run features
  * for CI/CD pipelines without making actual changes.
- * 
+ *
  * Use case: Validate configuration in a pipeline, generate reports,
  * let humans approve changes before application.
  */
 
 import { OdooClient } from '@odoo-toolbox/client';
-import {
-  compareRecords,
-  generatePlan,
-  formatPlanForConsole,
-  dryRunPlan,
-} from '../src';
+import { compareRecords, generatePlan, formatPlanForConsole, dryRunPlan } from '../src';
 
 async function main() {
   const client = new OdooClient({
@@ -65,9 +60,7 @@ async function main() {
 
   console.log('Reading actual configuration from Odoo...');
 
-  const actualProjects = await client.searchRead('project.project', [
-    ['id', 'in', [1, 3]],
-  ]);
+  const actualProjects = await client.searchRead('project.project', [['id', 'in', [1, 3]]]);
 
   const actualStates = new Map(
     actualProjects.map((p) => [
@@ -121,9 +114,7 @@ async function main() {
 
       if (op.values) {
         Object.entries(op.values).forEach(([field, value]) => {
-          console.log(
-            `   ${field} = ${typeof value === 'object' ? JSON.stringify(value) : value}`
-          );
+          console.log(`   ${field} = ${typeof value === 'object' ? JSON.stringify(value) : value}`);
         });
       }
       console.log();

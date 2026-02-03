@@ -25,10 +25,7 @@ export interface TestableBlock {
 /**
  * Extract testable code blocks from markdown content
  */
-export function extractTestableBlocks(
-  content: string,
-  sourceFile: string
-): TestableBlock[] {
+export function extractTestableBlocks(content: string, sourceFile: string): TestableBlock[] {
   const blocks: TestableBlock[] = [];
   const lines = content.split('\n');
 
