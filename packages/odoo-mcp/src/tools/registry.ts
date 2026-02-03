@@ -7,6 +7,7 @@
  */
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { SessionManager } from '../session/index.js';
 
 /**
@@ -48,8 +49,14 @@ export interface ModuleToolConfig {
  * - Query available tools
  * - Look up handlers by tool name
  * - Track module dependencies
+ * - Send MCP notifications on tool changes
  */
 export class DynamicToolRegistry {
+  /**
+   * Optional MCP server for sending tool list change notifications.
+   */
+  private server?: Server;
+
   /**
    * Map of module name to its tool configuration.
    */
@@ -74,6 +81,25 @@ export class DynamicToolRegistry {
    * Set of currently registered module names.
    */
   private registeredModules = new Set<string>();
+
+  /**
+   * Set the MCP server for sending tool list change notifications.
+   *
+   * @param server MCP Server instance
+   */
+  setServer(server: Server): void {
+    this.server = server;
+  }
+
+  /**
+   * Send tool list changed notification to connected clients.
+   * Only sends if a server is configured.
+   */
+  async notifyToolListChanged(): Promise<void> {
+    if (this.server) {
+      await this.server.sendToolListChanged();
+    }
+  }
 
   /**
    * Register a module's tools.

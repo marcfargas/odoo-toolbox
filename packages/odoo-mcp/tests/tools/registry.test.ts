@@ -350,4 +350,34 @@ describe('DynamicToolRegistry', () => {
       expect(stats.handlerCount).toBe(0);
     });
   });
+
+  describe('notifications', () => {
+    it('can set server for notifications', () => {
+      const mockServer = {
+        sendToolListChanged: vi.fn().mockResolvedValue(undefined),
+      };
+
+      registry.setServer(mockServer as any);
+
+      // Should not throw
+      expect(() => registry.setServer(mockServer as any)).not.toThrow();
+    });
+
+    it('sends notification when notifyToolListChanged is called', async () => {
+      const mockServer = {
+        sendToolListChanged: vi.fn().mockResolvedValue(undefined),
+      };
+
+      registry.setServer(mockServer as any);
+
+      await registry.notifyToolListChanged();
+
+      expect(mockServer.sendToolListChanged).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not send notification when no server is set', async () => {
+      // Should not throw when no server is configured
+      await expect(registry.notifyToolListChanged()).resolves.not.toThrow();
+    });
+  });
 });

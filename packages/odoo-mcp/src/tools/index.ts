@@ -168,6 +168,9 @@ export function createToolRegistry(): DynamicToolRegistry {
 export function registerAllTools(server: Server, session: SessionManager): DynamicToolRegistry {
   const registry = createToolRegistry();
 
+  // Set the server for notifications
+  registry.setServer(server);
+
   // Register tool list handler - returns current tools from registry
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
