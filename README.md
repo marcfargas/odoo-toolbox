@@ -78,3 +78,5 @@ See [ROADMAP.md](./ROADMAP.md) for the full vision.
 ## License
 
 LGPL-3.0 - see [LICENSE](./LICENSE)
+
+Skill templates in [`packages/create-skills/assets/`](./packages/create-skills/assets/) are licensed under [CC-BY-4.0](./packages/create-skills/assets/LICENSE).

@@ -92,4 +92,5 @@ All code examples in these modules are **tested against real Odoo instances** in
 
 ## License
 
-LGPL-3.0
+- **Code**: LGPL-3.0
+- **Assets** (skill templates, documentation): [CC-BY-4.0](assets/LICENSE)
