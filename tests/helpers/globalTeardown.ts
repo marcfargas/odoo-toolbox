@@ -7,7 +7,16 @@ const SKIP_TEARDOWN = process.env.SKIP_TEARDOWN === 'true';
 // Matrix testing support
 const ODOO_VERSION = process.env.ODOO_VERSION || '17.0';
 
-// Generate unique project name based on version
+/**
+ * Generate unique project name based on version.
+ * Format: odoo-toolbox-{major}-{minor}
+ * 
+ * Examples:
+ * - 17.0 → odoo-toolbox-17-0
+ * - 18.0 → odoo-toolbox-18-0
+ * 
+ * IMPORTANT: This must match getProjectName() in globalSetup.ts and npm scripts in package.json.
+ */
 function getProjectName(version: string): string {
   return `odoo-toolbox-${version.replace(/\./g, '-')}`;
 }

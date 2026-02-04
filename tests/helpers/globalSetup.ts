@@ -8,15 +8,36 @@ const SKIP_TEARDOWN = process.env.SKIP_TEARDOWN === 'true';
 const ODOO_VERSION = process.env.ODOO_VERSION || '17.0';
 const POSTGRES_VERSION = process.env.POSTGRES_VERSION || '15';
 
-// Generate unique project name based on version
+/**
+ * Generate unique project name based on version.
+ * Format: odoo-toolbox-{major}-{minor}
+ * 
+ * Examples:
+ * - 17.0 → odoo-toolbox-17-0
+ * - 18.0 → odoo-toolbox-18-0
+ * 
+ * IMPORTANT: This naming convention must match the project names in package.json scripts.
+ * When adding new versions, update both this function and the corresponding npm scripts.
+ */
 function getProjectName(version: string): string {
   return `odoo-toolbox-${version.replace(/\./g, '-')}`;
 }
 
-// Map Odoo version to default port
+/**
+ * Map Odoo version to default port.
+ * Port assignments for parallel execution:
+ * - 17.0 → 8069 (PostgreSQL: 5432)
+ * - 18.0 → 8018 (PostgreSQL: 5433)
+ * 
+ * When adding new versions, update this mapping and document in DEVELOPMENT.md.
+ */
+const VERSION_PORT_MAP: Record<string, string> = {
+  '17.0': '8069',
+  '18.0': '8018',
+};
+
 function getDefaultPort(version: string): string {
-  if (version.startsWith('18.')) return '8018';
-  return '8069'; // Default for 17.0 and others
+  return VERSION_PORT_MAP[version] || '8069';
 }
 
 export default async function globalSetup() {

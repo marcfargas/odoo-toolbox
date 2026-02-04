@@ -115,6 +115,16 @@ npm run odoo:down:all
 - `ODOO_PORT` - Port for Odoo container
 - `POSTGRES_PORT` - Port for PostgreSQL container (for parallel execution)
 
+**Adding New Versions:**
+
+When adding a new Odoo version, update these files:
+1. `tests/helpers/globalSetup.ts` - Add port to `VERSION_PORT_MAP`
+2. `package.json` - Add new `test:matrix:XX`, `dev:odooXX`, and `odoo:up:XX` scripts
+3. `.github/workflows/test.yml` - Add version to matrix strategy
+4. `DEVELOPMENT.md` - Update port mapping documentation
+
+The project naming convention is: `odoo-toolbox-{major}-{minor}` (e.g., `odoo-toolbox-17-0`)
+
 ### Configuration
 
 Create `.env.local` from `.env.example`:
