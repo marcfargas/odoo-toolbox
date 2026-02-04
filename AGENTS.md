@@ -42,6 +42,44 @@ The project includes tested and validated Odoo knowledge in `packages/create-ski
 - **Pragmatic Choices**: Choose practical solutions over theoretical perfection
 - **FOSS First**: This is designed to be a standalone open-source project
 
+## Package Architecture
+
+### Separation of Concerns
+
+| Package | Responsibility |
+|---------|----------------|
+| `@odoo-toolbox/client` | Odoo business logic, services, domain operations (mail, activities, properties, etc.) |
+| `@odoo-toolbox/introspection` | Schema discovery, type generation |
+| `@odoo-toolbox/state-manager` | Drift detection, plan/apply workflow |
+| `@odoo-toolbox/create-skills` | CLI to scaffold Odoo skill projects for AI agents |
+
+### When Adding New Functionality
+
+1. **Business logic** goes in `odoo-client` (services for mail, activities, properties, modules, etc.)
+2. **API consumers** (scripts, CLIs, integrations) should use client services
+3. **Keep packages focused**: client = business logic, introspection = schema, state-manager = drift
+
+### Anti-patterns to Avoid
+
+- ❌ Putting business logic in scripts or CLI tools (belongs in client)
+- ❌ Duplicating client utilities in other packages
+- ❌ Hard-coding Odoo model knowledge outside of client services
+
+### Good Example
+
+```typescript
+// Business logic in odoo-client
+export class MailService {
+  async postInternalNote(model: string, resId: number, body: string): Promise<number> {
+    // All Odoo-specific logic here (HTML wrapping, subtype selection, etc.)
+  }
+}
+
+// Consumer script or integration
+const mailService = new MailService(client);
+const messageId = await mailService.postInternalNote('res.partner', 42, 'Note text');
+```
+
 ## Key Architectural Decisions
 
 ### Type Generation Philosophy
