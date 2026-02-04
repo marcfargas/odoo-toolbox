@@ -40,6 +40,14 @@ Skills for Odoo's mail system. Load by reading `mail/{name}.md`:
 
 **Note:** The mail module is part of base Odoo and is typically always installed.
 
+## Version-Specific Notes
+
+Breaking changes between Odoo versions are documented in `CHANGES_V{XX}.md`:
+
+| Document | Version | Key Changes |
+|----------|---------|-------------|
+| `CHANGES_V17.md` | Odoo 17 | mail.channel → discuss.channel, read tracking |
+
 ## Module-Specific Skills
 
 Skills that require specific Odoo modules to be installed. Before loading, verify the required modules are present using `base/modules.md` introspection.

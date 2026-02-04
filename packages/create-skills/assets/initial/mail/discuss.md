@@ -359,6 +359,105 @@ return {
 };
 ```
 
+## Marking Messages as Read
+
+Channel read status is tracked via `discuss.channel.member` (Odoo 17+) or `mail.channel.partner` (older versions).
+
+### Key Fields for Read Tracking
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `seen_message_id` | Many2one → mail.message | Last message the user has seen |
+| `fetched_message_id` | Many2one → mail.message | Last message fetched by the client |
+| `message_unread_counter` | Integer | Number of unread messages |
+| `last_seen_dt` | Datetime | When the user last viewed the channel |
+
+### Get Unread Message Count
+
+```typescript testable id="discuss-unread-count" needs="client" creates="discuss.channel" expect="result.success === true"
+// Detect the correct models
+const discussExists = await client.call('ir.model', 'search_count', [[
+  ['model', '=', 'discuss.channel']
+]]) > 0;
+const channelModel = discussExists ? 'discuss.channel' : 'mail.channel';
+const memberModel = discussExists ? 'discuss.channel.member' : 'mail.channel.partner';
+
+// Create a test channel
+const channelId = await client.create(channelModel, {
+  name: uniqueTestName('Unread Test Channel'),
+  channel_type: 'channel',
+});
+trackRecord(channelModel, channelId);
+
+// Get current user's partner ID
+const [currentUser] = await client.searchRead('res.users', [
+  ['id', '=', (await client.call('res.users', 'browse', [[]])).id || 2]
+], { fields: ['partner_id'], limit: 1 });
+
+// Alternative: Get membership status directly
+const membership = await client.searchRead(memberModel, [
+  ['channel_id', '=', channelId]
+], {
+  fields: ['partner_id', 'seen_message_id', 'message_unread_counter', 'last_seen_dt']
+});
+
+return {
+  success: true,
+  memberModel,
+  membershipCount: membership.length
+};
+```
+
+### Mark Channel as Read
+
+To mark messages as read, update the `seen_message_id` to the latest message:
+
+```typescript
+// Get the latest message in the channel
+const latestMessages = await client.searchRead('mail.message', [
+  ['model', '=', channelModel],
+  ['res_id', '=', channelId]
+], {
+  fields: ['id'],
+  order: 'id desc',
+  limit: 1
+});
+
+if (latestMessages.length > 0) {
+  const latestMessageId = latestMessages[0].id;
+
+  // Find the membership record
+  const [membership] = await client.searchRead(memberModel, [
+    ['channel_id', '=', channelId],
+    ['partner_id', '=', currentUserPartnerId]
+  ], { fields: ['id'] });
+
+  if (membership) {
+    // Mark as read by updating seen_message_id
+    await client.write(memberModel, membership.id, {
+      seen_message_id: latestMessageId,
+      last_seen_dt: new Date().toISOString().replace('T', ' ').substring(0, 19)
+    });
+  }
+}
+```
+
+### Alternative: Use Channel Method (if available)
+
+Some Odoo versions provide a method to mark channels as read:
+
+```typescript
+try {
+  // Try the channel_seen method (marks all messages as read)
+  await client.call(channelModel, 'channel_seen', [[channelId]], {
+    last_message_id: latestMessageId
+  });
+} catch (e) {
+  // Fall back to direct membership update
+  // (use the pattern above)
+}
+```
+
 ## Channel Fields Reference
 
 | Field | Type | Description |
