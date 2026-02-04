@@ -4,6 +4,14 @@ const CI = process.env.CI === 'true';
 const KEEP_CONTAINERS = process.env.KEEP_CONTAINERS === 'true';
 const SKIP_TEARDOWN = process.env.SKIP_TEARDOWN === 'true';
 
+// Matrix testing support
+const ODOO_VERSION = process.env.ODOO_VERSION || '17.0';
+
+// Generate unique project name based on version
+function getProjectName(version: string): string {
+  return `odoo-toolbox-${version.replace(/\./g, '-')}`;
+}
+
 export default async function globalTeardown() {
   if (CI) {
     // CI handles cleanup via workflow
@@ -12,20 +20,24 @@ export default async function globalTeardown() {
   }
 
   if (KEEP_CONTAINERS) {
+    const projectName = getProjectName(ODOO_VERSION);
     console.log('🧊 Keeping containers for debugging (KEEP_CONTAINERS=true)');
+    console.log(`   Cleanup: docker compose -p ${projectName} down -v`);
     return;
   }
 
   if (SKIP_TEARDOWN) {
+    const projectName = getProjectName(ODOO_VERSION);
     console.log('⏭️  Skipping teardown for fast iteration (SKIP_TEARDOWN=true)');
-    console.log('   Run "npm run docker:down" or "npm run docker:clean" to cleanup manually');
+    console.log(`   Run "docker compose -p ${projectName} down" to cleanup manually`);
     return;
   }
 
+  const projectName = getProjectName(ODOO_VERSION);
   console.log('🧹 Cleaning up test environment...');
 
   try {
-    execSync('docker-compose -f docker-compose.test.yml down -v', {
+    execSync(`docker compose -p ${projectName} down -v`, {
       stdio: 'inherit',
     });
     console.log('✅ Test environment cleaned up');

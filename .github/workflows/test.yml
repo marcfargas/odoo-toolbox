@@ -128,11 +128,21 @@ jobs:
           flags: unit
 
   integration-tests:
-    name: Integration Tests (Odoo 17)
+    name: Integration Tests (Odoo ${{ matrix.odoo-version }})
     runs-on: ubuntu-latest
     needs: [lint, unit-tests]
     permissions:
       contents: read
+    strategy:
+      matrix:
+        odoo-version: ['17.0', '18.0']
+        include:
+          - odoo-version: '17.0'
+            postgres-version: '15'
+            odoo-port: '8069'
+          - odoo-version: '18.0'
+            postgres-version: '16'
+            odoo-port: '8018'
 
     steps:
       - uses: actions/checkout@v4
@@ -156,13 +166,26 @@ jobs:
           name: build-artifacts
           path: packages
 
+      - name: Generate project name
+        id: project
+        run: echo "name=odoo-toolbox-$(echo ${{ matrix.odoo-version }} | tr '.' '-')" >> $GITHUB_OUTPUT
+
       - name: Start Docker services
-        run: docker compose -f docker-compose.test.yml up -d --wait
+        run: docker compose -f docker-compose.matrix.yml -p ${{ steps.project.outputs.name }} up -d --wait
+        env:
+          COMPOSE_PROJECT_NAME: ${{ steps.project.outputs.name }}
+          ODOO_VERSION: ${{ matrix.odoo-version }}
+          POSTGRES_VERSION: ${{ matrix.postgres-version }}
+          ODOO_PORT: ${{ matrix.odoo-port }}
+          POSTGRES_PORT: 5432
 
       - name: Run integration tests
         env:
           CI: 'true'
-          ODOO_URL: http://localhost:8069
+          ODOO_VERSION: ${{ matrix.odoo-version }}
+          POSTGRES_VERSION: ${{ matrix.postgres-version }}
+          ODOO_PORT: ${{ matrix.odoo-port }}
+          ODOO_URL: http://localhost:${{ matrix.odoo-port }}
           ODOO_DB_NAME: odoo
           ODOO_DB_USER: admin
           ODOO_DB_PASSWORD: admin
@@ -170,32 +193,32 @@ jobs:
 
       - name: Collect Odoo logs
         if: (failure() && inputs.collect_logs != 'never') || inputs.collect_logs == 'always'
-        run: docker compose -f docker-compose.test.yml logs odoo > odoo.log
+        run: docker compose -p ${{ steps.project.outputs.name }} logs odoo > odoo-${{ matrix.odoo-version }}.log
 
       - name: Collect PostgreSQL logs
         if: (failure() && inputs.collect_logs != 'never') || inputs.collect_logs == 'always'
-        run: docker compose -f docker-compose.test.yml logs postgres > postgres.log
+        run: docker compose -p ${{ steps.project.outputs.name }} logs postgres > postgres-${{ matrix.odoo-version }}.log
 
       - name: Upload Docker logs
         if: (failure() && inputs.collect_logs != 'never') || inputs.collect_logs == 'always'
         uses: actions/upload-artifact@v4
         with:
-          name: docker-logs
+          name: docker-logs-${{ matrix.odoo-version }}
           path: |
-            odoo.log
-            postgres.log
+            odoo-${{ matrix.odoo-version }}.log
+            postgres-${{ matrix.odoo-version }}.log
           retention-days: 90
 
       - name: Stop Docker services
         if: always()
-        run: docker compose -f docker-compose.test.yml down
+        run: docker compose -p ${{ steps.project.outputs.name }} down
 
       - name: Upload coverage
         if: always()
         uses: codecov/codecov-action@v3
         with:
           files: ./coverage/lcov.info
-          flags: integration
+          flags: integration-${{ matrix.odoo-version }}
 
   build-skills-zip:
     name: Build Skills Zip

@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: postgres:${POSTGRES_VERSION:-15}-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-odoo-toolbox}-postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: postgres
+    volumes:
+      - ${COMPOSE_PROJECT_NAME:-odoo-toolbox}-postgres-data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - ${COMPOSE_PROJECT_NAME:-odoo-toolbox}
+
+  odoo:
+    image: odoo:${ODOO_VERSION:-17.0}
+    container_name: ${COMPOSE_PROJECT_NAME:-odoo-toolbox}-odoo
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Use custom entrypoint to auto-discover addons in /mnt/oca
+    entrypoint: ["/mnt/docker/odoo-entrypoint.sh"]
+    command: ["--database", "odoo", "--init", "base", "--without-demo", "all"]
+    environment:
+      HOST: postgres
+      USER: admin
+      PASSWORD: admin
+    ports:
+      - "${ODOO_PORT:-8069}:8069"
+    volumes:
+      - ${COMPOSE_PROJECT_NAME:-odoo-toolbox}-odoo-data:/var/lib/odoo
+      - ./docker:/mnt/docker:ro
+      - ./test-addons:/mnt/oca:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8069/web/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    networks:
+      - ${COMPOSE_PROJECT_NAME:-odoo-toolbox}
+
+volumes:
+  ${COMPOSE_PROJECT_NAME:-odoo-toolbox}-postgres-data:
+  ${COMPOSE_PROJECT_NAME:-odoo-toolbox}-odoo-data:
+
+networks:
+  ${COMPOSE_PROJECT_NAME:-odoo-toolbox}:
+    driver: bridge

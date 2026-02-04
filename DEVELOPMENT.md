@@ -82,6 +82,38 @@ npm run odoo:clean
 - `KEEP_CONTAINERS=true` - Keep Docker containers running after tests complete
 - `SKIP_TEARDOWN=true` - Skip teardown phase during integration tests
 
+### Matrix Testing (Multiple Odoo Versions)
+
+Test against multiple Odoo versions:
+
+```bash
+# Run all versions sequentially
+npm run test:matrix
+
+# Run specific version
+npm run test:matrix:17  # Odoo 17.0 on port 8069
+npm run test:matrix:18  # Odoo 18.0 on port 8018
+
+# Dev mode - keep services running for iteration
+npm run dev:odoo17  # Services stay on http://localhost:8069
+npm run dev:odoo18  # Services stay on http://localhost:8018
+
+# Run multiple versions in parallel for development
+npm run odoo:up:17  # Port 8069
+npm run odoo:up:18  # Port 8018
+# ... do your work with both versions ...
+npm run odoo:down:all
+```
+
+**Port Mapping:**
+- Odoo 17.0: `http://localhost:8069`
+- Odoo 18.0: `http://localhost:8018`
+
+**Environment Variables:**
+- `ODOO_VERSION` - Which Odoo version to test (17.0, 18.0)
+- `POSTGRES_VERSION` - PostgreSQL version (15, 16) 
+- `ODOO_PORT` - Port for Odoo container
+
 ### Configuration
 
 Create `.env.local` from `.env.example`:
@@ -94,6 +126,11 @@ ODOO_DB_PASSWORD=admin
 TEST_TIMEOUT_MS=30000
 LOG_LEVEL=info
 KEEP_CONTAINERS=false
+
+# Matrix Testing Configuration
+ODOO_VERSION=17.0
+POSTGRES_VERSION=15
+ODOO_PORT=8069
 ```
 
 ### Test Structure
