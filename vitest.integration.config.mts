@@ -5,6 +5,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     testTimeout: Number(process.env.TEST_TIMEOUT_MS) || 30000,
+    hookTimeout: Number(process.env.TEST_TIMEOUT_MS) || 30000,
 
     root: '.',
 
