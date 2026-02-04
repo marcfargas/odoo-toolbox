@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: postgres
     volumes:
-      - ${COMPOSE_PROJECT_NAME:-odoo-toolbox}-postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     healthcheck:
@@ -16,7 +16,7 @@ services:
       timeout: 5s
       retries: 10
     networks:
-      - ${COMPOSE_PROJECT_NAME:-odoo-toolbox}
+      - odoo-network
 
   odoo:
     image: odoo:${ODOO_VERSION:-17.0}
@@ -34,7 +34,7 @@ services:
     ports:
       - "${ODOO_PORT:-8069}:8069"
     volumes:
-      - ${COMPOSE_PROJECT_NAME:-odoo-toolbox}-odoo-data:/var/lib/odoo
+      - odoo-data:/var/lib/odoo
       - ./docker:/mnt/docker:ro
       - ./test-addons:/mnt/oca:ro
     healthcheck:
@@ -44,12 +44,13 @@ services:
       retries: 20
       start_period: 60s
     networks:
-      - ${COMPOSE_PROJECT_NAME:-odoo-toolbox}
+      - odoo-network
 
 volumes:
-  ${COMPOSE_PROJECT_NAME:-odoo-toolbox}-postgres-data:
-  ${COMPOSE_PROJECT_NAME:-odoo-toolbox}-odoo-data:
+  postgres-data:
+  odoo-data:
 
 networks:
-  ${COMPOSE_PROJECT_NAME:-odoo-toolbox}:
+  odoo-network:
     driver: bridge
+
