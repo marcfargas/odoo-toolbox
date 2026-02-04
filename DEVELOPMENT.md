@@ -106,13 +106,14 @@ npm run odoo:down:all
 ```
 
 **Port Mapping:**
-- Odoo 17.0: `http://localhost:8069`
-- Odoo 18.0: `http://localhost:8018`
+- Odoo 17.0: `http://localhost:8069` (PostgreSQL: 5432)
+- Odoo 18.0: `http://localhost:8018` (PostgreSQL: 5433)
 
 **Environment Variables:**
 - `ODOO_VERSION` - Which Odoo version to test (17.0, 18.0)
 - `POSTGRES_VERSION` - PostgreSQL version (15, 16) 
 - `ODOO_PORT` - Port for Odoo container
+- `POSTGRES_PORT` - Port for PostgreSQL container (for parallel execution)
 
 ### Configuration
 

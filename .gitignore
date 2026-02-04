@@ -50,3 +50,4 @@ packages/*/generated/
 # OCA test modules (cloned by setup)
 test-addons/*/
 !test-addons/README.md
+wget-log
