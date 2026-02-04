@@ -1,5 +1,8 @@
 /**
  * Init command - Create new skills project
+ *
+ * Copies ALL content from assets/ to create a complete skills project.
+ * The assets/initial/ directory contents are merged into the project root.
  */
 
 import * as fs from 'fs';
@@ -11,12 +14,51 @@ interface InitOptions {
 }
 
 /**
- * Copy a file with placeholder substitution
+ * Files that need {{PROJECT_NAME}} placeholder substitution
  */
-function copyWithPlaceholders(src: string, dest: string, projectName: string): void {
-  let content = fs.readFileSync(src, 'utf-8');
-  content = content.replace(/\{\{PROJECT_NAME\}\}/g, projectName);
-  fs.writeFileSync(dest, content);
+const PLACEHOLDER_FILES = new Set(['SKILL.md', 'README.md']);
+
+/**
+ * Directory name mappings (source → destination)
+ */
+const DIR_MAPPINGS: Record<string, string> = {
+  'oca-modules': 'modules',
+};
+
+/**
+ * Copy a file, optionally with placeholder substitution
+ */
+function copyFile(src: string, dest: string, projectName: string): void {
+  const fileName = path.basename(src);
+
+  if (PLACEHOLDER_FILES.has(fileName)) {
+    let content = fs.readFileSync(src, 'utf-8');
+    content = content.replace(/\{\{PROJECT_NAME\}\}/g, projectName);
+    fs.writeFileSync(dest, content);
+  } else {
+    fs.copyFileSync(src, dest);
+  }
+}
+
+/**
+ * Recursively copy a directory with placeholder support
+ */
+function copyDirRecursive(src: string, dest: string, projectName: string): void {
+  fs.mkdirSync(dest, { recursive: true });
+
+  const entries = fs.readdirSync(src, { withFileTypes: true });
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name);
+    // Apply directory mapping if exists
+    const destName = DIR_MAPPINGS[entry.name] || entry.name;
+    const destPath = path.join(dest, destName);
+
+    if (entry.isDirectory()) {
+      copyDirRecursive(srcPath, destPath, projectName);
+    } else {
+      copyFile(srcPath, destPath, projectName);
+    }
+  }
 }
 
 export async function initCommand(projectName: string, options: InitOptions): Promise<void> {
@@ -30,83 +72,59 @@ export async function initCommand(projectName: string, options: InitOptions): Pr
 
   console.log(`\nCreating Odoo skills project: ${projectName}\n`);
 
-  // Create directory structure
-  const directories = [
-    projectPath,
-    path.join(projectPath, 'base'),
-    path.join(projectPath, 'modules'),
-    path.join(projectPath, 'skills'),
-  ];
-
-  for (const dir of directories) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-  console.log('✓ Created project structure');
+  // Create project root
+  fs.mkdirSync(projectPath, { recursive: true });
 
   // Path to assets directory (relative to compiled JS location)
   const assetsDir = path.resolve(__dirname, '..', '..', '..', 'assets');
 
-  // Copy base modules from assets/initial/base
-  const assetsBase = path.join(assetsDir, 'initial', 'base');
-  if (fs.existsSync(assetsBase)) {
-    const baseFiles = fs.readdirSync(assetsBase);
-    for (const file of baseFiles) {
-      if (file.endsWith('.md')) {
-        fs.copyFileSync(path.join(assetsBase, file), path.join(projectPath, 'base', file));
-      }
-    }
-    console.log('✓ Installed base modules');
-  } else {
-    console.log('⚠ Warning: Base modules not found (development mode)');
-    fs.writeFileSync(
-      path.join(projectPath, 'base', '.gitkeep'),
-      '# Base modules will be installed here\n'
-    );
+  if (!fs.existsSync(assetsDir)) {
+    console.error('Error: assets directory not found');
+    process.exit(1);
   }
 
-  // Copy OCA module-specific skills from assets/initial/oca-modules
-  const assetsModules = path.join(assetsDir, 'initial', 'oca-modules');
-  if (fs.existsSync(assetsModules)) {
-    const moduleFiles = fs.readdirSync(assetsModules);
-    for (const file of moduleFiles) {
-      if (file.endsWith('.md')) {
-        fs.copyFileSync(path.join(assetsModules, file), path.join(projectPath, 'modules', file));
+  // Copy ALL content from assets/ to project
+  const entries = fs.readdirSync(assetsDir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const srcPath = path.join(assetsDir, entry.name);
+
+    if (entry.isDirectory()) {
+      if (entry.name === 'initial') {
+        // Special case: initial/ contents are merged into project root
+        const initialEntries = fs.readdirSync(srcPath, { withFileTypes: true });
+        for (const initialEntry of initialEntries) {
+          const initialSrcPath = path.join(srcPath, initialEntry.name);
+          const destName = DIR_MAPPINGS[initialEntry.name] || initialEntry.name;
+          const destPath = path.join(projectPath, destName);
+
+          if (initialEntry.isDirectory()) {
+            copyDirRecursive(initialSrcPath, destPath, projectName);
+          } else {
+            copyFile(initialSrcPath, destPath, projectName);
+          }
+        }
+      } else {
+        // Regular directory: copy as-is
+        const destName = DIR_MAPPINGS[entry.name] || entry.name;
+        copyDirRecursive(srcPath, path.join(projectPath, destName), projectName);
       }
+    } else {
+      // Regular file: copy to project root
+      copyFile(srcPath, path.join(projectPath, entry.name), projectName);
     }
-    console.log('✓ Installed module-specific skills');
-  } else {
-    fs.writeFileSync(
-      path.join(projectPath, 'modules', '.gitkeep'),
-      '# Module-specific skills will be installed here\n'
-    );
   }
 
-  // Create skills/.gitkeep
+  console.log('✓ Copied skill modules from assets/');
+
+  // Create skills directory (for user-generated skills)
+  fs.mkdirSync(path.join(projectPath, 'skills'), { recursive: true });
   fs.writeFileSync(
     path.join(projectPath, 'skills', '.gitkeep'),
     '# Instance-specific skills go here\n'
   );
 
-  // Copy static template files with placeholder substitution
-  const templatesWithPlaceholders = ['SKILL.md', 'README.md'];
-  const staticTemplates = ['AGENTS.md', '.env.example'];
-
-  for (const template of templatesWithPlaceholders) {
-    const src = path.join(assetsDir, template);
-    if (fs.existsSync(src)) {
-      copyWithPlaceholders(src, path.join(projectPath, template), projectName);
-    }
-  }
-  console.log('✓ Created SKILL.md router');
-
-  for (const template of staticTemplates) {
-    const src = path.join(assetsDir, template);
-    if (fs.existsSync(src)) {
-      fs.copyFileSync(src, path.join(projectPath, template));
-    }
-  }
-
-  // Generate package.json (only dynamic template)
+  // Generate package.json (dynamic, not from assets)
   fs.writeFileSync(path.join(projectPath, 'package.json'), generatePackageJson(projectName));
   console.log('✓ Created package.json');
 
