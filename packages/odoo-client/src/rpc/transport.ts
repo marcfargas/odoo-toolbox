@@ -161,7 +161,8 @@ export class JsonRpcTransport {
   /**
    * Call an Odoo model method via JSON-RPC
    *
-   * Uses the object.execute RPC method to call model methods
+   * Uses the object.execute_kw RPC method to call model methods with
+   * both positional arguments and keyword arguments (kwargs).
    *
    * @param model - Model name (e.g., 'res.partner')
    * @param method - Method name (e.g., 'search', 'read', 'create')
@@ -183,9 +184,8 @@ export class JsonRpcTransport {
     try {
       const result = await this.callRpc<T>('call', {
         service: 'object',
-        method: 'execute',
-        args: [this.db, this.sessionInfo?.uid || 0, this.password, model, method, ...args],
-        kwargs,
+        method: 'execute_kw',
+        args: [this.db, this.sessionInfo?.uid || 0, this.password, model, method, args, kwargs],
       });
 
       const duration = Date.now() - startTime;

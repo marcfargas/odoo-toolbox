@@ -42,8 +42,8 @@ describe('E2E: Skill Creator Workflow', () => {
         encoding: 'utf-8',
       });
 
-      expect(result).toContain('Created project structure');
-      expect(result).toContain('Installed base modules');
+      expect(result).toContain('Creating Odoo skills project');
+      expect(result).toContain('Copied skill modules from assets');
       expect(fs.existsSync(projectDir)).toBe(true);
     });
 
