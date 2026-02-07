@@ -50,3 +50,6 @@ packages/*/generated/
 # OCA test modules (cloned by setup)
 test-addons/*/
 !test-addons/README.md
+
+# Pi agent config (local, not tracked)
+.pi/
