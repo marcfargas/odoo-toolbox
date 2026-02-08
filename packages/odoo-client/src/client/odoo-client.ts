@@ -1,32 +1,58 @@
 /**
  * Main Odoo client with typed access to models and methods
  *
- * Provides a high-level API for interacting with Odoo
+ * Provides a high-level API for interacting with Odoo.
+ * Supports opt-in safety guards for write/delete operations.
  */
 
 import { JsonRpcTransport, OdooSessionInfo } from '../rpc/transport';
-import { OdooAuthError } from '../types/errors';
+import { OdooAuthError, OdooSafetyError } from '../types/errors';
+import {
+  type SafetyContext,
+  type SafetyLevel,
+  type OperationInfo,
+  inferSafetyLevel,
+  resolveSafetyContext,
+} from '../safety';
 
 export interface OdooClientConfig {
   url: string;
   database: string;
   username: string;
   password: string;
+  /**
+   * Opt-in safety context for this client.
+   * - undefined: use global default (setDefaultSafetyContext)
+   * - null: explicitly disable safety for this client
+   * - SafetyContext: custom confirm callback
+   */
+  safety?: SafetyContext | null;
 }
 
 /**
  * Main client for interacting with Odoo
  *
- * Handles authentication and provides methods for CRUD operations on models
+ * Handles authentication and provides methods for CRUD operations on models.
+ * Safety guards are opt-in via `config.safety` or `setDefaultSafetyContext()`.
  */
 export class OdooClient {
   private config: OdooClientConfig;
   private transport: JsonRpcTransport;
   private authenticated = false;
+  private safetyContext: SafetyContext | null | undefined;
 
   constructor(config: OdooClientConfig) {
     this.config = config;
     this.transport = new JsonRpcTransport(config.url, config.database);
+    this.safetyContext = config.safety;
+  }
+
+  /**
+   * Override safety context for this client instance.
+   * Pass null to explicitly disable, undefined to use global default.
+   */
+  setSafetyContext(ctx: SafetyContext | null | undefined): void {
+    this.safetyContext = ctx;
   }
 
   /**
@@ -55,23 +81,57 @@ export class OdooClient {
   }
 
   /**
+   * Check safety guard for an operation.
+   * Throws OdooSafetyError if the operation is blocked.
+   */
+  private async guard(op: OperationInfo): Promise<void> {
+    const ctx = resolveSafetyContext(this.safetyContext);
+    if (!ctx) return;
+    if (op.level === 'READ') return;
+
+    const confirmed = await ctx.confirm(op);
+    if (!confirmed) {
+      throw new OdooSafetyError(op);
+    }
+  }
+
+  /**
    * Make a raw RPC call to a model method
+   *
+   * Safety level is inferred from the method name:
+   * - Known read methods (search, read, fields_get, etc.) → READ (never blocked)
+   * - unlink → DELETE
+   * - Everything else → WRITE
+   *
+   * Override with `options.safetyLevel` for methods the inference gets wrong.
    *
    * @param model - Model name (e.g., 'res.partner')
    * @param method - Method name (e.g., 'search', 'read')
    * @param args - Positional arguments
    * @param kwargs - Keyword arguments (context, etc)
+   * @param options - Additional options (safetyLevel override)
    * @returns Method result, typed as T
    */
   async call<T = any>(
     model: string,
     method: string,
     args: any[] = [],
-    kwargs: Record<string, any> = {}
+    kwargs: Record<string, any> = {},
+    options?: { safetyLevel?: SafetyLevel }
   ): Promise<T> {
     if (!this.authenticated) {
       throw new OdooAuthError('Client not authenticated. Call authenticate() first.');
     }
+
+    const level = options?.safetyLevel ?? inferSafetyLevel(method);
+    await this.guard({
+      name: `odoo.${method}`,
+      level,
+      model,
+      description: `${model}.${method}()`,
+      target: this.config.url,
+    });
+
     return this.transport.call<T>(model, method, args, kwargs);
   }
 
@@ -191,6 +251,17 @@ export class OdooClient {
   async unlink(model: string, ids: number | number[]): Promise<boolean> {
     const idArray = Array.isArray(ids) ? ids : [ids];
     return this.call<boolean>(model, 'unlink', [idArray]);
+  }
+
+  /**
+   * Count matching records
+   *
+   * @param model - Model name
+   * @param domain - Search domain
+   * @returns Number of matching records
+   */
+  async searchCount(model: string, domain: any[] = []): Promise<number> {
+    return this.call<number>(model, 'search_count', [domain]);
   }
 
   /**

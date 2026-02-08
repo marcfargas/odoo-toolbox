@@ -6,7 +6,14 @@
  */
 
 import debug from 'debug';
-import { OdooRpcError, OdooNetworkError, OdooAuthError } from '../types/errors';
+import {
+  OdooRpcError,
+  OdooNetworkError,
+  OdooAuthError,
+  OdooValidationError,
+  OdooAccessError,
+  OdooMissingError,
+} from '../types/errors';
 import { JsonRpcRequest, JsonRpcResponse, OdooSessionInfo } from './types';
 
 // Re-export types for convenience
@@ -135,11 +142,7 @@ export class JsonRpcTransport {
 
       // Handle JSON-RPC error response
       if (data.error) {
-        const errorMessage = data.error.data?.message || data.error.message;
-        throw new OdooRpcError(errorMessage, {
-          code: String(data.error.code),
-          data: data.error.data,
-        });
+        throw this.categorizeError(data.error);
       }
 
       if (data.result === undefined) {
@@ -156,6 +159,54 @@ export class JsonRpcTransport {
         error instanceof Error ? error : new Error(String(error))
       );
     }
+  }
+
+  /**
+   * Categorize an Odoo RPC error into a specific error type.
+   *
+   * Checks exception_type first (more structured, Odoo 17+),
+   * then falls back to data.name (Python exception class name).
+   *
+   * @see https://github.com/odoo/odoo/blob/17.0/odoo/exceptions.py
+   */
+  private categorizeError(error: {
+    code?: number;
+    message?: string;
+    data?: Record<string, any>;
+  }): OdooRpcError {
+    const errorData = error.data;
+    const exceptionType = errorData?.exception_type || '';
+    const exceptionName = errorData?.name || '';
+    const errorMessage = errorData?.message || error.message || 'Unknown RPC error';
+    const opts = { code: String(error.code), data: errorData };
+
+    // Authentication errors
+    if (exceptionType === 'access_denied' || exceptionName.includes('AccessDenied')) {
+      return new OdooAuthError(errorMessage);
+    }
+
+    // Access/permission errors
+    if (exceptionType === 'access_error' || exceptionName.includes('AccessError')) {
+      return new OdooAccessError(errorMessage, opts);
+    }
+
+    // Validation / business logic errors
+    if (
+      exceptionType === 'validation_error' ||
+      exceptionType === 'user_error' ||
+      exceptionName.includes('ValidationError') ||
+      exceptionName.includes('UserError')
+    ) {
+      return new OdooValidationError(errorMessage, opts);
+    }
+
+    // Missing record errors
+    if (exceptionType === 'missing_error' || exceptionName.includes('MissingError')) {
+      return new OdooMissingError(errorMessage, opts);
+    }
+
+    // Generic RPC error
+    return new OdooRpcError(errorMessage, opts);
   }
 
   /**
