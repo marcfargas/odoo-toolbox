@@ -19,7 +19,7 @@ describe('E2E: Skill Creator Workflow', () => {
   let projectDir: string;
 
   const cliPath = path.resolve(__dirname, '..', 'dist', 'cli', 'cli.js');
-  const skillsDir = path.resolve(__dirname, '..', '..', '..', 'skills');
+  const skillsDir = path.resolve(__dirname, '..', '..', '..', 'skills', 'odoo');
 
   beforeAll(() => {
     // Create temp workspace

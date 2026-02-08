@@ -32,7 +32,7 @@ import {
 describe('Markdown Documentation Examples', () => {
   let ctx: TestContext;
   let allBlocks: TestableCodeBlock[] = [];
-  const docsDir = path.resolve(__dirname, '..', '..', '..', 'skills', 'base');
+  const docsDir = path.resolve(__dirname, '..', '..', '..', 'skills', 'odoo', 'base');
 
   beforeAll(async () => {
     // Extract blocks from documentation
