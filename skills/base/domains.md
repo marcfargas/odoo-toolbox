@@ -4,11 +4,9 @@ How to filter records using Odoo's domain syntax.
 
 ## Overview
 
-Domains are Odoo's query language for filtering records. They are arrays of conditions (tuples) combined with logical operators.
+Domains are Odoo's query language for filtering records. They are arrays of conditions (tuples) combined with logical operators. An empty domain `[]` matches all records.
 
 ## Basic Syntax
-
-A domain is an array of conditions:
 
 ```typescript
 const domain = [
@@ -26,16 +24,23 @@ const domain = [
 | `>=` | Greater or equal | `['amount', '>=', 1000]` |
 | `<` | Less than | `['amount', '<', 100]` |
 | `<=` | Less or equal | `['amount', '<=', 100]` |
-| `like` | Pattern match (case-sensitive) | `['name', 'like', 'John%']` |
-| `ilike` | Pattern match (case-insensitive) | `['name', 'ilike', '%smith%']` |
-| `=like` | Exact pattern (case-sensitive) | `['code', '=like', 'AB%']` |
-| `=ilike` | Exact pattern (case-insensitive) | `['code', '=ilike', 'ab%']` |
+| `=?` | Unset or equals | Returns true if value is null/false; otherwise behaves like `=`. Useful for optional filters. |
+| `like` | Pattern match (case-sensitive) | You provide wildcards: `_` = any char, `%` = any string |
+| `not like` | Negated pattern (case-sensitive) | |
+| `ilike` | Pattern match (case-insensitive) | Auto-wraps value with `%`: `'ilike', 'john'` → `ILIKE '%john%'` |
+| `not ilike` | Negated pattern (case-insensitive) | |
+| `=like` | Exact pattern (case-sensitive) | No auto-wrapping, you supply wildcards: `['code', '=like', 'SO%']` |
+| `=ilike` | Exact pattern (case-insensitive) | Same as `=like` but case-insensitive |
 | `in` | Value in list | `['state', 'in', ['draft', 'sent']]` |
 | `not in` | Value not in list | `['state', 'not in', ['cancel', 'done']]` |
+| `child_of` | Descendant of record(s) | `['category_id', 'child_of', parentId]` (hierarchical models) |
+| `parent_of` | Ancestor of record(s) | `['category_id', 'parent_of', childId]` |
 
-## Pattern Matching
+### Pattern Matching: Key Distinction
 
-Use `%` as wildcard in `like`/`ilike`:
+- `like` / `not like` → you must supply your own `%` wildcards
+- `ilike` / `not ilike` → Odoo auto-wraps with `%` on both sides
+- `=like` / `=ilike` → exact pattern match, no auto-wrapping, but you can use `%` and `_`
 
 ```typescript testable id="domain-ilike" needs="client" creates="res.partner" expect="result.found === true"
 // Create test data
@@ -51,7 +56,7 @@ const results = await client.search('res.partner', [['name', 'ilike', '%software
 return { found: results.includes(id) };
 ```
 
-## Logical Operators
+## Logical Operators (Prefix/Polish Notation)
 
 Default behavior: **AND** between conditions.
 
@@ -66,18 +71,11 @@ const domain = [
 
 ### Explicit Operators
 
-| Operator | Description |
-|----------|-------------|
-| `&` | AND (default, explicit) |
-| `\|` | OR |
-| `!` | NOT |
-
-### AND Examples
-
-```typescript
-// Explicit AND (same as default)
-['&', ['state', '=', 'draft'], ['partner_id', '!=', false]]
-```
+| Operator | Meaning | Arity |
+|----------|---------|-------|
+| `'&'` | AND | 2 (next 2 items). **Default** — implicit between consecutive criteria |
+| `'\|'` | OR | 2 (next 2 items) |
+| `'!'` | NOT | 1 (next 1 item) |
 
 ### OR Examples
 
@@ -96,11 +94,11 @@ const id2 = await client.create('res.partner', {
 });
 trackRecord('res.partner', id2);
 
-// OR: is_company=true OR has email
+// OR: match either partner
 const results = await client.search('res.partner', [
   '|',
-  ['id', '=', id1],  // First partner
-  ['id', '=', id2],  // OR second partner
+  ['id', '=', id1],
+  ['id', '=', id2],
 ]);
 
 return { found: results.filter(id => id === id1 || id === id2).length };
@@ -120,20 +118,28 @@ return { found: results.filter(id => id === id1 || id === id2).length };
 
 ```typescript
 // (state = 'draft' OR state = 'sent') AND amount > 1000
-[
-  '&',
-  '|',
-  ['state', '=', 'draft'],
-  ['state', '=', 'sent'],
-  ['amount', '>', 1000]
-]
+['&', '|', ['state', '=', 'draft'], ['state', '=', 'sent'], ['amount', '>', 1000]]
 
 // (A AND B) OR (C AND D)
-[
-  '|',
-  '&', ['field_a', '=', 'A'], ['field_b', '=', 'B'],
-  '&', ['field_c', '=', 'C'], ['field_d', '=', 'D']
-]
+['|', '&', ['field_a', '=', 'A'], ['field_b', '=', 'B'], '&', ['field_c', '=', 'C'], ['field_d', '=', 'D']]
+
+// Chained OR (3+ conditions)
+['|', '|', ['state', '=', 'draft'], ['state', '=', 'sent'], ['state', '=', 'sale']]
+// TIP: For many-OR on same field, use 'in' instead:
+[['state', 'in', ['draft', 'sent', 'sale']]]
+```
+
+### Conversion Method (Infix → Prefix)
+
+1. Start with the outermost operator, move it to front
+2. Repeat for sub-expressions
+3. Remove parentheses
+
+```
+Infix:   (state = 'draft' OR amount > 1000) AND partner = 5
+Step 1:  AND (state = 'draft' OR amount > 1000) (partner = 5)
+Step 2:  AND OR (state = 'draft') (amount > 1000) (partner = 5)
+Result:  ['&', '|', ['state','=','draft'], ['amount_total','>',1000], ['partner_id','=',5]]
 ```
 
 ## Special Values
@@ -155,7 +161,7 @@ const id2 = await client.create('res.partner', {
 });
 trackRecord('res.partner', id2);
 
-// Field is set (not empty)
+// Field is set (not empty) — use JSON false, not Python False
 const withEmailResults = await client.search('res.partner', [
   ['id', 'in', [id1, id2]],
   ['email', '!=', false]
@@ -176,29 +182,35 @@ return {
 ### Date Comparisons
 
 ```typescript
-// Records from today
-[['date', '=', '2024-01-15']]
+// Records in date range — dates as strings
+[['date', '>=', '2024-01-01'], ['date', '<=', '2024-12-31']]
 
-// Records in date range
-[
-  ['date', '>=', '2024-01-01'],
-  ['date', '<=', '2024-01-31']
-]
+// Datetime fields use full format (UTC)
+[['write_date', '>=', '2024-01-01 00:00:00']]
 ```
 
 ## Relational Field Domains
 
-### Many2One Traversal
+### Many2One Traversal (Dot Notation)
 
-You can traverse relations using dot notation:
+Traverse relations using dot notation. Can chain multiple levels:
 
 ```typescript
-// Leads where partner is a company
-[['partner_id.is_company', '=', true]]
+// Partners where country is Spain
+[['country_id.code', '=', 'ES']]
 
-// Leads where partner's country is US
-[['partner_id.country_id.code', '=', 'US']]
+// Invoice lines where partner has a specific tag
+[['partner_id.category_id', 'in', [11]]]
+
+// Account moves where account code starts with 57
+[['account_id.code', '=like', '57%']]
 ```
+
+| Relation Type | Behavior |
+|---------------|----------|
+| Many2one | Traverses to related record's field. Can chain multiple levels. |
+| One2many | Matches parent if *any* child matches. |
+| Many2many | Matches if *any* related record satisfies condition. |
 
 ### Many2Many/One2Many
 
@@ -206,20 +218,24 @@ You can traverse relations using dot notation:
 // Users in specific group
 [['group_ids', 'in', [groupId]]]
 
-// Partners with at least one invoice
-[['invoice_ids', '!=', false]]
+// Partners with at least one child contact
+[['child_ids', '!=', false]]
 ```
 
-## Common Domain Patterns
+## Common Patterns
 
-### Active Records Only
+### Active Records
 
 ```typescript
-[['active', '=', true]]
-// Or simply omit - Odoo includes active=True by default
+// Odoo filters active=True by default
+// To include archived records, use context:
+const results = await client.searchRead('res.partner',
+  [['name', 'ilike', 'test']],
+  { fields: ['name', 'active'], context: { active_test: false } }
+);
 ```
 
-### Records with Related Data
+### Related Records
 
 ```typescript testable id="domain-has-relation" needs="client" creates="res.partner" expect="result.withParent === true && result.withoutParent === true"
 // Create parent partner
@@ -260,50 +276,30 @@ return {
 };
 ```
 
-### Status-Based Filtering
-
-```typescript
-// Open opportunities
-[['type', '=', 'opportunity'], ['probability', '>', 0]]
-
-// Draft quotes
-[['state', '=', 'draft']]
-
-// Confirmed orders
-[['state', 'in', ['sale', 'done']]]
-```
-
-### Date Range
-
-```typescript
-// This month's records
-const now = new Date();
-const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-const domain = [
-  ['create_date', '>=', firstDay.toISOString().split('T')[0]],
-  ['create_date', '<=', lastDay.toISOString().split('T')[0]]
-];
-```
-
-### Text Search
+### Text Search Across Fields
 
 ```typescript
 // Search by name or email
-[
-  '|',
-  ['name', 'ilike', searchTerm],
-  ['email', 'ilike', searchTerm]
-]
+['|', ['name', 'ilike', searchTerm], ['email', 'ilike', searchTerm]]
 ```
 
 ## Usage in API Calls
 
+### Methods That Accept Domains
+
+| Method | Returns | Default Limit | Notes |
+|--------|---------|--------------|-------|
+| `search` | `number[]` (IDs) | None (all) | Pass `limit`/`offset` for pagination |
+| `searchRead` | `object[]` (records) | **100** ⚠️ | **Always pass `limit` explicitly** |
+| `searchCount` | `number` | N/A | Just the count, very efficient |
+| `name_search` | `[id, name][]` | N/A | Used for autocomplete |
+| `read_group` | Grouped aggregates | N/A | For pivot/aggregate queries |
+
+> **⚠️ CRITICAL**: `searchRead` defaults to limit=100. If you expect more records, always pass `limit: 0` (all) or a specific number. `search` has no default limit.
+
 ### search()
 
 ```typescript testable id="domain-search" needs="client" creates="res.partner" expect="result.found === true"
-// Create test company
 const id = await client.create('res.partner', {
   name: uniqueTestName('Test Company USA'),
   is_company: true,
@@ -322,7 +318,6 @@ return { found: ids.includes(id) };
 ### searchRead()
 
 ```typescript testable id="domain-searchread" needs="client" creates="res.partner" expect="result.hasFields === true"
-// Create test partner
 const id = await client.create('res.partner', {
   name: uniqueTestName('Search Read Test'),
   email: 'searchread@example.com',
@@ -349,25 +344,51 @@ const count = await client.searchCount('res.partner', [
 ]);
 ```
 
-## Empty Domain
+## JSON-RPC Gotchas
 
-An empty domain `[]` returns all records (subject to access rights):
+When calling Odoo over JSON-RPC (which `@odoo-toolbox/client` does), beware:
 
-```typescript
-// Get all partners
-const allPartners = await client.search('res.partner', []);
+**Nesting depth** — don't over-wrap domains:
+```javascript
+// WRONG — triple-nested
+"args": [..., "search_read", [[[["state", "=", "sale"]]]], ...]
+
+// CORRECT — domain is a list of lists
+"args": [..., "search_read", [[["state", "=", "sale"]]], ...]
 ```
 
-## Debugging Domains
+**Boolean values**: Use JSON `false`/`true`, not Python `False`/`True`.
 
-If a domain isn't working as expected:
+**Dates must be strings**: `"2025-01-01"` for Date, `"2025-01-01 00:00:00"` for Datetime (UTC).
 
-1. **Start simple** - Test with one condition at a time
-2. **Check field names** - Use introspection to verify
-3. **Check types** - Ensure values match field types
-4. **Test in Odoo UI** - Developer mode shows domain filters
+**No Python expressions**: `user.id`, `context_today()`, `ref('xml_id')` don't work over RPC. Compute values client-side and pass literal data.
+
+## Quick Reference
+
+```
+SYNTAX:      [['field', 'operator', value]]
+LOGIC:       '&' (AND, default), '|' (OR), '!' (NOT)  — PREFIX notation
+TRAVERSAL:   'partner_id.country_id.code'  (dot notation through Many2one)
+HIERARCHY:   'child_of', 'parent_of'  (tree structures)
+
+OPERATORS:   =  !=  >  >=  <  <=  =?
+             in  not in
+             like  not like  ilike  not ilike  =like  =ilike
+             child_of  parent_of
+
+IMPLICIT AND:  [A, B, C]           → A AND B AND C
+OR:            ['|', A, B]         → A OR B
+NOT:           ['!', A]            → NOT A
+COMPLEX:       ['&', '|', A, B, C] → (A OR B) AND C
+CHAINED OR:    ['|', '|', A, B, C] → A OR B OR C
+
+JSON-RPC:    searchRead default limit = 100 — always pass limit!
+             Dates as strings, booleans as false/true (JSON)
+             No Python expressions — pure data only
+```
 
 ## Related Documents
 
 - [field-types.md](./field-types.md) - Understanding field types
-- [search-patterns.md](../04-patterns/search-patterns.md) - Search patterns
+- [search.md](./search.md) - Search and filtering patterns
+- [crud.md](./crud.md) - Create, Read, Update, Delete operations

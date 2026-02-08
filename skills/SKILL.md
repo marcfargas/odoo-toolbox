@@ -56,6 +56,7 @@ Load by reading `modules/{name}.md`:
 
 | Skill | Required Modules | Description |
 |-------|------------------|-------------|
+| accounting | `account` | Accounting patterns, cashflow, reconciliation, bank statements |
 | timesheets | `hr_timesheet` | Track employee time on projects and tasks |
 | mis-builder | `mis_builder`, `date_range`, `report_xlsx` | MIS Builder financial reports (PnL, Balance Sheet) |
 

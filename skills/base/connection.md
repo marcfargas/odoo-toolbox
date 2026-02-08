@@ -165,6 +165,37 @@ session?.context    // User context (language, timezone, etc.)
 2. **One database per client** - Create separate clients for different databases
 3. **Session timeout** - Long-running scripts may need re-authentication
 4. **HTTPS in production** - Always use HTTPS for remote connections
+5. **Constructor params** - Use `url` (not `baseUrl`) and `database` (not `db`)
+
+## Proxy / Restricted Environments
+
+In environments where direct HTTP requests are blocked (e.g., Cloudflare Workers, some corporate proxies), `OdooClient` may fail to connect. As a workaround, you can shell out to `curl`:
+
+```typescript
+import { execSync } from 'child_process';
+
+function odooRpc(url: string, db: string, uid: number, password: string,
+  model: string, method: string, args: any[], kwargs: any = {}): any {
+  const payload = {
+    jsonrpc: '2.0', method: 'call', id: 1,
+    params: {
+      service: 'object', method: 'execute_kw',
+      args: [db, uid, password, model, method, args, kwargs],
+    },
+  };
+
+  const result = execSync(
+    `curl -s -X POST "${url}/jsonrpc" -H "Content-Type: application/json" -d '${JSON.stringify(payload)}'`,
+    { encoding: 'utf-8' }
+  );
+
+  const parsed = JSON.parse(result);
+  if (parsed.error) throw new Error(parsed.error.data?.message || parsed.error.message);
+  return parsed.result;
+}
+```
+
+This is a last resort — prefer `OdooClient` for proper session management, error handling, and type safety.
 
 ## Related Documents
 
