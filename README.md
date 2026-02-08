@@ -1,8 +1,27 @@
 # odoo-toolbox
 
-> Teach AI agents to work with your Odoo instance
+> Battle-tested Odoo knowledge for AI agents, validated against real Odoo v17 instances in CI.
 
-**odoo-toolbox** provides tested, validated skills that enable AI agents (Claude Code, Cursor, etc.) to interact with Odoo ERP. Use the base knowledge modules directly or scaffold a custom skill project for your instance.
+**odoo-toolbox** teaches AI agents (Claude Code, Cursor, etc.) how to work with Odoo ERP. It provides tested knowledge modules, a TypeScript RPC client, and schema introspection tools.
+
+## Knowledge Modules
+
+The [`skills/`](./skills/) directory contains the core product — progressive, tested documentation that AI agents load on demand:
+
+| Module | What it teaches |
+|--------|-----------------|
+| [connection](./skills/base/connection.md) | Authentication and session management |
+| [field-types](./skills/base/field-types.md) | Odoo type system and read/write asymmetry |
+| [domains](./skills/base/domains.md) | Query filter syntax and composition |
+| [crud](./skills/base/crud.md) | Create, Read, Update, Delete operations |
+| [search](./skills/base/search.md) | Search and filtering patterns |
+| [introspection](./skills/base/introspection.md) | Discover models and fields dynamically |
+| [properties](./skills/base/properties.md) | Dynamic user-defined fields |
+| [modules](./skills/base/modules.md) | Module lifecycle management |
+
+Plus: [mail system](./skills/mail/) (chatter, activities, discuss), [timesheets](./skills/modules/timesheets.md), [MIS Builder](./skills/oca/mis-builder.md).
+
+All code examples are **extracted and tested against real Odoo v17** in CI.
 
 ## Quick Start
 
@@ -10,22 +29,13 @@
 
 Download `odoo-skills.zip` from the [latest CI build](https://github.com/marcfargas/odoo-toolbox/actions) (look for the "odoo-skills" artifact).
 
-Extract and configure:
-
 ```bash
 unzip odoo-skills.zip
 cd odoo-skills
 cp .env.example .env  # Add your Odoo credentials
 ```
 
-Then point your AI agent to the project and ask it to:
-- "Connect to Odoo and list available models"
-- "Introspect the crm.lead model"
-- "Create a new sales order"
-
-### Option 2: Create a Custom Skill Project
-
-For instance-specific skills with your Odoo configuration:
+### Option 2: Scaffold a Custom Skill Project
 
 ```bash
 npx @odoo-toolbox/create-skills my-odoo-skills
@@ -33,50 +43,32 @@ cd my-odoo-skills
 cp .env.example .env  # Configure your Odoo credentials
 ```
 
-## Knowledge Modules
+Then point your AI agent to the project and ask it to connect, introspect, and work with your Odoo instance.
 
-All examples are **tested against real Odoo v17 instances** in CI:
+## TypeScript Packages
 
-| Module | What it teaches |
-|--------|-----------------|
-| `connection.md` | Authentication and session management |
-| `crud.md` | Create, Read, Update, Delete operations |
-| `search.md` | Domain filters and search patterns |
-| `introspection.md` | Discover models and fields dynamically |
-| `field-types.md` | Handle Odoo's type system and quirks |
-| `properties.md` | Work with dynamic user-defined fields |
+The skills are backed by tested TypeScript infrastructure:
 
-## Packages
+| Package | Description | Status |
+|---------|-------------|--------|
+| [@odoo-toolbox/client](./packages/odoo-client) | Lightweight RPC client for Odoo | Active |
+| [@odoo-toolbox/introspection](./packages/odoo-introspection) | Schema introspection and type generation | Active |
+| [@odoo-toolbox/create-skills](./packages/create-skills) | CLI to scaffold skill projects | Active |
+| [@odoo-toolbox/state-manager](./packages/odoo-state-manager) | Drift detection and plan/apply (Terraform-style) | Experimental |
 
-| Package | Description |
-|---------|-------------|
-| **[@odoo-toolbox/create-skills](./packages/create-skills)** | CLI to scaffold Odoo skill projects |
-| [@odoo-toolbox/client](./packages/odoo-client) | TypeScript RPC client for Odoo |
-| [@odoo-toolbox/introspection](./packages/odoo-introspection) | Schema introspection and type generation |
+## Contributing
 
-## Future: Infrastructure as Code
+```bash
+git clone https://github.com/marcfargas/odoo-toolbox.git
+cd odoo-toolbox
+npm install
+npm test
+```
 
-We're building toward **Terraform for Odoo** - declare desired state, detect drift, plan and apply changes:
-
-| Package | Status |
-|---------|--------|
-| [@odoo-toolbox/state-manager](./packages/odoo-state-manager) | In Development |
-
-See [ROADMAP.md](./ROADMAP.md) for the full vision.
-
-## Status
-
-**Stage**: Early Development
-**Odoo**: v17 (v14+ planned) | **Node.js**: 18+ | **TypeScript**: 5.0+
-
-## Resources
-
-- [DEVELOPMENT.md](./DEVELOPMENT.md) - Setup, testing, contributing
-- [AGENTS.md](./AGENTS.md) - For AI assistants working on this codebase
-- [ROADMAP.md](./ROADMAP.md) - Future plans and design decisions
+See [DEVELOPMENT.md](./DEVELOPMENT.md) for setup, testing, and contribution guidelines.
+See [AGENTS.md](./AGENTS.md) for AI assistant coding conventions.
 
 ## License
 
-LGPL-3.0 - see [LICENSE](./LICENSE)
-
-Skill templates in [`packages/create-skills/assets/`](./packages/create-skills/assets/) are licensed under [CC-BY-4.0](./packages/create-skills/assets/LICENSE).
+- **Code**: LGPL-3.0 — see [LICENSE](./LICENSE)
+- **Knowledge modules** (`skills/`): [CC-BY-4.0](./skills/LICENSE)
