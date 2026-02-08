@@ -17,9 +17,15 @@ Two functions, two intents — **no confusion possible**:
 | `postInternalNote()` | Staff only | None | Internal remarks, call logs, reminders |
 | `postOpenMessage()` | ALL followers (incl. portal) | Email sent | Customer-facing updates, status changes |
 
-Both are available as:
-- **Client methods**: `client.postInternalNote(...)`, `client.postOpenMessage(...)`
-- **Standalone functions**: `import { postInternalNote, postOpenMessage } from '@odoo-toolbox/client'`
+Access via the `client.mail` service accessor:
+
+```typescript
+import { createClient } from '@odoo-toolbox/client';
+const client = await createClient();
+
+await client.mail.postInternalNote('crm.lead', 42, '<p>Called customer.</p>');
+await client.mail.postOpenMessage('res.partner', 7, '<p>Order shipped.</p>');
+```
 
 ### Body Format — CRITICAL
 
@@ -41,7 +47,7 @@ const partnerId = await client.create('res.partner', {
 trackRecord('res.partner', partnerId);
 
 // Post an internal note — visible ONLY to staff, NOT to portal/public
-const noteId = await client.postInternalNote(
+const noteId = await client.mail.postInternalNote(
   'res.partner',
   partnerId,
   '<p>Customer called, wants a <b>callback</b> tomorrow morning.</p>'
@@ -66,7 +72,7 @@ const partnerId = await client.create('res.partner', {
 trackRecord('res.partner', partnerId);
 
 // Post a public message — visible to ALL followers, sends email notifications
-const msgId = await client.postOpenMessage(
+const msgId = await client.mail.postOpenMessage(
   'res.partner',
   partnerId,
   '<p>Your order has been shipped. Tracking: <a href="https://example.com">XYZ123</a></p>'
@@ -86,7 +92,7 @@ return {
 
 ```typescript
 // No HTML? Plain text is auto-wrapped in <p> tags
-await client.postInternalNote(
+await client.mail.postInternalNote(
   'crm.lead', leadId,
   'Spoke with warehouse — stock arrives Friday.'
 );
@@ -108,7 +114,7 @@ const [adminUser] = await client.searchRead('res.users', [
 ], { fields: ['partner_id'], limit: 1 });
 const adminPartnerId = adminUser.partner_id[0];
 
-const msgId = await client.postOpenMessage(
+const msgId = await client.mail.postOpenMessage(
   'res.partner',
   partnerId,
   '<p>Please review this record.</p>',
@@ -143,7 +149,7 @@ const attachmentId = await client.create('ir.attachment', {
 trackRecord('ir.attachment', attachmentId);
 
 // Post with attachment
-const msgId = await client.postOpenMessage(
+const msgId = await client.mail.postOpenMessage(
   'res.partner',
   partnerId,
   '<p>Document attached for your review.</p>',
@@ -177,7 +183,7 @@ const partnerId = await client.create('res.partner', {
 });
 trackRecord('res.partner', partnerId);
 
-await client.postInternalNote('res.partner', partnerId, '<p>Test message for reading</p>');
+await client.mail.postInternalNote('res.partner', partnerId, '<p>Test message for reading</p>');
 
 // Read all messages on the record
 const messages = await client.searchRead('mail.message', [

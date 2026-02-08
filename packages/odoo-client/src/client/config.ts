@@ -1,24 +1,26 @@
 /**
- * Configuration helpers for OdooClient
+ * Configuration and factory helpers for OdooClient.
+ *
+ * Quick start:
+ *   const client = await createClient();              // reads ODOO_* env vars
+ *   const client = await createClient('ODOO_PROD');   // reads ODOO_PROD_* env vars
  */
 
 import { OdooError } from '../types/errors';
 import type { OdooClientConfig } from './odoo-client';
+import { OdooClient } from './odoo-client';
 
 /**
- * Create an OdooClientConfig from environment variables with a given prefix.
+ * Create an OdooClientConfig from environment variables.
  *
  * Reads: {prefix}_URL, {prefix}_DB (or {prefix}_DATABASE),
  *        {prefix}_USER (or {prefix}_USERNAME), {prefix}_PASSWORD
  *
- * @example
- *   // Reads ODOO_PROD_URL, ODOO_PROD_DB, ODOO_PROD_USER, ODOO_PROD_PASSWORD
- *   const config = configFromEnv('ODOO_PROD');
- *   const client = new OdooClient(config);
+ * @param prefix - Environment variable prefix (default: 'ODOO')
  *
  * @example
- *   // Reads ODOO_URL, ODOO_DB, ODOO_USER, ODOO_PASSWORD
- *   const config = configFromEnv('ODOO');
+ *   const config = configFromEnv();          // ODOO_URL, ODOO_DB, ...
+ *   const config = configFromEnv('ODOO_PROD'); // ODOO_PROD_URL, ODOO_PROD_DB, ...
  */
 export function configFromEnv(prefix: string = 'ODOO'): OdooClientConfig {
   const url = process.env[`${prefix}_URL`] || '';
@@ -37,4 +39,35 @@ export function configFromEnv(prefix: string = 'ODOO'): OdooClientConfig {
   }
 
   return { url, database, username, password };
+}
+
+/**
+ * Create an authenticated OdooClient from environment variables.
+ *
+ * This is the recommended one-liner for scripts and agents:
+ *
+ * ```typescript
+ * import { createClient } from '@odoo-toolbox/client';
+ *
+ * const client = await createClient();
+ * await client.mail.postInternalNote('crm.lead', 42, '<p>Done.</p>');
+ * ```
+ *
+ * Reads ODOO_URL, ODOO_DB, ODOO_USER, ODOO_PASSWORD from environment.
+ * Use a prefix for multi-instance setups:
+ *
+ * ```typescript
+ * const prod = await createClient('ODOO_PROD');   // ODOO_PROD_URL, ...
+ * const staging = await createClient('ODOO_STG'); // ODOO_STG_URL, ...
+ * ```
+ *
+ * @param prefix - Environment variable prefix (default: 'ODOO')
+ * @returns Authenticated OdooClient, ready to use
+ * @throws OdooError if env vars are missing
+ * @throws OdooAuthError if credentials are invalid
+ */
+export async function createClient(prefix: string = 'ODOO'): Promise<OdooClient> {
+  const client = new OdooClient(configFromEnv(prefix));
+  await client.authenticate();
+  return client;
 }

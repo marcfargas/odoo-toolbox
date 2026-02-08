@@ -38,16 +38,56 @@ Module-specific: `skills/odoo/modules/timesheets.md`, `skills/odoo/oca/mis-build
 
 ### When Adding New Functionality
 
-1. **Business logic** → `odoo-client` (services for mail, activities, properties, modules, etc.)
+1. **Business logic** → `odoo-client` services (`services/{module}/`)
 2. **Schema/type generation** → `odoo-introspection`
 3. **Odoo knowledge** → `skills/odoo/` (markdown modules with testable code blocks)
-4. **API consumers** (scripts, CLIs) should use client services
+4. **API consumers** (scripts, CLIs) should use `createClient()` + service accessors
+
+### Service Architecture (Option D: Client Accessors)
+
+Domain-specific helpers are accessed via lazy getters on `OdooClient`:
+
+```typescript
+import { createClient } from '@odoo-toolbox/client';
+
+const client = await createClient();                    // reads ODOO_* env vars
+await client.mail.postInternalNote('crm.lead', 42, '<p>Called.</p>');
+await client.modules.isModuleInstalled('sale');
+const leads = await client.searchRead('crm.lead', []); // core CRUD stays on client
+```
+
+**Rules:**
+- `OdooClient` is strictly RPC/CRUD/auth/safety — no business logic
+- Module helpers live in `services/{module}/` with a service class
+- Each service gets a lazy getter on OdooClient (3 lines: field + getter + import)
+- Standalone functions exist as implementation core and for cross-service composition
+- Skill docs show `client.{module}.*` as the canonical pattern — not standalone functions
+
+**Adding a new service:**
+1. Create `services/{module}/` (service class + functions + types + index)
+2. Add lazy getter in `odoo-client.ts`
+3. Export from `services/index.ts`
+4. Update skill docs with `client.{module}.*` examples
+
+```
+packages/odoo-client/src/
+├── client/           # OdooClient, config, createClient
+├── services/
+│   ├── mail/         # MailService → client.mail.*
+│   ├── modules/      # ModuleManager → client.modules.*
+│   └── index.ts      # barrel re-exports
+├── rpc/              # JSON-RPC transport
+├── safety/           # safety guards
+└── types/            # errors, properties
+```
 
 ### Anti-patterns
 
-- ❌ Putting business logic in scripts or CLI tools (belongs in client)
+- ❌ Putting business logic on OdooClient (belongs in services/)
+- ❌ Putting business logic in scripts or CLI tools (belongs in client services)
 - ❌ Duplicating client utilities in other packages
 - ❌ Hard-coding Odoo model knowledge outside of client services
+- ❌ Showing `new OdooClient({url, db, ...})` in skill docs (use `createClient()`)
 - ❌ Assuming Odoo models are static (they're dynamic!)
 - ❌ Ignoring context parameter
 - ❌ Making sequential RPC calls when batching is possible

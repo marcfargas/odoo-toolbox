@@ -2,7 +2,7 @@
  * Unit tests for mail helpers: ensureHtmlBody, postInternalNote, postOpenMessage
  */
 
-import { ensureHtmlBody } from '../src/client/mail';
+import { ensureHtmlBody } from '../src/services/mail/functions';
 import { OdooValidationError } from '../src/types/errors';
 
 describe('ensureHtmlBody', () => {

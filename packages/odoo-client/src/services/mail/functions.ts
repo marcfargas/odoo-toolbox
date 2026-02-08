@@ -1,5 +1,5 @@
 /**
- * Mail / Chatter helpers for Odoo
+ * Mail / Chatter standalone functions for Odoo
  *
  * Two functions, two intents — no confusion possible:
  * - postInternalNote()  → staff-only note (subtype: mail.mt_note, is_internal: true)
@@ -16,29 +16,9 @@
  * @see https://github.com/odoo/odoo/blob/17.0/addons/mail/models/mail_thread.py
  */
 
-import type { OdooClient } from './odoo-client';
-import { OdooValidationError } from '../types/errors';
-
-/**
- * Options for posting a message or note to a record's chatter.
- */
-export interface PostMessageOptions {
-  /**
-   * Partner IDs to @mention. Mentioned partners receive a notification.
-   * These are res.partner IDs (not res.users IDs).
-   *
-   * To find a user's partner ID:
-   *   const [user] = await client.read('res.users', userId, ['partner_id']);
-   *   const partnerId = user.partner_id[0];
-   */
-  partnerIds?: number[];
-
-  /**
-   * Pre-created ir.attachment IDs to attach to the message.
-   * Attachments must be created first via client.create('ir.attachment', {...}).
-   */
-  attachmentIds?: number[];
-}
+import type { OdooClient } from '../../client/odoo-client';
+import { OdooValidationError } from '../../types/errors';
+import type { PostMessageOptions } from './types';
 
 /**
  * Subtype IDs as defined by Odoo's mail module data.
@@ -131,23 +111,6 @@ function buildMessageValues(
  *                   'Spoke with warehouse, stock arrives Friday.'
  * @param options - Optional: partnerIds to @mention, attachmentIds
  * @returns Created mail.message ID
- *
- * @example
- * const noteId = await postInternalNote(
- *   client,
- *   'crm.lead',
- *   leadId,
- *   '<p>Customer prefers email contact. Do NOT call.</p>'
- * );
- *
- * @example
- * // Plain text works too (auto-wrapped in <p>)
- * const noteId = await postInternalNote(
- *   client,
- *   'res.partner',
- *   partnerId,
- *   'Updated bank details received by phone.'
- * );
  */
 export async function postInternalNote(
   client: OdooClient,
@@ -166,10 +129,6 @@ export async function postInternalNote(
  * Open messages are visible to ALL followers — including portal users
  * and external partners. Email notifications ARE sent to followers.
  *
- * Use this for customer-facing communication, status updates that
- * external stakeholders should see, or any message that should appear
- * in the public discussion thread.
- *
  * The target model MUST inherit from mail.thread.
  *
  * @param client - Authenticated OdooClient instance
@@ -181,25 +140,6 @@ export async function postInternalNote(
  *                   'We have received your payment. Thank you!'
  * @param options - Optional: partnerIds to @mention, attachmentIds
  * @returns Created mail.message ID
- *
- * @example
- * const msgId = await postOpenMessage(
- *   client,
- *   'sale.order',
- *   orderId,
- *   '<p>Delivery confirmed. Invoice attached.</p>',
- *   { attachmentIds: [invoiceAttachmentId] }
- * );
- *
- * @example
- * // @mention a partner to notify them
- * const msgId = await postOpenMessage(
- *   client,
- *   'crm.lead',
- *   leadId,
- *   '<p>Proposal sent. Waiting for feedback.</p>',
- *   { partnerIds: [customerPartnerId] }
- * );
  */
 export async function postOpenMessage(
   client: OdooClient,

@@ -1,8 +1,20 @@
 /**
- * Main Odoo client with typed access to models and methods
+ * Main Odoo client — RPC transport, CRUD, and safety guards.
  *
- * Provides a high-level API for interacting with Odoo.
- * Supports opt-in safety guards for write/delete operations.
+ * Domain-specific helpers (mail, accounting, etc.) are accessed via lazy
+ * service accessors:
+ *
+ *   client.mail.postInternalNote(...)
+ *   client.modules.isModuleInstalled(...)
+ *
+ * OdooClient itself is strictly RPC/CRUD/auth/safety. No business logic.
+ *
+ * ## Adding a new service accessor
+ *
+ * 1. Create `services/{module}/` directory
+ * 2. Add a lazy getter here (3 lines: private field + getter)
+ * 3. Export from `services/index.ts`
+ * 4. Update skill docs to show `client.{module}.*` pattern
  */
 
 import { JsonRpcTransport, OdooSessionInfo } from '../rpc/transport';
@@ -14,11 +26,8 @@ import {
   inferSafetyLevel,
   resolveSafetyContext,
 } from '../safety';
-import {
-  postInternalNote as _postInternalNote,
-  postOpenMessage as _postOpenMessage,
-  type PostMessageOptions,
-} from './mail';
+import { MailService } from '../services/mail/mail-service';
+import { ModuleManager } from '../services/modules/module-manager';
 
 export interface OdooClientConfig {
   url: string;
@@ -35,10 +44,10 @@ export interface OdooClientConfig {
 }
 
 /**
- * Main client for interacting with Odoo
+ * Main client for interacting with Odoo.
  *
- * Handles authentication and provides methods for CRUD operations on models.
- * Safety guards are opt-in via `config.safety` or `setDefaultSafetyContext()`.
+ * Core: authentication, CRUD operations, raw RPC calls, safety guards.
+ * Services: accessed via lazy getters — `client.mail`, `client.modules`, etc.
  */
 export class OdooClient {
   private config: OdooClientConfig;
@@ -51,6 +60,41 @@ export class OdooClient {
     this.transport = new JsonRpcTransport(config.url, config.database);
     this.safetyContext = config.safety;
   }
+
+  // ── Service accessors (lazy) ────────────────────────────────────────
+  //
+  // Each service is created on first access and reused thereafter.
+  // Adding a service: private field + getter + import. That's it.
+
+  private _mail?: MailService;
+
+  /**
+   * Mail / Chatter service — post messages and notes on records.
+   *
+   * ```typescript
+   * await client.mail.postInternalNote('crm.lead', 42, '<p>Called customer.</p>');
+   * await client.mail.postOpenMessage('res.partner', 7, '<p>Order shipped.</p>');
+   * ```
+   */
+  get mail(): MailService {
+    return (this._mail ??= new MailService(this));
+  }
+
+  private _modules?: ModuleManager;
+
+  /**
+   * Module management — install, uninstall, list, and check Odoo modules.
+   *
+   * ```typescript
+   * if (await client.modules.isModuleInstalled('sale')) { ... }
+   * await client.modules.installModule('project');
+   * ```
+   */
+  get modules(): ModuleManager {
+    return (this._modules ??= new ModuleManager(this));
+  }
+
+  // ── Auth ────────────────────────────────────────────────────────────
 
   /**
    * Override safety context for this client instance.
@@ -85,6 +129,8 @@ export class OdooClient {
     return this.transport.getSession();
   }
 
+  // ── Safety ──────────────────────────────────────────────────────────
+
   /**
    * Check safety guard for an operation.
    * Throws OdooSafetyError if the operation is blocked.
@@ -99,6 +145,8 @@ export class OdooClient {
       throw new OdooSafetyError(op);
     }
   }
+
+  // ── RPC ─────────────────────────────────────────────────────────────
 
   /**
    * Make a raw RPC call to a model method
@@ -139,6 +187,8 @@ export class OdooClient {
 
     return this.transport.call<T>(model, method, args, kwargs);
   }
+
+  // ── CRUD ────────────────────────────────────────────────────────────
 
   /**
    * Search for records
@@ -267,63 +317,6 @@ export class OdooClient {
    */
   async searchCount(model: string, domain: any[] = []): Promise<number> {
     return this.call<number>(model, 'search_count', [domain]);
-  }
-
-  // ── Chatter / Mail helpers ──────────────────────────────────────────
-  //
-  // Two methods, two intents — no confusion:
-  //   postInternalNote()  → staff-only note (invisible to portal/public)
-  //   postOpenMessage()   → public message visible to ALL followers
-  //
-  // Body is HTML. Plain text is auto-wrapped in <p> tags.
-  // Empty body throws OdooValidationError — it's always a bug.
-
-  /**
-   * Post an internal note on a record's chatter.
-   *
-   * Internal notes are visible ONLY to internal (staff) users.
-   * No email notification is sent. Use for internal communication
-   * that customers/portal users must not see.
-   *
-   * @param model  - Odoo model (must inherit mail.thread)
-   * @param resId  - Record ID to post on
-   * @param body   - HTML string or plain text (auto-wrapped in `<p>`).
-   *                 Example: `'<p>Customer called, wants a <b>callback</b>.</p>'`
-   *                 Example: `'Spoke with warehouse — stock arrives Friday.'`
-   * @param options - Optional: partnerIds to @mention, attachmentIds
-   * @returns Created mail.message ID
-   */
-  async postInternalNote(
-    model: string,
-    resId: number,
-    body: string,
-    options?: PostMessageOptions
-  ): Promise<number> {
-    return _postInternalNote(this, model, resId, body, options);
-  }
-
-  /**
-   * Post an open (public) message on a record's chatter.
-   *
-   * Open messages are visible to ALL followers — including portal users
-   * and external partners. Email notifications ARE sent to followers.
-   * Use for customer-facing communication and public status updates.
-   *
-   * @param model  - Odoo model (must inherit mail.thread)
-   * @param resId  - Record ID to post on
-   * @param body   - HTML string or plain text (auto-wrapped in `<p>`).
-   *                 Example: `'<p>Your order has been shipped.</p>'`
-   *                 Example: `'Payment received. Thank you!'`
-   * @param options - Optional: partnerIds to @mention, attachmentIds
-   * @returns Created mail.message ID
-   */
-  async postOpenMessage(
-    model: string,
-    resId: number,
-    body: string,
-    options?: PostMessageOptions
-  ): Promise<number> {
-    return _postOpenMessage(this, model, resId, body, options);
   }
 
   /**

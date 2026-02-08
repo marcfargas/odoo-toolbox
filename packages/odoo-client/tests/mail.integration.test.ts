@@ -9,7 +9,7 @@
  */
 
 import { OdooClient } from '../src/client/odoo-client';
-import { postInternalNote, postOpenMessage } from '../src/client/mail';
+import { postInternalNote, postOpenMessage } from '../src/services/mail';
 import { OdooValidationError } from '../src/types/errors';
 
 describe('Mail helpers integration', () => {
@@ -101,11 +101,11 @@ describe('Mail helpers integration', () => {
       );
     });
 
-    it('should work via client method too', async () => {
-      const msgId = await client.postInternalNote(
+    it('should work via client.mail accessor', async () => {
+      const msgId = await client.mail.postInternalNote(
         'res.partner',
         partnerId,
-        '<p>Posted via client method.</p>'
+        '<p>Posted via client.mail accessor.</p>'
       );
       cleanup.push({ model: 'mail.message', id: msgId });
 
@@ -161,11 +161,11 @@ describe('Mail helpers integration', () => {
       );
     });
 
-    it('should work via client method too', async () => {
-      const msgId = await client.postOpenMessage(
+    it('should work via client.mail accessor', async () => {
+      const msgId = await client.mail.postOpenMessage(
         'res.partner',
         partnerId,
-        '<p>Posted via client method.</p>'
+        '<p>Posted via client.mail accessor.</p>'
       );
       cleanup.push({ model: 'mail.message', id: msgId });
 

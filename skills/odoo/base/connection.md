@@ -2,41 +2,57 @@
 
 How to establish an authenticated connection to an Odoo instance.
 
-## Overview
+## Quick Start
 
-All Odoo operations require an authenticated connection. The `@odoo-toolbox/client` package provides `OdooClient` for this purpose.
+```typescript
+import { createClient } from '@odoo-toolbox/client';
 
-## Connection Parameters
+const client = await createClient();  // reads ODOO_URL, ODOO_DB, ODOO_USER, ODOO_PASSWORD
+```
 
-| Parameter | Environment Variable | Description |
-|-----------|---------------------|-------------|
-| `url` | `ODOO_URL` | Odoo server URL (e.g., `http://localhost:8069`) |
-| `database` | `ODOO_DB` or `ODOO_DATABASE` | Database name |
-| `username` | `ODOO_USER` or `ODOO_USERNAME` | Login username |
-| `password` | `ODOO_PASSWORD` | User password |
+That's it. `createClient()` reads environment variables, creates the client, and authenticates.
+The returned client is ready to use — including service accessors like `client.mail.*` and `client.modules.*`.
 
-## Finding Credentials
+### Multi-Instance
 
-### Priority Order
+```typescript
+const prod = await createClient('ODOO_PROD');     // reads ODOO_PROD_URL, ODOO_PROD_DB, ...
+const staging = await createClient('ODOO_STG');    // reads ODOO_STG_URL, ODOO_STG_DB, ...
+```
 
-1. **`.odoo.env` file** - Check project root for this file
-2. **Environment variables** - Check system environment
-3. **`CLAUDE.md`** - Project documentation may contain connection info
-4. **Ask the user** - If none found, request credentials
+## Environment Variables
 
-### .odoo.env Format
+| Variable | Description |
+|----------|-------------|
+| `ODOO_URL` | Odoo server URL (e.g., `http://localhost:8069`) |
+| `ODOO_DB` or `ODOO_DATABASE` | Database name |
+| `ODOO_USER` or `ODOO_USERNAME` | Login username |
+| `ODOO_PASSWORD` | User password |
+
+With a prefix (e.g. `createClient('ODOO_PROD')`), all variables use that prefix:
+`ODOO_PROD_URL`, `ODOO_PROD_DB`, `ODOO_PROD_USER`, `ODOO_PROD_PASSWORD`.
+
+### .env File Format
 
 ```bash
-# Odoo Connection Configuration
+# .odoo.env or .env
 ODOO_URL=http://localhost:8069
 ODOO_DB=my_database
 ODOO_USER=admin
 ODOO_PASSWORD=my_secure_password
 ```
 
-> **Security**: Always add `.odoo.env` to `.gitignore`
+> **Security**: Always add `.odoo.env` / `.env` to `.gitignore`
 
-## Basic Connection
+### Finding Credentials
+
+1. **`.odoo.env` file** — check project root
+2. **Environment variables** — check system environment
+3. **Ask the user** — if none found, request credentials
+
+## Manual Connection (Advanced)
+
+If you need control over the lifecycle (custom safety context, deferred auth):
 
 ```typescript testable id="connection-basic" needs="none"
 import { OdooClient } from '@odoo-toolbox/client';
@@ -47,157 +63,91 @@ const client = new OdooClient({
   username: process.env.ODOO_USER || 'admin',
   password: process.env.ODOO_PASSWORD || 'admin',
 });
-
-await client.authenticate();
-console.log('Connected!');
-
-// Always logout when done
-client.logout();
-```
-
-## Connection with Environment Variables
-
-```typescript testable id="connection-session-info" needs="none" expect="result !== null && result.uid > 0"
-import { OdooClient } from '@odoo-toolbox/client';
-
-const client = new OdooClient({
-  url: process.env.ODOO_URL || 'http://localhost:8069',
-  database: process.env.ODOO_DB || 'odoo',
-  username: process.env.ODOO_USER || 'admin',
-  password: process.env.ODOO_PASSWORD || 'admin',
-});
-
 await client.authenticate();
 
-// Get session information
 const session = client.getSession();
+console.log('Connected!');
 console.log(`User ID: ${session?.uid}`);
 console.log(`Database: ${session?.db}`);
 
 client.logout();
-return session; // Return session for testing
 ```
 
-## Error Handling
-
-The client throws specific error types:
-
-| Error Type | Cause |
-|------------|-------|
-| `OdooAuthError` | Invalid username/password or user doesn't exist |
-| `OdooNetworkError` | Cannot reach server, DNS failure, connection refused |
-| `OdooError` | General Odoo errors (permissions, invalid operations) |
+Or with explicit config:
 
 ```typescript
-import {
-  OdooClient,
-  OdooAuthError,
-  OdooNetworkError
-} from '@odoo-toolbox/client';
+import { OdooClient } from '@odoo-toolbox/client';
 
 const client = new OdooClient({
-  url: process.env.ODOO_URL || 'http://localhost:8069',
-  database: process.env.ODOO_DB || 'odoo',
-  username: process.env.ODOO_USER || 'admin',
-  password: process.env.ODOO_PASSWORD || 'admin',
+  url: 'https://odoo.example.com',
+  database: 'production',
+  username: 'admin',
+  password: 'secret',
 });
-
-try {
-  await client.authenticate();
-  // Perform operations...
-} catch (error) {
-  if (error instanceof OdooAuthError) {
-    console.error('Authentication failed - check username/password');
-  } else if (error instanceof OdooNetworkError) {
-    console.error('Cannot reach Odoo - check URL and network');
-  } else {
-    console.error('Unexpected error:', error);
-  }
-} finally {
-  await client.logout();
-}
+await client.authenticate();
 ```
 
 ## Session Information
 
-After authentication, you can access session details:
+After authentication:
 
 ```typescript
 const session = client.getSession();
 
-// Available properties:
 session?.uid        // User ID (number)
 session?.db         // Database name (string)
 session?.username   // Login username (string)
 session?.context    // User context (language, timezone, etc.)
 ```
 
+## Error Handling
+
+| Error Type | Cause |
+|------------|-------|
+| `OdooError` | Missing environment variables in `createClient()`/`configFromEnv()` |
+| `OdooAuthError` | Invalid username/password |
+| `OdooNetworkError` | Cannot reach server |
+
+```typescript
+import { createClient, OdooAuthError, OdooNetworkError, OdooError } from '@odoo-toolbox/client';
+
+try {
+  const client = await createClient();
+  // ... work with Odoo ...
+} catch (error) {
+  if (error instanceof OdooAuthError) {
+    console.error('Authentication failed — check username/password');
+  } else if (error instanceof OdooNetworkError) {
+    console.error('Cannot reach Odoo — check URL and network');
+  } else if (error instanceof OdooError) {
+    console.error('Config error:', error.message); // e.g. missing env vars
+  }
+}
+```
+
 ## Connection Lifecycle
 
 ```
-┌──────────────┐
-│ Create       │  new OdooClient({...})
-│ OdooClient   │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│ Authenticate │  await client.authenticate()
-│              │  → Establishes session
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│ Perform      │  client.search(), client.create(), etc.
-│ Operations   │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│ Logout       │  await client.logout()
-│              │  → Closes session
-└──────────────┘
+createClient()          ← recommended, does everything below in one call
+  ├─ configFromEnv()    ← reads ODOO_* env vars
+  ├─ new OdooClient()   ← creates transport
+  └─ authenticate()     ← establishes session
+
+client.mail.*           ← service accessors (lazy, created on first use)
+client.modules.*
+client.search/read/...  ← core CRUD
+
+client.logout()         ← clean up when done
 ```
 
 ## Important Notes
 
-1. **Always logout** - Clean up sessions to avoid resource leaks
-2. **One database per client** - Create separate clients for different databases
-3. **Session timeout** - Long-running scripts may need re-authentication
-4. **HTTPS in production** - Always use HTTPS for remote connections
-5. **Constructor params** - Use `url` (not `baseUrl`) and `database` (not `db`)
-
-## Proxy / Restricted Environments
-
-In environments where direct HTTP requests are blocked (e.g., Cloudflare Workers, some corporate proxies), `OdooClient` may fail to connect. As a workaround, you can shell out to `curl`:
-
-```typescript
-import { execSync } from 'child_process';
-
-function odooRpc(url: string, db: string, uid: number, password: string,
-  model: string, method: string, args: any[], kwargs: any = {}): any {
-  const payload = {
-    jsonrpc: '2.0', method: 'call', id: 1,
-    params: {
-      service: 'object', method: 'execute_kw',
-      args: [db, uid, password, model, method, args, kwargs],
-    },
-  };
-
-  const result = execSync(
-    `curl -s -X POST "${url}/jsonrpc" -H "Content-Type: application/json" -d '${JSON.stringify(payload)}'`,
-    { encoding: 'utf-8' }
-  );
-
-  const parsed = JSON.parse(result);
-  if (parsed.error) throw new Error(parsed.error.data?.message || parsed.error.message);
-  return parsed.result;
-}
-```
-
-This is a last resort — prefer `OdooClient` for proper session management, error handling, and type safety.
+1. **Always logout** — clean up sessions to avoid resource leaks
+2. **One database per client** — create separate clients for different databases
+3. **Session timeout** — long-running scripts may need re-authentication
+4. **HTTPS in production** — always use HTTPS for remote connections
 
 ## Related Documents
 
-- [field-types.md](./field-types.md) - Understanding Odoo field types
-- [domains.md](./domains.md) - Query filters
+- [field-types.md](./field-types.md) — Understanding Odoo field types
+- [domains.md](./domains.md) — Query filters
