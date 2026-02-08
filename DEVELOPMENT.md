@@ -315,43 +315,123 @@ npm run version
 npm run release
 ```
 
+## Researching Odoo Behavior
+
+When working on Odoo-related features, use introspection to query live instances. Start with introspection to understand the schema, then dive into Odoo source code for behavior.
+
+### Starting the Local Odoo Instance
+
+```bash
+npm run odoo:up
+```
+
+Starts Odoo at `http://localhost:8069` with default credentials (admin/admin).
+
+### Quick Investigation Scripts
+
+```bash
+node -e "
+const { OdooClient } = require('./packages/odoo-client/dist');
+async function main() {
+  const client = new OdooClient({
+    url: 'http://localhost:8069', database: 'odoo',
+    username: 'admin', password: 'admin',
+  });
+  await client.authenticate();
+
+  // Find fields by pattern
+  const fields = await client.searchRead('ir.model.fields',
+    [['name', 'ilike', 'properties']],
+    { fields: ['name', 'model', 'ttype', 'field_description'] }
+  );
+  fields.forEach(f => console.log(f.model + '.' + f.name, '(' + f.ttype + ')'));
+}
+main().catch(e => console.error(e.message));
+"
+```
+
+### Common Investigation Patterns
+
+```javascript
+// List all fields for a model
+await client.searchRead('ir.model.fields',
+  [['model', '=', 'project.task']],
+  { fields: ['name', 'ttype', 'field_description', 'required', 'readonly'] }
+);
+
+// Check installed modules
+await client.searchRead('ir.module.module',
+  [['state', '=', 'installed']], { fields: ['name', 'shortdesc'] }
+);
+
+// Find models from a specific module
+await client.searchRead('ir.model',
+  [['modules', 'ilike', 'project']], { fields: ['model', 'name'] }
+);
+```
+
+### Adding OCA Modules for Introspection
+
+```bash
+# 1. Clone to test-addons/
+cd test-addons
+git clone --depth 1 -b 17.0 https://github.com/OCA/<repo-name>.git
+
+# 2. Restart Docker (auto-discovers new addons via docker/odoo-entrypoint.sh)
+npm run odoo:down && npm run odoo:up
+
+# 3. Install the modules
+npm run odoo:addon:install <module_name>
+```
+
+Common OCA repos: `mis-builder`, `reporting-engine`, `server-ux`, `project`, `hr`, `l10n-spain`.
+
+## Writing Knowledge Modules
+
+Knowledge modules live in `skills/`. Code examples annotated with `testable` are extracted and run against real Odoo in CI.
+
+### Testable Code Block Format
+
+````markdown
+```typescript testable id="unique-id" needs="client" expect="result.count > 0"
+const models = await client.searchRead('ir.model', [], { fields: ['model'], limit: 5 });
+return { count: models.length };
+```
+````
+
+- `id`: Unique identifier for the test
+- `needs`: Dependencies (`client`, `introspector`, etc.)
+- `expect`: Optional assertion expression evaluated against the return value
+- `skip`: Optional reason to skip (e.g., `skip="requires project module"`)
+
+### Adding a New Module
+
+1. Create `skills/<category>/<name>.md`
+2. Add `testable` code blocks for CI validation
+3. Register in `skills/SKILL.md`
+4. Run: `npm run test:create-skills` (needs Docker Odoo for integration tests)
+
 ## Contributing
 
-This is designed as a FOSS project. Code should be:
-- Well-typed
-- Tested
-- Documented (especially Odoo source references!)
-- Following the project's design principles
-
-See [AGENTS.md](./AGENTS.md) for implementation patterns and Odoo-specific knowledge.
+Code should be well-typed, tested, and documented (especially Odoo source references). See [AGENTS.md](./AGENTS.md) for coding conventions and package architecture.
 
 ## Documentation & Examples
 
 | Document | Audience | Purpose |
 |----------|----------|---------|
-| [packages/create-skills/assets/](./packages/create-skills/assets/) | AI Agents | Tested examples and knowledge base for Odoo patterns |
-| [packages/odoo-client/examples](./packages/odoo-client/examples/) | Users | Client examples: connection, CRUD, search, context, modules |
-| [packages/odoo-introspection/examples](./packages/odoo-introspection/examples/) | Users | Introspection examples: schema discovery, type generation |
-| [packages/odoo-state-manager/examples](./packages/odoo-state-manager/examples/) | Users | State manager examples: drift detection, plan/apply |
-| [AGENTS.md](./AGENTS.md) | AI Assistants | Coding patterns, Odoo knowledge |
-| [ROADMAP.md](./ROADMAP.md) | All | Future vision and design decisions |
-| [TODO.md](./TODO.md) | Contributors | Implementation tasks |
+| [skills/](./skills/) | AI Agents | Tested Odoo knowledge modules |
+| [packages/odoo-client/examples](./packages/odoo-client/examples/) | Users | Client examples |
+| [packages/odoo-introspection/examples](./packages/odoo-introspection/examples/) | Users | Introspection examples |
+| [AGENTS.md](./AGENTS.md) | AI Assistants | Coding conventions, architecture |
+| [ROADMAP.md](./ROADMAP.md) | All | Future plans |
 
 ## Resources
 
-- [AGENTS.md](./AGENTS.md) - Coding patterns and Odoo knowledge
+- [AGENTS.md](./AGENTS.md) - Coding conventions and architecture
 - [ROADMAP.md](./ROADMAP.md) - Project roadmap
 - [Odoo Source Code](https://github.com/odoo/odoo/tree/17.0)
-- [OCA Guidelines](https://github.com/OCA/odoo-community.org)
-
-## Getting Help
-
-- Check existing issues and discussions
-- Ask in PRs or issues for architecture questions
-- Reference AGENTS.md for implementation patterns
-- Search Odoo source code for behavior explanations
+- [OCA Repos](https://github.com/OCA)
 
 ---
 
-**Status**: Early Development - APIs will change
 **Node.js**: 18+ | **TypeScript**: 5.0+ | **Odoo**: v17 (v14+ planned)
