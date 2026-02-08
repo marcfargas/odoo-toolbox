@@ -53,3 +53,6 @@ test-addons/*/
 
 # Pi agent config (local, not tracked)
 .pi/
+
+# Experiments and design reviews (local)
+experiments/
