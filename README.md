@@ -6,20 +6,20 @@
 
 ## Knowledge Modules
 
-The [`skills/`](./skills/) directory contains the core product — progressive, tested documentation that AI agents load on demand:
+The [`skills/odoo/`](./skills/odoo/) directory contains the core product — progressive, tested documentation that AI agents load on demand:
 
 | Module | What it teaches |
 |--------|-----------------|
-| [connection](./skills/base/connection.md) | Authentication and session management |
-| [field-types](./skills/base/field-types.md) | Odoo type system and read/write asymmetry |
-| [domains](./skills/base/domains.md) | Query filter syntax and composition |
-| [crud](./skills/base/crud.md) | Create, Read, Update, Delete operations |
-| [search](./skills/base/search.md) | Search and filtering patterns |
-| [introspection](./skills/base/introspection.md) | Discover models and fields dynamically |
-| [properties](./skills/base/properties.md) | Dynamic user-defined fields |
-| [modules](./skills/base/modules.md) | Module lifecycle management |
+| [connection](./skills/odoo/base/connection.md) | Authentication and session management |
+| [field-types](./skills/odoo/base/field-types.md) | Odoo type system and read/write asymmetry |
+| [domains](./skills/odoo/base/domains.md) | Query filter syntax and composition |
+| [crud](./skills/odoo/base/crud.md) | Create, Read, Update, Delete operations |
+| [search](./skills/odoo/base/search.md) | Search and filtering patterns |
+| [introspection](./skills/odoo/base/introspection.md) | Discover models and fields dynamically |
+| [properties](./skills/odoo/base/properties.md) | Dynamic user-defined fields |
+| [modules](./skills/odoo/base/modules.md) | Module lifecycle management |
 
-Plus: [mail system](./skills/mail/) (chatter, activities, discuss), [timesheets](./skills/modules/timesheets.md), [MIS Builder](./skills/oca/mis-builder.md).
+Plus: [mail system](./skills/odoo/mail/) (chatter, activities, discuss), [timesheets](./skills/odoo/modules/timesheets.md), [MIS Builder](./skills/odoo/oca/mis-builder.md).
 
 All code examples are **extracted and tested against real Odoo v17** in CI.
 
@@ -71,4 +71,4 @@ See [AGENTS.md](./AGENTS.md) for AI assistant coding conventions.
 ## License
 
 - **Code**: LGPL-3.0 — see [LICENSE](./LICENSE)
-- **Knowledge modules** (`skills/`): [CC-BY-4.0](./skills/LICENSE)
+- **Knowledge modules** (`skills/odoo/`): [CC-BY-4.0](./skills/odoo/LICENSE)

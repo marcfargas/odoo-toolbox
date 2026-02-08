@@ -10,7 +10,7 @@ This package helps you create skill projects that teach AI agents (like Claude C
 - **Tested examples** - Battle-tested code examples for common Odoo patterns
 - **Progressive learning** - Base knowledge modules that build on each other
 
-The knowledge modules live at the repository root in [`skills/`](../../skills/) and are copied into scaffolded projects by this CLI.
+The knowledge modules live at the repository root in [`skills/odoo/`](../../skills/odoo/) and are copied into scaffolded projects by this CLI.
 
 ## Installation
 
@@ -78,7 +78,7 @@ Open your skill project in Claude Code. Ask Claude to:
 
 ## Knowledge Modules
 
-The `skills/` directory at the repository root contains tested and validated documentation for Odoo patterns. All code examples are **tested against real Odoo instances** in CI. See [`skills/SKILL.md`](../../skills/SKILL.md) for the full module index.
+The `skills/odoo/` directory at the repository root contains tested and validated documentation for Odoo patterns. All code examples are **tested against real Odoo instances** in CI. See [`skills/odoo/SKILL.md`](../../skills/odoo/SKILL.md) for the full module index.
 
 ## Related Packages
 
@@ -89,4 +89,4 @@ The `skills/` directory at the repository root contains tested and validated doc
 ## License
 
 - **Code**: LGPL-3.0
-- **Skills content** (knowledge modules): [CC-BY-4.0](../../skills/LICENSE)
+- **Skills content** (knowledge modules): [CC-BY-4.0](../../skills/odoo/LICENSE)

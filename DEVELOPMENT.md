@@ -388,7 +388,7 @@ Common OCA repos: `mis-builder`, `reporting-engine`, `server-ux`, `project`, `hr
 
 ## Writing Knowledge Modules
 
-Knowledge modules live in `skills/`. Code examples annotated with `testable` are extracted and run against real Odoo in CI.
+Knowledge modules live in `skills/odoo/`. Code examples annotated with `testable` are extracted and run against real Odoo in CI.
 
 ### Testable Code Block Format
 
@@ -406,9 +406,9 @@ return { count: models.length };
 
 ### Adding a New Module
 
-1. Create `skills/<category>/<name>.md`
+1. Create `skills/odoo/<category>/<name>.md`
 2. Add `testable` code blocks for CI validation
-3. Register in `skills/SKILL.md`
+3. Register in `skills/odoo/SKILL.md`
 4. Run: `npm run test:create-skills` (needs Docker Odoo for integration tests)
 
 ## Contributing
@@ -419,7 +419,7 @@ Code should be well-typed, tested, and documented (especially Odoo source refere
 
 | Document | Audience | Purpose |
 |----------|----------|---------|
-| [skills/](./skills/) | AI Agents | Tested Odoo knowledge modules |
+| [skills/odoo/](./skills/odoo/) | AI Agents | Tested Odoo knowledge modules |
 | [packages/odoo-client/examples](./packages/odoo-client/examples/) | Users | Client examples |
 | [packages/odoo-introspection/examples](./packages/odoo-introspection/examples/) | Users | Introspection examples |
 | [AGENTS.md](./AGENTS.md) | AI Assistants | Coding conventions, architecture |

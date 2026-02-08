@@ -8,24 +8,24 @@ Guidelines for AI coding assistants working on the odoo-toolbox project.
 
 ## Odoo Knowledge Base
 
-The `skills/` directory contains **5,200+ lines of tested Odoo reference documentation** (CC-BY-4.0). Code examples are validated against real Odoo v17 in CI.
+The `skills/odoo/` directory contains **5,200+ lines of tested Odoo reference documentation** (CC-BY-4.0). Code examples are validated against real Odoo v17 in CI.
 
 **Before implementing any Odoo-specific code, read the relevant skill module:**
 
 | When working on... | Read |
 |---------------------|------|
-| RPC / authentication | `skills/base/connection.md` |
-| Field handling | `skills/base/field-types.md` |
-| Properties (dynamic fields) | `skills/base/properties.md` |
-| Query filters | `skills/base/domains.md` |
-| CRUD operations | `skills/base/crud.md` |
-| Search patterns | `skills/base/search.md` |
-| Schema discovery | `skills/base/introspection.md` |
-| Module management | `skills/base/modules.md` |
-| Writing new skills | `skills/base/skill-generation.md` |
+| RPC / authentication | `skills/odoo/base/connection.md` |
+| Field handling | `skills/odoo/base/field-types.md` |
+| Properties (dynamic fields) | `skills/odoo/base/properties.md` |
+| Query filters | `skills/odoo/base/domains.md` |
+| CRUD operations | `skills/odoo/base/crud.md` |
+| Search patterns | `skills/odoo/base/search.md` |
+| Schema discovery | `skills/odoo/base/introspection.md` |
+| Module management | `skills/odoo/base/modules.md` |
+| Writing new skills | `skills/odoo/base/skill-generation.md` |
 
-Mail system: `skills/mail/{chatter,activities,discuss}.md`
-Module-specific: `skills/modules/timesheets.md`, `skills/oca/mis-builder.md`
+Mail system: `skills/odoo/mail/{chatter,activities,discuss}.md`
+Module-specific: `skills/odoo/modules/timesheets.md`, `skills/odoo/oca/mis-builder.md`
 
 ## Package Architecture
 
@@ -33,14 +33,14 @@ Module-specific: `skills/modules/timesheets.md`, `skills/oca/mis-builder.md`
 |---------|----------------|--------|
 | `@odoo-toolbox/client` | RPC client, business logic, services | Active |
 | `@odoo-toolbox/introspection` | Schema discovery, TypeScript codegen | Active |
-| `@odoo-toolbox/create-skills` | CLI to scaffold skill projects (reads from `skills/`) | Active |
+| `@odoo-toolbox/create-skills` | CLI to scaffold skill projects (reads from `skills/odoo/`) | Active |
 | `@odoo-toolbox/state-manager` | Drift detection, plan/apply workflow | Experimental |
 
 ### When Adding New Functionality
 
 1. **Business logic** → `odoo-client` (services for mail, activities, properties, modules, etc.)
 2. **Schema/type generation** → `odoo-introspection`
-3. **Odoo knowledge** → `skills/` (markdown modules with testable code blocks)
+3. **Odoo knowledge** → `skills/odoo/` (markdown modules with testable code blocks)
 4. **API consumers** (scripts, CLIs) should use client services
 
 ### Anti-patterns
@@ -124,7 +124,7 @@ See [DEVELOPMENT.md](./DEVELOPMENT.md) for Docker setup, introspection research 
 
 ## Resources
 
-- **Odoo Knowledge**: `skills/` directory (read SKILL.md for index)
+- **Odoo Knowledge**: `skills/odoo/` directory (read SKILL.md for index)
 - **Setup & Contributing**: [DEVELOPMENT.md](./DEVELOPMENT.md)
 - **Roadmap**: [ROADMAP.md](./ROADMAP.md)
 - **Odoo Source**: https://github.com/odoo/odoo/tree/17.0

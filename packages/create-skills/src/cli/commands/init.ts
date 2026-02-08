@@ -59,15 +59,15 @@ function copyDirRecursive(src: string, dest: string, projectName: string): void 
 }
 
 /**
- * Find the skills/ directory by walking up from the compiled JS location.
- * In development: packages/create-skills/dist/cli/commands/ → skills/
+ * Find the skills/odoo/ directory by walking up from the compiled JS location.
+ * In development: packages/create-skills/dist/cli/commands/ → skills/odoo/
  * When published: the skills/ dir must be bundled alongside the package.
  */
 function findSkillsDir(): string | null {
-  // Walk up from __dirname looking for skills/ with a SKILL.md entry point
+  // Walk up from __dirname looking for skills/odoo/ with a SKILL.md entry point
   let dir = path.resolve(__dirname);
   for (let i = 0; i < 10; i++) {
-    const candidate = path.join(dir, 'skills');
+    const candidate = path.join(dir, 'skills', 'odoo');
     if (fs.existsSync(candidate) && fs.existsSync(path.join(candidate, 'SKILL.md'))) {
       return candidate;
     }
@@ -92,15 +92,15 @@ export async function initCommand(projectName: string, options: InitOptions): Pr
   // Create project root
   fs.mkdirSync(projectPath, { recursive: true });
 
-  // Find skills/ directory (top-level in monorepo)
+  // Find skills/odoo/ directory (top-level in monorepo)
   const skillsDir = findSkillsDir();
 
   if (!skillsDir) {
-    console.error('Error: skills/ directory not found');
+    console.error('Error: skills/odoo/ directory not found');
     process.exit(1);
   }
 
-  // Copy skills/ content to project root
+  // Copy skills/odoo/ content to project root
   const entries = fs.readdirSync(skillsDir, { withFileTypes: true });
 
   for (const entry of entries) {
@@ -116,7 +116,7 @@ export async function initCommand(projectName: string, options: InitOptions): Pr
     }
   }
 
-  console.log('✓ Copied skill modules from skills/');
+  console.log('✓ Copied skill modules from skills/odoo/');
 
   // Create skills directory (for user-generated skills)
   fs.mkdirSync(path.join(projectPath, 'skills'), { recursive: true });
