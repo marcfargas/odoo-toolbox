@@ -1,8 +1,8 @@
 /**
  * Init command - Create new skills project
  *
- * Copies ALL content from assets/ to create a complete skills project.
- * The assets/initial/ directory contents are merged into the project root.
+ * Copies content from the top-level skills/ directory to create a
+ * complete skills project for AI agents.
  */
 
 import * as fs from 'fs';
@@ -19,11 +19,10 @@ interface InitOptions {
 const PLACEHOLDER_FILES = new Set(['SKILL.md', 'README.md']);
 
 /**
- * Directory name mappings (source → destination)
+ * Files/directories to skip when copying skills/ to a new project
+ * (LICENSE is included separately as part of the project structure)
  */
-const DIR_MAPPINGS: Record<string, string> = {
-  'oca-modules': 'modules',
-};
+const SKIP_FILES = new Set(['LICENSE']);
 
 /**
  * Copy a file, optionally with placeholder substitution
@@ -49,9 +48,7 @@ function copyDirRecursive(src: string, dest: string, projectName: string): void 
   const entries = fs.readdirSync(src, { withFileTypes: true });
   for (const entry of entries) {
     const srcPath = path.join(src, entry.name);
-    // Apply directory mapping if exists
-    const destName = DIR_MAPPINGS[entry.name] || entry.name;
-    const destPath = path.join(dest, destName);
+    const destPath = path.join(dest, entry.name);
 
     if (entry.isDirectory()) {
       copyDirRecursive(srcPath, destPath, projectName);
@@ -59,6 +56,26 @@ function copyDirRecursive(src: string, dest: string, projectName: string): void 
       copyFile(srcPath, destPath, projectName);
     }
   }
+}
+
+/**
+ * Find the skills/ directory by walking up from the compiled JS location.
+ * In development: packages/create-skills/dist/cli/commands/ → skills/
+ * When published: the skills/ dir must be bundled alongside the package.
+ */
+function findSkillsDir(): string | null {
+  // Walk up from __dirname looking for skills/ with a SKILL.md entry point
+  let dir = path.resolve(__dirname);
+  for (let i = 0; i < 10; i++) {
+    const candidate = path.join(dir, 'skills');
+    if (fs.existsSync(candidate) && fs.existsSync(path.join(candidate, 'SKILL.md'))) {
+      return candidate;
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return null;
 }
 
 export async function initCommand(projectName: string, options: InitOptions): Promise<void> {
@@ -75,47 +92,31 @@ export async function initCommand(projectName: string, options: InitOptions): Pr
   // Create project root
   fs.mkdirSync(projectPath, { recursive: true });
 
-  // Path to assets directory (relative to compiled JS location)
-  const assetsDir = path.resolve(__dirname, '..', '..', '..', 'assets');
+  // Find skills/ directory (top-level in monorepo)
+  const skillsDir = findSkillsDir();
 
-  if (!fs.existsSync(assetsDir)) {
-    console.error('Error: assets directory not found');
+  if (!skillsDir) {
+    console.error('Error: skills/ directory not found');
     process.exit(1);
   }
 
-  // Copy ALL content from assets/ to project
-  const entries = fs.readdirSync(assetsDir, { withFileTypes: true });
+  // Copy skills/ content to project root
+  const entries = fs.readdirSync(skillsDir, { withFileTypes: true });
 
   for (const entry of entries) {
-    const srcPath = path.join(assetsDir, entry.name);
+    if (SKIP_FILES.has(entry.name)) continue;
+
+    const srcPath = path.join(skillsDir, entry.name);
+    const destPath = path.join(projectPath, entry.name);
 
     if (entry.isDirectory()) {
-      if (entry.name === 'initial') {
-        // Special case: initial/ contents are merged into project root
-        const initialEntries = fs.readdirSync(srcPath, { withFileTypes: true });
-        for (const initialEntry of initialEntries) {
-          const initialSrcPath = path.join(srcPath, initialEntry.name);
-          const destName = DIR_MAPPINGS[initialEntry.name] || initialEntry.name;
-          const destPath = path.join(projectPath, destName);
-
-          if (initialEntry.isDirectory()) {
-            copyDirRecursive(initialSrcPath, destPath, projectName);
-          } else {
-            copyFile(initialSrcPath, destPath, projectName);
-          }
-        }
-      } else {
-        // Regular directory: copy as-is
-        const destName = DIR_MAPPINGS[entry.name] || entry.name;
-        copyDirRecursive(srcPath, path.join(projectPath, destName), projectName);
-      }
+      copyDirRecursive(srcPath, destPath, projectName);
     } else {
-      // Regular file: copy to project root
-      copyFile(srcPath, path.join(projectPath, entry.name), projectName);
+      copyFile(srcPath, destPath, projectName);
     }
   }
 
-  console.log('✓ Copied skill modules from assets/');
+  console.log('✓ Copied skill modules from skills/');
 
   // Create skills directory (for user-generated skills)
   fs.mkdirSync(path.join(projectPath, 'skills'), { recursive: true });

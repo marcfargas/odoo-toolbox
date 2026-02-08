@@ -3,7 +3,7 @@
  *
  * This test validates the CLI creates projects correctly:
  * 1. Use CLI to create a skills project
- * 2. Verify all files and modules are present (matching assets/)
+ * 2. Verify all files and modules are present (matching skills/)
  * 3. Run validation command
  * 4. Verify template content
  */
@@ -19,7 +19,7 @@ describe('E2E: Skill Creator Workflow', () => {
   let projectDir: string;
 
   const cliPath = path.resolve(__dirname, '..', 'dist', 'cli', 'cli.js');
-  const assetsDir = path.resolve(__dirname, '..', 'assets');
+  const skillsDir = path.resolve(__dirname, '..', '..', '..', 'skills');
 
   beforeAll(() => {
     // Create temp workspace
@@ -43,7 +43,7 @@ describe('E2E: Skill Creator Workflow', () => {
       });
 
       expect(result).toContain('Creating Odoo skills project');
-      expect(result).toContain('Copied skill modules from assets');
+      expect(result).toContain('Copied skill modules from skills');
       expect(fs.existsSync(projectDir)).toBe(true);
     });
 
@@ -63,14 +63,14 @@ describe('E2E: Skill Creator Workflow', () => {
       }
     });
 
-    it('should have all base modules from assets', () => {
-      const assetsBase = path.join(assetsDir, 'initial', 'base');
+    it('should have all base modules from skills', () => {
+      const skillsBase = path.join(skillsDir, 'base');
       const projectBase = path.join(projectDir, 'base');
 
       expect(fs.existsSync(projectBase)).toBe(true);
 
-      // Dynamically get modules from assets/initial/base
-      const assetModules = fs.readdirSync(assetsBase).filter((f) => f.endsWith('.md'));
+      // Dynamically get modules from skills/base
+      const assetModules = fs.readdirSync(skillsBase).filter((f) => f.endsWith('.md'));
 
       expect(assetModules.length).toBeGreaterThan(0);
 

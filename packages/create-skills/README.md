@@ -10,6 +10,8 @@ This package helps you create skill projects that teach AI agents (like Claude C
 - **Tested examples** - Battle-tested code examples for common Odoo patterns
 - **Progressive learning** - Base knowledge modules that build on each other
 
+The knowledge modules live at the repository root in [`skills/`](../../skills/) and are copied into scaffolded projects by this CLI.
+
 ## Installation
 
 ```bash
@@ -48,6 +50,14 @@ my-project/
 │   ├── modules.md
 │   ├── introspection.md
 │   └── skill-generation.md
+├── mail/             # Mail system modules
+│   ├── chatter.md
+│   ├── activities.md
+│   └── discuss.md
+├── modules/          # Module-specific skills
+│   └── timesheets.md
+├── oca/              # OCA module skills
+│   └── mis-builder.md
 └── skills/           # Your instance-specific skills (you create these)
 ```
 
@@ -66,23 +76,9 @@ Open your skill project in Claude Code. Ask Claude to:
 - "Introspect the crm.lead model"
 - "Generate a skill for creating sales orders"
 
-## Base Knowledge Modules
+## Knowledge Modules
 
-The `base/` directory contains tested and validated documentation for Odoo patterns:
-
-| Module | Purpose |
-|--------|---------|
-| `connection.md` | Authentication and session management |
-| `field-types.md` | Odoo type system and read/write asymmetry |
-| `domains.md` | Query filter syntax and composition |
-| `crud.md` | Create, Read, Update, Delete operations |
-| `search.md` | Search and filtering patterns |
-| `properties.md` | Dynamic user-defined fields |
-| `modules.md` | Module lifecycle management |
-| `introspection.md` | Model and field discovery |
-| `skill-generation.md` | Creating instance-specific skills |
-
-All code examples in these modules are **tested against real Odoo instances** in our CI pipeline.
+The `skills/` directory at the repository root contains tested and validated documentation for Odoo patterns. All code examples are **tested against real Odoo instances** in CI. See [`skills/SKILL.md`](../../skills/SKILL.md) for the full module index.
 
 ## Related Packages
 
@@ -93,4 +89,4 @@ All code examples in these modules are **tested against real Odoo instances** in
 ## License
 
 - **Code**: LGPL-3.0
-- **Assets** (skill templates, documentation): [CC-BY-4.0](assets/LICENSE)
+- **Skills content** (knowledge modules): [CC-BY-4.0](../../skills/LICENSE)
