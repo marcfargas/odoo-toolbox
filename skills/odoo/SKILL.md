@@ -38,7 +38,7 @@ Skills for Odoo's mail system. Load by reading `mail/{name}.md`:
 | activities | Schedule and manage activities/tasks |
 | discuss | Chat channels and direct messages |
 
-**Note:** The mail module is part of base Odoo and is typically always installed.
+**Note:** The `mail` module is part of base Odoo and is typically always installed.
 
 ## Version-Specific Notes
 

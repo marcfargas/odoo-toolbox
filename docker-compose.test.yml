@@ -26,7 +26,7 @@ services:
         condition: service_healthy
     # Use custom entrypoint to auto-discover addons in /mnt/oca
     entrypoint: ["/mnt/docker/odoo-entrypoint.sh"]
-    command: ["--database", "odoo", "--init", "base", "--without-demo", "all"]
+    command: ["--database", "odoo", "--init", "base,mail", "--without-demo", "all"]
     environment:
       HOST: postgres
       USER: admin

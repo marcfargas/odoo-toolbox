@@ -14,6 +14,11 @@ import {
   inferSafetyLevel,
   resolveSafetyContext,
 } from '../safety';
+import {
+  postInternalNote as _postInternalNote,
+  postOpenMessage as _postOpenMessage,
+  type PostMessageOptions,
+} from './mail';
 
 export interface OdooClientConfig {
   url: string;
@@ -262,6 +267,63 @@ export class OdooClient {
    */
   async searchCount(model: string, domain: any[] = []): Promise<number> {
     return this.call<number>(model, 'search_count', [domain]);
+  }
+
+  // ── Chatter / Mail helpers ──────────────────────────────────────────
+  //
+  // Two methods, two intents — no confusion:
+  //   postInternalNote()  → staff-only note (invisible to portal/public)
+  //   postOpenMessage()   → public message visible to ALL followers
+  //
+  // Body is HTML. Plain text is auto-wrapped in <p> tags.
+  // Empty body throws OdooValidationError — it's always a bug.
+
+  /**
+   * Post an internal note on a record's chatter.
+   *
+   * Internal notes are visible ONLY to internal (staff) users.
+   * No email notification is sent. Use for internal communication
+   * that customers/portal users must not see.
+   *
+   * @param model  - Odoo model (must inherit mail.thread)
+   * @param resId  - Record ID to post on
+   * @param body   - HTML string or plain text (auto-wrapped in `<p>`).
+   *                 Example: `'<p>Customer called, wants a <b>callback</b>.</p>'`
+   *                 Example: `'Spoke with warehouse — stock arrives Friday.'`
+   * @param options - Optional: partnerIds to @mention, attachmentIds
+   * @returns Created mail.message ID
+   */
+  async postInternalNote(
+    model: string,
+    resId: number,
+    body: string,
+    options?: PostMessageOptions
+  ): Promise<number> {
+    return _postInternalNote(this, model, resId, body, options);
+  }
+
+  /**
+   * Post an open (public) message on a record's chatter.
+   *
+   * Open messages are visible to ALL followers — including portal users
+   * and external partners. Email notifications ARE sent to followers.
+   * Use for customer-facing communication and public status updates.
+   *
+   * @param model  - Odoo model (must inherit mail.thread)
+   * @param resId  - Record ID to post on
+   * @param body   - HTML string or plain text (auto-wrapped in `<p>`).
+   *                 Example: `'<p>Your order has been shipped.</p>'`
+   *                 Example: `'Payment received. Thank you!'`
+   * @param options - Optional: partnerIds to @mention, attachmentIds
+   * @returns Created mail.message ID
+   */
+  async postOpenMessage(
+    model: string,
+    resId: number,
+    body: string,
+    options?: PostMessageOptions
+  ): Promise<number> {
+    return _postOpenMessage(this, model, resId, body, options);
   }
 
   /**
