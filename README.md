@@ -8,7 +8,7 @@
 
 ### Option 1: Download Pre-built Skills
 
-Download `odoo-skills.zip` from the [latest CI build](https://github.com/telenieko/odoo-toolbox/actions) (look for the "odoo-skills" artifact).
+Download `odoo-skills.zip` from the [latest CI build](https://github.com/marcfargas/odoo-toolbox/actions) (look for the "odoo-skills" artifact).
 
 Extract and configure:
 

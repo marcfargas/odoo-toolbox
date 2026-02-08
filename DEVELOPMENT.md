@@ -22,7 +22,7 @@ This project follows a batteries-included philosophy:
 ### Installation
 
 ```bash
-git clone https://github.com/telenieko/odoo-toolbox.git
+git clone https://github.com/marcfargas/odoo-toolbox.git
 cd odoo-toolbox
 npm install
 ```
@@ -284,7 +284,7 @@ Output: `dist/odoo-skills.zip`
 
 ### CI Artifacts
 
-Every CI run builds and uploads `odoo-skills.zip` as an artifact. Download from the [Actions tab](https://github.com/telenieko/odoo-toolbox/actions).
+Every CI run builds and uploads `odoo-skills.zip` as an artifact. Download from the [Actions tab](https://github.com/marcfargas/odoo-toolbox/actions).
 
 ## Publishing a New Release
 

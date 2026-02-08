@@ -5,7 +5,7 @@
   "description": "TypeScript infrastructure-as-code toolkit for Odoo ERP",
   "repository": {
     "type": "git",
-    "url": "https://github.com/telenieko/odoo-toolbox.git"
+    "url": "https://github.com/marcfargas/odoo-toolbox.git"
   },
   "keywords": [
     "odoo",
