@@ -73,20 +73,6 @@ console.log(`Database: ${session?.db}`);
 client.logout();
 ```
 
-Or with explicit config:
-
-```typescript
-import { OdooClient } from '@odoo-toolbox/client';
-
-const client = new OdooClient({
-  url: 'https://odoo.example.com',
-  database: 'production',
-  username: 'admin',
-  password: 'secret',
-});
-await client.authenticate();
-```
-
 ## Session Information
 
 After authentication:

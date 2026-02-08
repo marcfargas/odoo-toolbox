@@ -8,7 +8,7 @@ Post messages and notes on any Odoo record that has a chatter (mail.thread mixin
 - Target model must inherit from `mail.thread` mixin
 - Module: **mail** (typically always installed in any Odoo instance)
 
-## Posting Messages — Use the Helpers
+## Posting Messages — Use the Service Accessor
 
 Two functions, two intents — **no confusion possible**:
 

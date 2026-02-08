@@ -79,11 +79,11 @@ const id = await client.create('res.partner', {
 });
 trackRecord('res.partner', id);
 
-// searchCount via call method (efficient counting)
-const count = await client.call('res.partner', 'search_count', [[
+// searchCount — efficient counting without fetching data
+const count = await client.searchCount('res.partner', [
   ['is_company', '=', true],
   ['id', '=', id]
-]]);
+]);
 
 return { count };
 ```
@@ -422,6 +422,6 @@ const results = await fullTextSearch(
 
 ## Related Documents
 
-- [domains.md](../01-fundamentals/domains.md) - Domain syntax reference
-- [crud-operations.md](./crud-operations.md) - CRUD patterns
-- [field-types.md](../01-fundamentals/field-types.md) - Field types
+- [domains.md](./domains.md) - Domain syntax reference
+- [crud.md](./crud.md) - CRUD patterns
+- [field-types.md](./field-types.md) - Field types

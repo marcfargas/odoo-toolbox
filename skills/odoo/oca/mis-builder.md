@@ -308,9 +308,9 @@ try {
 
 ## Related Documents
 
-- [modules.md](./modules.md) - Module management
-- [introspection.md](./introspection.md) - Model discovery
-- [search.md](./search.md) - Searching records
+- [modules.md](../base/modules.md) - Module management
+- [introspection.md](../base/introspection.md) - Model discovery
+- [search.md](../base/search.md) - Searching records
 
 ## Source References
 

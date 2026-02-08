@@ -157,6 +157,10 @@ return { channelId };
 
 ## Posting to a Channel
 
+> **Note**: Channel messaging uses `message_post` RPC (not `client.mail.*`). The `client.mail` service accessor
+> is for chatter on records (CRM leads, partners, etc.). For Discuss channels, `message_post` works reliably
+> because channels handle it differently than chatter records. See [chatter.md](./chatter.md) for record messaging.
+
 ```typescript testable id="discuss-post-message" needs="client" creates="discuss.channel,mail.message" expect="result.messageId > 0"
 // Detect the correct model
 const discussExists = await client.call('ir.model', 'search_count', [[
@@ -390,8 +394,9 @@ const channelId = await client.create(channelModel, {
 trackRecord(channelModel, channelId);
 
 // Get current user's partner ID
+const session = client.getSession();
 const [currentUser] = await client.searchRead('res.users', [
-  ['id', '=', (await client.call('res.users', 'browse', [[]])).id || 2]
+  ['id', '=', session?.uid]
 ], { fields: ['partner_id'], limit: 1 });
 
 // Alternative: Get membership status directly

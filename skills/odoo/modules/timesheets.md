@@ -40,13 +40,10 @@ The `hr_timesheet` module allows employees to log time spent on projects and tas
 ## Checking Module Installation
 
 ```typescript testable id="timesheets-check-module" needs="client" expect="result.installed === true"
-// Check if hr_timesheet module is installed
-const modules = await client.searchRead('ir.module.module', [
-  ['name', '=', 'hr_timesheet'],
-  ['state', '=', 'installed']
-], { fields: ['name', 'state'], limit: 1 });
+// Check if hr_timesheet module is installed via service accessor
+const installed = await client.modules.isModuleInstalled('hr_timesheet');
 
-return { installed: modules.length > 0 };
+return { installed };
 ```
 
 ## Creating Timesheet Entries
@@ -64,8 +61,9 @@ if (!project) {
 }
 
 // Get current user's employee
+const session = client.getSession();
 const [employee] = await client.searchRead('hr.employee', [
-  ['user_id', '=', client.uid]
+  ['user_id', '=', session?.uid]
 ], { fields: ['id', 'name'], limit: 1 });
 
 // Create timesheet entry
@@ -151,8 +149,9 @@ return {
 
 ```typescript testable id="timesheets-read-by-employee" needs="client" expect="result.success === true"
 // Get current user's employee
+const session = client.getSession();
 const [employee] = await client.searchRead('hr.employee', [
-  ['user_id', '=', client.uid]
+  ['user_id', '=', session?.uid]
 ], { fields: ['id', 'name'], limit: 1 });
 
 if (!employee) {

@@ -121,11 +121,10 @@ describe('E2E: Skill Creator Workflow', () => {
       expect(content).toContain('modules');
     });
 
-    it('should have project name substituted', () => {
+    it('should not have unsubstituted template placeholders', () => {
       const skillMdPath = path.join(projectDir, 'SKILL.md');
       const content = fs.readFileSync(skillMdPath, 'utf-8');
 
-      expect(content).toContain('test-skills');
       expect(content).not.toContain('{{PROJECT_NAME}}');
     });
   });

@@ -416,7 +416,7 @@ try {
 
 ## Related Documents
 
-- [field-types.md](../01-fundamentals/field-types.md) - Field types and behaviors
-- [domains.md](../01-fundamentals/domains.md) - Filtering records
-- [search-patterns.md](./search-patterns.md) - Search patterns
+- [field-types.md](./field-types.md) - Field types and behaviors
+- [domains.md](./domains.md) - Filtering records
+- [search.md](./search.md) - Search patterns
 - [properties.md](./properties.md) - Properties fields

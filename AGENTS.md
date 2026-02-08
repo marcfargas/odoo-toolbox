@@ -43,7 +43,7 @@ Module-specific: `skills/odoo/modules/timesheets.md`, `skills/odoo/oca/mis-build
 3. **Odoo knowledge** → `skills/odoo/` (markdown modules with testable code blocks)
 4. **API consumers** (scripts, CLIs) should use `createClient()` + service accessors
 
-### Service Architecture (Option D: Client Accessors)
+### Service Architecture (Option D: Service Accessors)
 
 Domain-specific helpers are accessed via lazy getters on `OdooClient`:
 

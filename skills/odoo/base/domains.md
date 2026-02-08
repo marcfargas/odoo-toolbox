@@ -50,8 +50,8 @@ const id = await client.create('res.partner', {
 });
 trackRecord('res.partner', id);
 
-// Contains "software" anywhere (case-insensitive)
-const results = await client.search('res.partner', [['name', 'ilike', '%software%']]);
+// ilike auto-wraps with % — just pass the search term
+const results = await client.search('res.partner', [['name', 'ilike', 'software']]);
 
 return { found: results.includes(id) };
 ```

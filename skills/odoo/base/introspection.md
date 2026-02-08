@@ -9,12 +9,10 @@ Before working with Odoo data, you need to know what models (tables) exist and w
 ## Using the Introspector
 
 ```typescript
-import { OdooClient } from '@odoo-toolbox/client';
+import { createClient } from '@odoo-toolbox/client';
 import { Introspector } from '@odoo-toolbox/introspection';
 
-const client = new OdooClient({...});
-await client.authenticate();
-
+const client = await createClient();
 const introspector = new Introspector(client);
 ```
 

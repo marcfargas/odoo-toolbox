@@ -272,19 +272,12 @@ console.log('Properties defined!');
 
 ```typescript
 import {
-  OdooClient,
+  createClient,
   propertiesToWriteFormat,
   getPropertyValue,
 } from '@odoo-toolbox/client';
 
-const client = new OdooClient({
-  url: process.env.ODOO_URL || 'http://localhost:8069',
-  database: process.env.ODOO_DB || 'odoo',
-  username: process.env.ODOO_USER || 'admin',
-  password: process.env.ODOO_PASSWORD || 'admin',
-});
-
-await client.authenticate();
+const client = await createClient();
 
 // Find a lead with properties
 const leads = await client.searchRead(
@@ -343,6 +336,6 @@ return { success: true, count: propFields.length };
 
 ## Related Documents
 
-- [field-types.md](../01-fundamentals/field-types.md) - All field types
-- [crud-operations.md](./crud-operations.md) - CRUD patterns
-- [analyzing-fields.md](../02-introspection/analyzing-fields.md) - Finding fields
+- [field-types.md](./field-types.md) - All field types
+- [crud.md](./crud.md) - CRUD patterns
+- [introspection.md](./introspection.md) - Finding fields

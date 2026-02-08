@@ -176,7 +176,7 @@ return { categoryCount: categoryIds.length };
 
 ## Properties Fields
 
-Properties are dynamic, user-defined fields. See [properties.md](../04-patterns/properties.md) for full documentation.
+Properties are dynamic, user-defined fields. See [properties.md](./properties.md) for full documentation.
 
 **Key Points:**
 - Defined at parent level (e.g., `crm.team` for `crm.lead`)
@@ -258,5 +258,5 @@ When introspecting fields, these attributes are important:
 ## Related Documents
 
 - [domains.md](./domains.md) - Filtering with domains
-- [properties.md](../04-patterns/properties.md) - Properties fields in detail
-- [crud-operations.md](../04-patterns/crud-operations.md) - CRUD patterns
+- [properties.md](./properties.md) - Properties fields in detail
+- [crud.md](./crud.md) - CRUD patterns

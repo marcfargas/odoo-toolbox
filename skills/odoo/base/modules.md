@@ -6,39 +6,42 @@ Working with Odoo modules: checking, installing, and dependencies.
 
 Odoo functionality is organized into modules. Before using module-specific features (CRM, Sales, etc.), you must verify the module is installed.
 
-## Using ModuleManager
+## Using the Module Service Accessor
 
 ```typescript
-import { OdooClient, ModuleManager } from '@odoo-toolbox/client';
+import { createClient } from '@odoo-toolbox/client';
 
-const client = new OdooClient({...});
-await client.authenticate();
+const client = await createClient();
 
-const moduleManager = new ModuleManager(client);
+// Check if a module is installed
+const hasCRM = await client.modules.isModuleInstalled('crm');
+
+// Install a module (admin only)
+await client.modules.installModule('sale');
 ```
 
 ## Checking Module Installation
 
 ### Single Module
 
-```typescript testable id="modules-check" needs="module-manager" expect="result.hasBase === true"
+```typescript testable id="modules-check" needs="client" expect="result.hasBase === true"
 // 'base' module is always installed
-const hasBase = await moduleManager.isModuleInstalled('base');
+const hasBase = await client.modules.isModuleInstalled('base');
 
 // Check for a module that likely doesn't exist
-const hasFake = await moduleManager.isModuleInstalled('fake_nonexistent_module');
+const hasFake = await client.modules.isModuleInstalled('fake_nonexistent_module');
 
 return { hasBase, hasFake };
 ```
 
 ### Multiple Modules
 
-```typescript testable id="modules-check-multiple" needs="module-manager" expect="result.checkedCount === 3"
+```typescript testable id="modules-check-multiple" needs="client" expect="result.checkedCount === 3"
 const modules = ['base', 'web', 'mail'];  // Common modules
 const installed = {};
 
 for (const mod of modules) {
-  installed[mod] = await moduleManager.isModuleInstalled(mod);
+  installed[mod] = await client.modules.isModuleInstalled(mod);
 }
 
 // base should always be installed
@@ -52,11 +55,11 @@ return { checkedCount: Object.keys(installed).length, hasBase: installed.base };
 ```typescript
 const moduleName = 'crm';
 
-const isInstalled = await moduleManager.isModuleInstalled(moduleName);
+const isInstalled = await client.modules.isModuleInstalled(moduleName);
 
 if (!isInstalled) {
   console.log(`Installing ${moduleName}...`);
-  await moduleManager.installModule(moduleName);
+  await client.modules.installModule(moduleName);
   console.log(`${moduleName} installed successfully`);
 }
 ```
@@ -67,11 +70,11 @@ if (!isInstalled) {
 const requiredModules = ['crm', 'sale', 'project'];
 
 for (const moduleName of requiredModules) {
-  const isInstalled = await moduleManager.isModuleInstalled(moduleName);
+  const isInstalled = await client.modules.isModuleInstalled(moduleName);
 
   if (!isInstalled) {
     console.log(`Installing ${moduleName}...`);
-    await moduleManager.installModule(moduleName);
+    await client.modules.installModule(moduleName);
     console.log(`${moduleName} installed`);
   } else {
     console.log(`${moduleName} already installed`);
@@ -89,7 +92,7 @@ Installing a module automatically installs its dependencies:
 // - account (if not already installed)
 // - other dependencies
 
-await moduleManager.installModule('sale');
+await client.modules.installModule('sale');
 ```
 
 ## Uninstalling Modules
@@ -100,13 +103,13 @@ await moduleManager.installModule('sale');
 const moduleName = 'lunch';  // Example module
 
 try {
-  const isInstalled = await moduleManager.isModuleInstalled(moduleName);
+  const isInstalled = await client.modules.isModuleInstalled(moduleName);
 
   if (!isInstalled) {
     console.log(`${moduleName} is not installed`);
   } else {
     console.log(`Uninstalling ${moduleName}...`);
-    await moduleManager.uninstallModule(moduleName);
+    await client.modules.uninstallModule(moduleName);
     console.log(`${moduleName} uninstalled`);
   }
 } catch (error) {
@@ -205,19 +208,15 @@ available.forEach(m => {
 ## Module-Aware Code Pattern
 
 ```typescript
-async function safeOperation(client: OdooClient) {
-  const moduleManager = new ModuleManager(client);
-
-  // Check CRM before using it
-  if (await moduleManager.isModuleInstalled('crm')) {
-    const leads = await client.searchRead('crm.lead', [], {
-      fields: ['name', 'partner_id'],
-      limit: 10
-    });
-    return { crm: leads };
-  } else {
-    return { crm: null, message: 'CRM module not available' };
-  }
+// Check CRM before using it
+if (await client.modules.isModuleInstalled('crm')) {
+  const leads = await client.searchRead('crm.lead', [], {
+    fields: ['name', 'partner_id'],
+    limit: 10
+  });
+  console.log(`Found ${leads.length} leads`);
+} else {
+  console.log('CRM module not available');
 }
 ```
 
@@ -228,9 +227,9 @@ Instead of checking module names, you can check for models:
 ```typescript testable id="modules-feature-detection" needs="client" expect="result.hasPartner === true && result.hasFake === false"
 // Check if a model exists (feature detection)
 async function hasModel(client, model) {
-  const count = await client.call('ir.model', 'search_count', [[
+  const count = await client.searchCount('ir.model', [
     ['model', '=', model]
-  ]]);
+  ]);
   return count > 0;
 }
 
@@ -243,7 +242,7 @@ const hasFake = await hasModel(client, 'fake.nonexistent.model');
 return { hasPartner, hasFake };
 ```
 
-## Direct Query (Without ModuleManager)
+## Direct Query (Without Service Accessor)
 
 ```typescript testable id="modules-direct-query" needs="client" expect="result.baseInstalled === true"
 // Check if 'base' module is installed (always true)
@@ -273,7 +272,7 @@ Module installation can take from seconds to minutes depending on:
 console.log('Installing sale module (this may take a minute)...');
 const startTime = Date.now();
 
-await moduleManager.installModule('sale');
+await client.modules.installModule('sale');
 
 const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
 console.log(`Installation completed in ${elapsed}s`);
@@ -283,7 +282,7 @@ console.log(`Installation completed in ${elapsed}s`);
 
 ```typescript
 try {
-  await moduleManager.installModule('nonexistent_module');
+  await client.modules.installModule('nonexistent_module');
 } catch (error) {
   if (error.message.includes('not found')) {
     console.log('Module does not exist');
@@ -297,5 +296,5 @@ try {
 
 ## Related Documents
 
-- [discovering-models.md](../02-introspection/discovering-models.md) - Finding models
-- [connection.md](../01-fundamentals/connection.md) - Connecting to Odoo
+- [introspection.md](./introspection.md) - Finding models
+- [connection.md](./connection.md) - Connecting to Odoo

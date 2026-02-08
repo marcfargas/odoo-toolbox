@@ -163,14 +163,12 @@ Check for credentials in this order:
 ### Step 2: Connect and Validate
 
 ```typescript
-import { OdooClient } from '@odoo-toolbox/client';
-
-const client = new OdooClient(config);
+import { createClient } from '@odoo-toolbox/client';
 
 try {
-  await client.authenticate();
-  console.log(`Connected to ${config.url}`);
-  console.log(`Database: ${config.database}`);
+  const client = await createClient();
+  const session = client.getSession();
+  console.log(`Connected! User ID: ${session?.uid}`);
 } catch (error) {
   console.error('Connection failed:', error.message);
   // Ask user to verify credentials
@@ -180,18 +178,14 @@ try {
 ### Step 3: Discover Installed Modules
 
 ```typescript
-import { ModuleManager } from '@odoo-toolbox/client';
-
-const moduleManager = new ModuleManager(client);
-
-// Check common modules
+// Check common modules via the service accessor
 const modules = {
-  crm: await moduleManager.isModuleInstalled('crm'),
-  sale: await moduleManager.isModuleInstalled('sale'),
-  purchase: await moduleManager.isModuleInstalled('purchase'),
-  stock: await moduleManager.isModuleInstalled('stock'),
-  account: await moduleManager.isModuleInstalled('account'),
-  project: await moduleManager.isModuleInstalled('project'),
+  crm: await client.modules.isModuleInstalled('crm'),
+  sale: await client.modules.isModuleInstalled('sale'),
+  purchase: await client.modules.isModuleInstalled('purchase'),
+  stock: await client.modules.isModuleInstalled('stock'),
+  account: await client.modules.isModuleInstalled('account'),
+  project: await client.modules.isModuleInstalled('project'),
 };
 
 console.log('Installed modules:');
@@ -205,7 +199,7 @@ Object.entries(modules)
 ```typescript
 import { Introspector } from '@odoo-toolbox/introspection';
 
-const introspector = new Introspector(client);
+const introspector = new Introspector(client);  // client from createClient()
 
 // Get models for installed modules
 const modelsToIntrospect = [];
