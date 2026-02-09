@@ -20,9 +20,8 @@ const PLACEHOLDER_FILES = new Set(['SKILL.md']);
 
 /**
  * Files/directories to skip when copying skills/ to a new project
- * (LICENSE is included separately as part of the project structure)
  */
-const SKIP_FILES = new Set(['LICENSE']);
+const SKIP_FILES = new Set<string>();
 
 /**
  * Copy a file, optionally with placeholder substitution

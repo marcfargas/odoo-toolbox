@@ -14,7 +14,7 @@ export function generatePackageJson(projectName: string): string {
       build: 'npx @odoo-toolbox/create-skills build',
     },
     keywords: ['odoo', 'skills', 'ai-agent'],
-    license: 'LGPL-3.0',
+    license: 'CC0-1.0',
   };
 
   return JSON.stringify(pkg, null, 2) + '\n';
