@@ -3,6 +3,7 @@
 "@marcfargas/odoo-introspection": minor
 "@marcfargas/odoo-state-manager": minor
 "@marcfargas/create-odoo-skills": minor
+"@marcfargas/odoo-skills": minor
 ---
 
 Initial release of the odoo-toolbox monorepo.
@@ -35,11 +36,21 @@ Terraform-style drift detection and plan/apply workflow for Odoo configuration.
 - Apply plans with dry-run support
 - Experimental — API may change
 
+### @marcfargas/odoo-skills
+
+Battle-tested Odoo knowledge modules for AI agents (CC0-1.0 — public domain).
+
+- 5,200+ lines of progressive documentation: connection, CRUD, search, domains, fields, properties, modules
+- Mail system: chatter, activities, discuss channels
+- Module-specific: timesheets, accounting, MIS Builder (OCA)
+- All code examples validated against real Odoo v17 in CI
+- Load via `SKILL.md` router — agents pick what they need on demand
+
 ### @marcfargas/create-odoo-skills
 
 CLI to scaffold Odoo skill projects for AI agents.
 
 - `npx @marcfargas/create-odoo-skills my-project` — scaffold a complete skill project
-- Ships 5,200+ lines of battle-tested Odoo knowledge modules (CC0-1.0 licensed)
+- Ships bundled knowledge modules from `@marcfargas/odoo-skills`
 - Skill validation and reference checking
 - Testable code blocks verified against real Odoo v17 in CI

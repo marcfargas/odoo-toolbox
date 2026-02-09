@@ -1,0 +1,31 @@
+{
+  "name": "@marcfargas/odoo-skills",
+  "version": "0.1.0",
+  "description": "Battle-tested Odoo knowledge modules for AI agents — 5,200+ lines validated against Odoo v17 in CI",
+  "files": [
+    "skills",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node scripts/copy-skills.js"
+  },
+  "keywords": [
+    "odoo",
+    "skills",
+    "ai-agent",
+    "claude",
+    "knowledge",
+    "documentation"
+  ],
+  "author": "Marc Fargas <marc@marcfargas.com>",
+  "license": "CC0-1.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/marcfargas/odoo-toolbox.git",
+    "directory": "packages/odoo-skills"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
