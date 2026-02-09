@@ -50,6 +50,11 @@ return { checkedCount: Object.keys(installed).length, hasBase: installed.base };
 
 ## Installing Modules
 
+> ⚠️ **Admin-only operation.** Module installation changes the database schema irreversibly.
+> Agents must NEVER install modules without explicit user/admin confirmation.
+> Use `isModuleInstalled()` freely to check status; call `installModule()` only when
+> the user has explicitly requested it.
+
 ### Basic Installation
 
 ```typescript
@@ -96,6 +101,10 @@ await client.modules.installModule('sale');
 ```
 
 ## Uninstalling Modules
+
+> 🔴 **Destructive, irreversible operation.** Uninstalling removes the module AND all its data
+> (records, fields, views). There is no undo. Agents must NEVER uninstall modules without
+> explicit admin confirmation. Always confirm with the user first.
 
 ### Basic Uninstallation
 

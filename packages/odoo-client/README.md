@@ -4,13 +4,12 @@ Lightweight TypeScript client for Odoo RPC operations.
 
 ## Features
 
-- JSON-RPC support
-- CRUD operations (create, read, search, write, delete)
-- Module management (install, uninstall, upgrade)
-- Context and domain filter support
-- Batch operation support
-- Full TypeScript support with generics
-- Comprehensive error handling
+- `createClient()` one-liner: reads env vars, authenticates, ready to use
+- CRUD operations: `searchRead`, `search`, `create`, `write`, `unlink`, `read`, `searchCount`
+- Service accessors: `client.mail.*` (chatter), `client.modules.*` (module management)
+- Safety guards for dangerous operations
+- JSON-RPC transport with session management
+- Comprehensive error types: `OdooAuthError`, `OdooNetworkError`, `OdooValidationError`
 
 ## Installation
 
@@ -18,27 +17,21 @@ Lightweight TypeScript client for Odoo RPC operations.
 npm install @marcfargas/odoo-client
 ```
 
+**Prerequisites**: Node.js ≥ 18, a running Odoo v17 instance.
+
 ## Quick Start
 
 ```typescript
-import { OdooClient } from '@marcfargas/odoo-client';
+import { createClient } from '@marcfargas/odoo-client';
 
-// Create client
-const client = new OdooClient({
-  url: 'http://localhost:8069',
-  database: 'odoo_dev',
-  username: 'admin',
-  password: 'admin',
-});
-
-// Authenticate
-await client.authenticate();
+// Reads ODOO_URL, ODOO_DB, ODOO_USER, ODOO_PASSWORD from environment
+const client = await createClient();
 
 // Search
-const ids = await client.search('res.partner', [['name', 'ilike', 'John']]);
-
-// Read
-const records = await client.read('res.partner', ids, ['name', 'email']);
+const partners = await client.searchRead('res.partner',
+  [['name', 'ilike', 'John']],
+  ['name', 'email']
+);
 
 // Create
 const newId = await client.create('res.partner', { name: 'Acme Corp' });
@@ -46,59 +39,11 @@ const newId = await client.create('res.partner', { name: 'Acme Corp' });
 // Update
 await client.write('res.partner', [newId], { email: 'info@acme.com' });
 
-// Delete
+// Delete (requires safety context)
 await client.unlink('res.partner', [newId]);
 ```
 
-## Module Management
-
-```typescript
-import { OdooClient, ModuleManager } from '@marcfargas/odoo-client';
-
-const client = new OdooClient({ /* config */ });
-await client.authenticate();
-
-const moduleManager = new ModuleManager(client);
-
-// List installed modules
-const installed = await moduleManager.listModules({ state: 'installed' });
-
-// Check if module is installed
-const isInstalled = await moduleManager.isModuleInstalled('project');
-
-// Get module information
-const moduleInfo = await moduleManager.getModuleInfo('sale');
-console.log(`${moduleInfo.name}: ${moduleInfo.summary}`);
-
-// Install a module
-await moduleManager.installModule('project');
-
-// Uninstall a module
-await moduleManager.uninstallModule('project');
-
-// Upgrade a module
-await moduleManager.upgradeModule('sale');
-```
-
-See [examples/5-module-management.ts](./examples/5-module-management.ts) for complete examples.
-
-## Connection Configuration
-
-```typescript
-const client = new OdooClient({
-  url: 'http://localhost:8069',           // Odoo base URL
-  database: 'odoo_dev',                   // Database name
-  username: 'admin',                      // Username
-  password: 'admin',                      // Password
-  context: { lang: 'en_US' },            // Default context (optional)
-  timeoutMs: 30000,                      // Request timeout (optional)
-  headers: { 'X-Custom': 'value' },      // Custom headers (optional)
-});
-
-await client.authenticate();
-```
-
-**Environment Variables** (recommended for scripts/CI):
+**Environment variables** (required for `createClient()`):
 
 ```bash
 export ODOO_URL=http://localhost:8069
@@ -107,31 +52,70 @@ export ODOO_USER=admin
 export ODOO_PASSWORD=admin
 ```
 
-## Code Generation
+## Service Accessors
 
-To generate TypeScript interfaces from your Odoo schema, use [@marcfargas/odoo-introspection](../odoo-introspection):
+### Mail (Chatter)
 
-```bash
-npm install @marcfargas/odoo-introspection
+```typescript
+// Internal note (visible only to internal users)
+await client.mail.postInternalNote('res.partner', partnerId, {
+  body: '<p>Customer called about invoice</p>',
+});
 
-# Generate types
-odoo-introspect generate \
-  --url http://localhost:8069 \
-  --db odoo_dev \
-  --password admin \
-  --output src/models
+// Public message (visible to followers including portal users)
+await client.mail.postOpenMessage('res.partner', partnerId, {
+  body: '<p>Your order has been shipped</p>',
+});
+```
+
+### Module Management
+
+```typescript
+// Check if a module is installed
+const hasCRM = await client.modules.isModuleInstalled('crm');
+
+// List installed modules
+const installed = await client.modules.listModules({ state: 'installed' });
+
+// Get module info
+const info = await client.modules.getModuleInfo('sale');
+```
+
+> ⚠️ `installModule()` and `uninstallModule()` are admin-only, irreversible operations.
+> Never call them without explicit user confirmation.
+
+## Advanced: Manual Client Construction
+
+For custom configurations, use `OdooClient` directly:
+
+```typescript
+import { OdooClient } from '@marcfargas/odoo-client';
+
+const client = new OdooClient({
+  url: 'http://localhost:8069',
+  database: 'odoo_dev',
+  username: 'admin',
+  password: 'admin',
+  context: { lang: 'en_US' },
+  timeoutMs: 30000,
+});
+await client.authenticate();
 ```
 
 ## Tested Examples
 
-For comprehensive, tested examples of Odoo patterns including CRUD operations, search patterns, and field handling, see the knowledge base in [@marcfargas/create-odoo-skills](../create-skills/assets/base/).
+For comprehensive, tested examples of Odoo patterns — CRUD, search, domains, field types, and more — see the [knowledge modules](../../skills/odoo/SKILL.md).
 
 ## Related Packages
 
-- [@marcfargas/odoo-introspection](../odoo-introspection) - Schema introspection and code generation
-- [@marcfargas/odoo-state-manager](../odoo-state-manager) - State management and drift detection
-- [@marcfargas/create-odoo-skills](../create-skills) - CLI for scaffolding AI agent skill projects
+- [@marcfargas/odoo-introspection](../odoo-introspection) — Schema introspection and code generation
+- [@marcfargas/odoo-state-manager](../odoo-state-manager) — State management and drift detection
+- [@marcfargas/create-odoo-skills](../create-skills) — CLI for scaffolding AI agent skill projects
+
+## Bugs & Support
+
+[GitHub Issues](https://github.com/marcfargas/odoo-toolbox/issues)
 
 ## License
 
-LGPL-3.0
+LGPL-3.0 — see [LICENSE](./LICENSE)

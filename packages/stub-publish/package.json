@@ -1,0 +1,17 @@
+{
+  "name": "@marcfargas/odoo-client",
+  "version": "0.0.1",
+  "description": "Lightweight TypeScript client for Odoo RPC operations — placeholder for Trusted Publishing setup",
+  "main": "index.js",
+  "files": ["index.js", "LICENSE", "README.md"],
+  "author": "Marc Fargas <marc@marcfargas.com>",
+  "license": "LGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/marcfargas/odoo-toolbox.git",
+    "directory": "packages/odoo-client"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -169,21 +169,23 @@ const partners = await client.searchRead('res.partner', [
 ### Find by Text Pattern
 
 ```typescript
-// Contains (case-insensitive)
+// Contains (case-insensitive) — ilike auto-wraps with % on both sides
 const partners = await client.searchRead('res.partner', [
-  ['name', 'ilike', '%software%']
+  ['name', 'ilike', 'software']
 ]);
 
-// Starts with
+// Starts with — use =ilike for anchored patterns (no auto-wrapping)
 const partners = await client.searchRead('res.partner', [
-  ['name', 'ilike', 'acme%']
+  ['name', '=ilike', 'acme%']
 ]);
 
 // Ends with
 const partners = await client.searchRead('res.partner', [
-  ['email', 'ilike', '%@gmail.com']
+  ['email', '=ilike', '%@gmail.com']
 ]);
 ```
+
+> **Key**: `ilike` auto-wraps with `%` — never add `%` manually. Use `=ilike` for starts-with/ends-with patterns. See [domains.md](./domains.md) for full details.
 
 ### Find by Multiple Values
 
@@ -313,20 +315,20 @@ return {
 ### Complex OR Conditions
 
 ```typescript
-// Name OR email contains search term
+// Name OR email contains search term (ilike auto-wraps with %)
 const term = 'acme';
 const results = await client.searchRead('res.partner', [
   '|',
-  ['name', 'ilike', `%${term}%`],
-  ['email', 'ilike', `%${term}%`]
+  ['name', 'ilike', term],
+  ['email', 'ilike', term]
 ]);
 
 // Multiple OR conditions
 const results = await client.searchRead('crm.lead', [
   '|', '|',
-  ['name', 'ilike', `%${term}%`],
-  ['email_from', 'ilike', `%${term}%`],
-  ['phone', 'ilike', `%${term}%`]
+  ['name', 'ilike', term],
+  ['email_from', 'ilike', term],
+  ['phone', 'ilike', term]
 ]);
 ```
 
@@ -405,7 +407,7 @@ async function fullTextSearch(model, searchFields, term, options = {}) {
   const domain = [];
   searchFields.forEach((field, i) => {
     if (i > 0) domain.unshift('|');
-    domain.push([field, 'ilike', `%${term}%`]);
+    domain.push([field, 'ilike', term]);
   });
 
   return client.searchRead(model, domain, options);

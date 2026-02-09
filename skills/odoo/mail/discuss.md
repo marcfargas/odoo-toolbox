@@ -25,13 +25,13 @@ Odoo Discuss provides real-time chat and messaging through channels. Channels ca
 
 ```typescript testable id="discuss-detect-model" needs="client" expect="result.channelModel !== null"
 // Check which channel model exists in this Odoo version
-const discussChannelCount = await client.call('ir.model', 'search_count', [[
+const discussChannelCount = await client.searchCount('ir.model', [
   ['model', '=', 'discuss.channel']
-]]);
+]);
 
-const mailChannelCount = await client.call('ir.model', 'search_count', [[
+const mailChannelCount = await client.searchCount('ir.model', [
   ['model', '=', 'mail.channel']
-]]);
+]);
 
 const channelModel = discussChannelCount > 0 ? 'discuss.channel' :
                      mailChannelCount > 0 ? 'mail.channel' : null;
@@ -55,9 +55,9 @@ return {
 
 ```typescript testable id="discuss-list-channels" needs="client" expect="result.success === true"
 // Detect the correct model
-const discussExists = await client.call('ir.model', 'search_count', [[
+const discussExists = await client.searchCount('ir.model', [
   ['model', '=', 'discuss.channel']
-]]) > 0;
+]) > 0;
 const channelModel = discussExists ? 'discuss.channel' : 'mail.channel';
 
 // List public and group channels
@@ -80,9 +80,9 @@ return { success: true, channelCount: channels.length };
 
 ```typescript testable id="discuss-read-messages" needs="client" expect="result.success === true"
 // Detect the correct model
-const discussExists = await client.call('ir.model', 'search_count', [[
+const discussExists = await client.searchCount('ir.model', [
   ['model', '=', 'discuss.channel']
-]]) > 0;
+]) > 0;
 const channelModel = discussExists ? 'discuss.channel' : 'mail.channel';
 
 // Find a channel to read from
@@ -119,9 +119,9 @@ return {
 
 ```typescript testable id="discuss-create-public" needs="client" creates="discuss.channel" expect="result.channelId > 0"
 // Detect the correct model
-const discussExists = await client.call('ir.model', 'search_count', [[
+const discussExists = await client.searchCount('ir.model', [
   ['model', '=', 'discuss.channel']
-]]) > 0;
+]) > 0;
 const channelModel = discussExists ? 'discuss.channel' : 'mail.channel';
 
 // Create a public channel
@@ -139,9 +139,9 @@ return { channelId };
 
 ```typescript testable id="discuss-create-group" needs="client" creates="discuss.channel" expect="result.channelId > 0"
 // Detect the correct model
-const discussExists = await client.call('ir.model', 'search_count', [[
+const discussExists = await client.searchCount('ir.model', [
   ['model', '=', 'discuss.channel']
-]]) > 0;
+]) > 0;
 const channelModel = discussExists ? 'discuss.channel' : 'mail.channel';
 
 // Create a private group
@@ -163,9 +163,9 @@ return { channelId };
 
 ```typescript testable id="discuss-post-message" needs="client" creates="discuss.channel,mail.message" expect="result.messageId > 0"
 // Detect the correct model
-const discussExists = await client.call('ir.model', 'search_count', [[
+const discussExists = await client.searchCount('ir.model', [
   ['model', '=', 'discuss.channel']
-]]) > 0;
+]) > 0;
 const channelModel = discussExists ? 'discuss.channel' : 'mail.channel';
 
 // Create a test channel
@@ -191,9 +191,9 @@ return { messageId, channelId };
 
 ```typescript testable id="discuss-get-members" needs="client" creates="discuss.channel" expect="result.success === true"
 // Detect the correct models
-const discussExists = await client.call('ir.model', 'search_count', [[
+const discussExists = await client.searchCount('ir.model', [
   ['model', '=', 'discuss.channel']
-]]) > 0;
+]) > 0;
 const channelModel = discussExists ? 'discuss.channel' : 'mail.channel';
 const memberModel = discussExists ? 'discuss.channel.member' : 'mail.channel.partner';
 
@@ -222,9 +222,9 @@ return {
 
 ```typescript testable id="discuss-add-members" needs="client" creates="discuss.channel,res.partner" expect="result.added === true"
 // Detect the correct model
-const discussExists = await client.call('ir.model', 'search_count', [[
+const discussExists = await client.searchCount('ir.model', [
   ['model', '=', 'discuss.channel']
-]]) > 0;
+]) > 0;
 const channelModel = discussExists ? 'discuss.channel' : 'mail.channel';
 
 // Create a channel
@@ -260,7 +260,7 @@ return { added: true, channelId, partnerId };
 
 ```typescript
 // Leave channel (current user)
-await client.call(channelModel, 'action_unfollow', [[channelId]]);
+await client.call(channelModel, 'action_unfollow', [[channelId]);
 
 // Or unsubscribe specific partners
 await client.call(channelModel, 'message_unsubscribe', [[channelId]], {
@@ -274,9 +274,9 @@ await client.call(channelModel, 'message_unsubscribe', [[channelId]], {
 
 ```typescript testable id="discuss-direct-message" needs="client" creates="res.partner" expect="result.success === true"
 // Detect the correct model
-const discussExists = await client.call('ir.model', 'search_count', [[
+const discussExists = await client.searchCount('ir.model', [
   ['model', '=', 'discuss.channel']
-]]) > 0;
+]) > 0;
 const channelModel = discussExists ? 'discuss.channel' : 'mail.channel';
 
 // Create a partner to message
@@ -333,15 +333,15 @@ await client.call(channelModel, 'message_post', [[dmChannelId]], {
 
 ```typescript testable id="discuss-search-messages" needs="client" expect="result.success === true"
 // Detect the correct model
-const discussExists = await client.call('ir.model', 'search_count', [[
+const discussExists = await client.searchCount('ir.model', [
   ['model', '=', 'discuss.channel']
-]]) > 0;
+]) > 0;
 const channelModel = discussExists ? 'discuss.channel' : 'mail.channel';
 
 // Search for messages containing specific text across all channels
 const messages = await client.searchRead('mail.message', [
   ['model', '=', channelModel],
-  ['body', 'ilike', '%test%']
+  ['body', 'ilike', 'test']
 ], {
   fields: ['body', 'author_id', 'res_id', 'date'],
   order: 'date desc',
@@ -380,9 +380,9 @@ Channel read status is tracked via `discuss.channel.member` (Odoo 17+) or `mail.
 
 ```typescript testable id="discuss-unread-count" needs="client" creates="discuss.channel" expect="result.success === true"
 // Detect the correct models
-const discussExists = await client.call('ir.model', 'search_count', [[
+const discussExists = await client.searchCount('ir.model', [
   ['model', '=', 'discuss.channel']
-]]) > 0;
+]) > 0;
 const channelModel = discussExists ? 'discuss.channel' : 'mail.channel';
 const memberModel = discussExists ? 'discuss.channel.member' : 'mail.channel.partner';
 

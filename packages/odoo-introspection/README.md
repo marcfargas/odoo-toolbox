@@ -16,23 +16,18 @@ TypeScript introspection and code generation for Odoo models.
 npm install @marcfargas/odoo-introspection @marcfargas/odoo-client
 ```
 
+**Prerequisites**: Node.js ≥ 18, a running Odoo v17 instance.
+
 ## Quick Start
 
 ### Programmatic Usage
 
 ```typescript
-import { OdooClient } from '@marcfargas/odoo-client';
+import { createClient } from '@marcfargas/odoo-client';
 import { Introspector } from '@marcfargas/odoo-introspection';
 
-// Connect to Odoo
-const client = new OdooClient({
-  url: 'http://localhost:8069',
-  database: 'odoo_dev',
-  username: 'admin',
-  password: 'admin',
-});
-
-await client.authenticate();
+// Reads ODOO_URL, ODOO_DB, ODOO_USER, ODOO_PASSWORD from env
+const client = await createClient();
 
 // Create introspector
 const introspector = new Introspector(client);
@@ -230,14 +225,18 @@ DEBUG=odoo-introspection:introspection,odoo-introspection:codegen npm run test
 
 ## Tested Examples
 
-For comprehensive, tested examples of introspection patterns and model discovery, see the knowledge base in [@marcfargas/create-odoo-skills](../create-skills/assets/base/).
+For comprehensive, tested examples of introspection patterns and model discovery, see the [knowledge modules](../../skills/odoo/base/introspection.md).
 
 ## Related Packages
 
-- [@marcfargas/odoo-client](../odoo-client) - RPC client
-- [@marcfargas/odoo-state-manager](../odoo-state-manager) - State management and drift detection
-- [@marcfargas/create-odoo-skills](../create-skills) - CLI for scaffolding AI agent skill projects
+- [@marcfargas/odoo-client](../odoo-client) — RPC client
+- [@marcfargas/odoo-state-manager](../odoo-state-manager) — State management and drift detection
+- [@marcfargas/create-odoo-skills](../create-skills) — CLI for scaffolding AI agent skill projects
+
+## Bugs & Support
+
+[GitHub Issues](https://github.com/marcfargas/odoo-toolbox/issues)
 
 ## License
 
-LGPL-3.0
+LGPL-3.0 — see [LICENSE](./LICENSE)

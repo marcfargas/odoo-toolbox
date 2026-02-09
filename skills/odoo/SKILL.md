@@ -84,13 +84,13 @@ Breaking changes between Odoo versions are documented in `CHANGES_V{XX}.md`:
 
 Skills that require specific Odoo modules to be installed. Before loading, verify the required modules are present using `client.modules.isModuleInstalled()`.
 
-Load by reading `modules/{name}.md`:
+Load by reading the path shown below:
 
-| Skill | Required Modules | Description |
-|-------|------------------|-------------|
-| accounting | `account` | Accounting patterns, cashflow, reconciliation, bank statements |
-| timesheets | `hr_timesheet` | Track employee time on projects and tasks |
-| mis-builder | `mis_builder`, `date_range`, `report_xlsx` | MIS Builder financial reports (PnL, Balance Sheet) |
+| Skill | Path | Required Modules | Description |
+|-------|------|------------------|-------------|
+| accounting | `modules/accounting.md` | `account` | Accounting patterns, cashflow, reconciliation, bank statements |
+| timesheets | `modules/timesheets.md` | `hr_timesheet` | Track employee time on projects and tasks |
+| mis-builder | `oca/mis-builder.md` | `mis_builder`, `date_range`, `report_xlsx` | MIS Builder financial reports (PnL, Balance Sheet) |
 
 ## Skill Generation Workflow
 

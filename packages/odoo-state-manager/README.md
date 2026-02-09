@@ -1,6 +1,8 @@
 # @marcfargas/odoo-state-manager
 
-State management with drift detection and plan/apply workflow for Odoo. Think "Terraform for Odoo" - define desired state, detect drift, generate execution plans, and apply changes atomically.
+> ⚠️ **Experimental** — API may change between minor versions. Use in production at your own risk.
+
+State management with drift detection and plan/apply workflow for Odoo. Think "Terraform for Odoo" — define desired state, detect drift, generate execution plans, and apply changes atomically.
 
 ## Features
 
@@ -17,10 +19,12 @@ State management with drift detection and plan/apply workflow for Odoo. Think "T
 npm install @marcfargas/odoo-state-manager @marcfargas/odoo-client
 ```
 
+**Prerequisites**: Node.js ≥ 18, a running Odoo v17 instance.
+
 ## Quick Start
 
 ```typescript
-import { OdooClient } from '@marcfargas/odoo-client';
+import { createClient } from '@marcfargas/odoo-client';
 import {
   compareRecords,
   generatePlan,
@@ -29,14 +33,8 @@ import {
   dryRunPlan,
 } from '@marcfargas/odoo-state-manager';
 
-// 1. Connect to Odoo
-const client = new OdooClient({
-  url: 'http://localhost:8069',
-  database: 'odoo_dev',
-  username: 'admin',
-  password: 'admin',
-});
-await client.authenticate();
+// 1. Connect to Odoo (reads ODOO_URL, ODOO_DB, ODOO_USER, ODOO_PASSWORD from env)
+const client = await createClient();
 
 // 2. Define desired state
 const desired = new Map([
@@ -511,14 +509,18 @@ See the [examples/](../../examples/) directory:
 
 ## Tested Examples
 
-For comprehensive, tested examples of Odoo patterns including state management and CRUD operations, see the knowledge base in [@marcfargas/create-odoo-skills](../create-skills/assets/base/).
+For comprehensive, tested examples of Odoo patterns including CRUD operations, search, and field handling, see the [knowledge modules](../../skills/odoo/SKILL.md).
 
 ## Related Packages
 
-- [@marcfargas/odoo-client](../odoo-client/README.md) - RPC client
-- [@marcfargas/odoo-introspection](../odoo-introspection/README.md) - Schema introspection
-- [@marcfargas/create-odoo-skills](../create-skills/README.md) - CLI for scaffolding AI agent skill projects
+- [@marcfargas/odoo-client](../odoo-client) — RPC client
+- [@marcfargas/odoo-introspection](../odoo-introspection) — Schema introspection
+- [@marcfargas/create-odoo-skills](../create-skills) — CLI for scaffolding AI agent skill projects
+
+## Bugs & Support
+
+[GitHub Issues](https://github.com/marcfargas/odoo-toolbox/issues)
 
 ## License
 
-LGPL-3.0
+LGPL-3.0 — see [LICENSE](./LICENSE)

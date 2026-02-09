@@ -88,5 +88,5 @@ The `skills/odoo/` directory at the repository root contains tested and validate
 
 ## License
 
-- **Code**: LGPL-3.0
-- **Skills content** (knowledge modules): [CC-BY-4.0](../../skills/odoo/LICENSE)
+- **Code**: LGPL-3.0 — see [LICENSE](./LICENSE)
+- **Skills content** (knowledge modules): [CC0 1.0 Universal](../../skills/odoo/LICENSE) — public domain

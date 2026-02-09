@@ -56,6 +56,11 @@ The skills are backed by tested TypeScript infrastructure:
 | [@marcfargas/create-odoo-skills](./packages/create-skills) | CLI to scaffold skill projects | Active |
 | [@marcfargas/odoo-state-manager](./packages/odoo-state-manager) | Drift detection and plan/apply (Terraform-style) | Experimental |
 
+## Prerequisites
+
+- **Node.js** ≥ 18
+- **Odoo** v17 instance (for integration tests / real usage)
+
 ## Contributing
 
 ```bash
@@ -75,3 +80,7 @@ See [AGENTS.md](./AGENTS.md) for AI assistant coding conventions.
 **Skills** (`skills/`): [CC0 1.0 Universal](./skills/odoo/LICENSE) — **public domain**.
 Use the knowledge freely in any project, commercial or not, with no attribution required.
 AI agents, companies, competing projects — zero restrictions, zero friction.
+
+## Bugs & Support
+
+[GitHub Issues](https://github.com/marcfargas/odoo-toolbox/issues)

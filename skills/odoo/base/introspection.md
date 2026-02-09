@@ -245,7 +245,7 @@ return {
 // Find all fields with 'email' in the name
 const emailFields = await client.searchRead(
   'ir.model.fields',
-  [['name', 'ilike', '%email%']],
+  [['name', 'ilike', 'email']],
   { fields: ['name', 'model', 'ttype', 'field_description'], limit: 20 }
 );
 
