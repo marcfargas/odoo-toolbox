@@ -8,7 +8,7 @@
  * 4. File output (writing generated.ts)
  */
 
-import { OdooClient } from '@odoo-toolbox/client';
+import { OdooClient } from '@marcfargas/odoo-client';
 import { Introspector } from '../introspection';
 import type { ModelMetadata } from '../introspection/types';
 import { generateCompleteFile, generateHelperTypes } from './formatter';

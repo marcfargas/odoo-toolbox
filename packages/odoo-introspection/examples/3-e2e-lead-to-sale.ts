@@ -23,7 +23,7 @@
  * required for our test suite which starts with a blank database.
  */
 
-import { OdooClient, ModuleManager } from '@odoo-toolbox/client';
+import { OdooClient, ModuleManager } from '@marcfargas/odoo-client';
 import { Introspector } from '../src';
 
 // Configuration from environment variables or defaults

@@ -13,7 +13,7 @@
  */
 
 import { Operation, ExecutionPlan } from './types';
-import { OdooClient } from '@odoo-toolbox/client';
+import { OdooClient } from '@marcfargas/odoo-client';
 
 /**
  * Validation error with diagnostic information and suggested fixes.

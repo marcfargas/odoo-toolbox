@@ -108,7 +108,7 @@ The test helpers include utilities for managing modules during testing:
 
 ```typescript
 import { installModuleForTest, uninstallModuleForTest, cleanupInstalledModules } from '../../../tests/helpers/odoo-instance';
-import { ModuleManager } from '@odoo-toolbox/client';
+import { ModuleManager } from '@marcfargas/odoo-client';
 
 describe('My Test Suite', () => {
   let moduleManager: ModuleManager;
@@ -163,7 +163,7 @@ export ODOO_DB_PASSWORD=admin
 For programmatic usage in your code:
 
 ```typescript
-import { OdooClient, ModuleManager } from '@odoo-toolbox/client';
+import { OdooClient, ModuleManager } from '@marcfargas/odoo-client';
 
 const client = new OdooClient({ /* config */ });
 await client.authenticate();

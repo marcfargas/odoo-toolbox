@@ -107,7 +107,7 @@ await client.write('crm.lead', id, {
 ### Correct Way (Preserve Values)
 
 ```typescript
-import { propertiesToWriteFormat } from '@odoo-toolbox/client';
+import { propertiesToWriteFormat } from '@marcfargas/odoo-client';
 
 // 1. Read current properties
 const [lead] = await client.read('crm.lead', [id], ['lead_properties']);
@@ -130,7 +130,7 @@ await client.write('crm.lead', id, { lead_properties: props });
 Converts read format to write format:
 
 ```typescript
-import { propertiesToWriteFormat } from '@odoo-toolbox/client';
+import { propertiesToWriteFormat } from '@marcfargas/odoo-client';
 
 const [lead] = await client.read('crm.lead', [id], ['lead_properties']);
 const writeFormat = propertiesToWriteFormat(lead.lead_properties);
@@ -147,7 +147,7 @@ const writeFormat = propertiesToWriteFormat(lead.lead_properties);
 Extract a specific property value:
 
 ```typescript
-import { getPropertyValue } from '@odoo-toolbox/client';
+import { getPropertyValue } from '@marcfargas/odoo-client';
 
 const [lead] = await client.read('crm.lead', [id], ['lead_properties']);
 
@@ -176,7 +176,7 @@ const propertyDefinition = {
 ### Creating Properties on CRM Teams
 
 ```typescript
-import { PropertiesDefinition } from '@odoo-toolbox/client';
+import { PropertiesDefinition } from '@marcfargas/odoo-client';
 
 // Get a CRM team
 const teams = await client.searchRead('crm.team', [], {
@@ -275,7 +275,7 @@ import {
   createClient,
   propertiesToWriteFormat,
   getPropertyValue,
-} from '@odoo-toolbox/client';
+} from '@marcfargas/odoo-client';
 
 const client = await createClient();
 

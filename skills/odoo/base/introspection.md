@@ -4,13 +4,13 @@ How to discover and understand models and fields available in an Odoo instance.
 
 ## Overview
 
-Before working with Odoo data, you need to know what models (tables) exist and what fields they have. The `@odoo-toolbox/introspection` package provides tools for this.
+Before working with Odoo data, you need to know what models (tables) exist and what fields they have. The `@marcfargas/odoo-introspection` package provides tools for this.
 
 ## Using the Introspector
 
 ```typescript
-import { createClient } from '@odoo-toolbox/client';
-import { Introspector } from '@odoo-toolbox/introspection';
+import { createClient } from '@marcfargas/odoo-client';
+import { Introspector } from '@marcfargas/odoo-introspection';
 
 const client = await createClient();
 const introspector = new Introspector(client);

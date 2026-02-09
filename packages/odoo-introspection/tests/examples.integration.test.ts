@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { OdooClient, ModuleManager } from '@odoo-toolbox/client';
+import { OdooClient, ModuleManager } from '@marcfargas/odoo-client';
 import { Introspector } from '../src';
 
 describe('odoo-introspection examples', () => {

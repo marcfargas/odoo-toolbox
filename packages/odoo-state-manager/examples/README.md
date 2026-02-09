@@ -1,4 +1,4 @@
-# @odoo-toolbox/state-manager Examples
+# @marcfargas/odoo-state-manager Examples
 
 Practical examples demonstrating drift detection, planning, and state management workflows.
 
@@ -273,8 +273,8 @@ const diffs = compareRecords('project.project', desired, actual, {
 2. Move to **Example 2** for CI/CD integration
 3. Build your own configuration management system
 4. Integrate with:
-   - **@odoo-toolbox/client** - Low-level operations
-   - **@odoo-toolbox/introspection** - Schema discovery for validation
+   - **@marcfargas/odoo-client** - Low-level operations
+   - **@marcfargas/odoo-introspection** - Schema discovery for validation
 
 ## Troubleshooting
 

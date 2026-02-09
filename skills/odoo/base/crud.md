@@ -25,7 +25,7 @@ return id;
 Always check required fields first:
 
 ```typescript
-import { Introspector } from '@odoo-toolbox/introspection';
+import { Introspector } from '@marcfargas/odoo-introspection';
 
 const introspector = new Introspector(client);
 const fields = await introspector.getFields('crm.lead');
@@ -397,7 +397,7 @@ return { archived: archived.active === false, restored: restored.active === true
 ## Error Handling
 
 ```typescript
-import { OdooError, OdooValidationError } from '@odoo-toolbox/client';
+import { OdooError, OdooValidationError } from '@marcfargas/odoo-client';
 
 try {
   await client.create('crm.lead', { /* missing required fields */ });

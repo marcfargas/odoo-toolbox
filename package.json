@@ -15,7 +15,7 @@
     "state-management",
     "drift-detection"
   ],
-  "author": "Marc",
+  "author": "Marc Fargas <marc@marcfargas.com>",
   "license": "LGPL-3.0",
   "workspaces": [
     "packages/*"
@@ -41,9 +41,14 @@
     "odoo:addon:uninstall": "node scripts/manage-addon.js uninstall",
     "odoo:addon:list": "node scripts/manage-addon.js list",
     "odoo:addon:info": "node scripts/manage-addon.js info",
-    "prepare": "husky"
+    "prepare": "husky",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "changeset publish"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.5.2",
+    "@changesets/cli": "^2.29.8",
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",

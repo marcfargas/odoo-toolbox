@@ -20,7 +20,7 @@
  *   import { ResPartner, SaleOrder } from './generated/models'
  */
 
-import { OdooClient } from '@odoo-toolbox/client';
+import { OdooClient } from '@marcfargas/odoo-client';
 import { generateCompleteFile } from '../src/codegen';
 import { Introspector } from '../src/introspection';
 import * as fs from 'fs';

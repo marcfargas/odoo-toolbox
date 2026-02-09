@@ -5,12 +5,12 @@ description: Odoo ERP integration - connect, introspect, and automate your Odoo 
 
 # /odoo
 
-Odoo ERP integration via `@odoo-toolbox/client`. Connect, query, and automate.
+Odoo ERP integration via `@marcfargas/odoo-client`. Connect, query, and automate.
 
 ## Quick Start
 
 ```typescript
-import { createClient } from '@odoo-toolbox/client';
+import { createClient } from '@marcfargas/odoo-client';
 
 const client = await createClient();  // reads ODOO_URL, ODOO_DB, ODOO_USER, ODOO_PASSWORD
 

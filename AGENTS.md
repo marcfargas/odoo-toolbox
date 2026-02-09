@@ -31,10 +31,10 @@ Module-specific: `skills/odoo/modules/timesheets.md`, `skills/odoo/oca/mis-build
 
 | Package | Responsibility | Status |
 |---------|----------------|--------|
-| `@odoo-toolbox/client` | RPC client, business logic, services | Active |
-| `@odoo-toolbox/introspection` | Schema discovery, TypeScript codegen | Active |
-| `@odoo-toolbox/create-skills` | CLI to scaffold skill projects (reads from `skills/odoo/`) | Active |
-| `@odoo-toolbox/state-manager` | Drift detection, plan/apply workflow | Experimental |
+| `@marcfargas/odoo-client` | RPC client, business logic, services | Active |
+| `@marcfargas/odoo-introspection` | Schema discovery, TypeScript codegen | Active |
+| `@marcfargas/create-odoo-skills` | CLI to scaffold skill projects (reads from `skills/odoo/`) | Active |
+| `@marcfargas/odoo-state-manager` | Drift detection, plan/apply workflow | Experimental |
 
 ### When Adding New Functionality
 
@@ -48,7 +48,7 @@ Module-specific: `skills/odoo/modules/timesheets.md`, `skills/odoo/oca/mis-build
 Domain-specific helpers are accessed via lazy getters on `OdooClient`:
 
 ```typescript
-import { createClient } from '@odoo-toolbox/client';
+import { createClient } from '@marcfargas/odoo-client';
 
 const client = await createClient();                    // reads ODOO_* env vars
 await client.mail.postInternalNote('crm.lead', 42, '<p>Called.</p>');

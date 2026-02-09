@@ -1,12 +1,18 @@
 {
-  "name": "@odoo-toolbox/create-skills",
+  "name": "@marcfargas/create-odoo-skills",
   "version": "0.1.0",
   "description": "CLI to scaffold Odoo skill projects for AI agents",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "create-skills": "dist/cli/cli.js"
+    "create-odoo-skills": "dist/cli/cli.js"
   },
+  "files": [
+    "dist",
+    "scripts",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc && node scripts/copy-skills.js",
     "test": "vitest run",
@@ -20,8 +26,13 @@
     "scaffolding",
     "cli"
   ],
-  "author": "Marc",
+  "author": "Marc Fargas <marc@marcfargas.com>",
   "license": "LGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/marcfargas/odoo-toolbox.git",
+    "directory": "packages/create-skills"
+  },
   "dependencies": {
     "commander": "^12.0.0"
   },
@@ -31,19 +42,15 @@
     "vitest": "^4.0.0"
   },
   "peerDependencies": {
-    "@odoo-toolbox/client": "^0.1.0",
-    "@odoo-toolbox/introspection": "^0.1.0"
+    "@marcfargas/odoo-client": "^0.1.0",
+    "@marcfargas/odoo-introspection": "^0.1.0"
   },
   "peerDependenciesMeta": {
-    "@odoo-toolbox/client": {
+    "@marcfargas/odoo-client": {
       "optional": true
     },
-    "@odoo-toolbox/introspection": {
+    "@marcfargas/odoo-introspection": {
       "optional": true
     }
-  },
-  "files": [
-    "dist",
-    "scripts"
-  ]
+  }
 }

@@ -10,7 +10,7 @@
  * - Dry-run mode for validation
  */
 
-import { OdooClient } from '@odoo-toolbox/client';
+import { OdooClient } from '@marcfargas/odoo-client';
 import { ExecutionPlan, Operation } from '../plan/types';
 import { ApplyResult, OperationResult, ApplyOptions } from './types';
 

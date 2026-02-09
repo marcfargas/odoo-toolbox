@@ -1,4 +1,4 @@
-# @odoo-toolbox/state-manager
+# @marcfargas/odoo-state-manager
 
 State management with drift detection and plan/apply workflow for Odoo. Think "Terraform for Odoo" - define desired state, detect drift, generate execution plans, and apply changes atomically.
 
@@ -14,20 +14,20 @@ State management with drift detection and plan/apply workflow for Odoo. Think "T
 ## Installation
 
 ```bash
-npm install @odoo-toolbox/state-manager @odoo-toolbox/client
+npm install @marcfargas/odoo-state-manager @marcfargas/odoo-client
 ```
 
 ## Quick Start
 
 ```typescript
-import { OdooClient } from '@odoo-toolbox/client';
+import { OdooClient } from '@marcfargas/odoo-client';
 import {
   compareRecords,
   generatePlan,
   formatPlanForConsole,
   applyPlan,
   dryRunPlan,
-} from '@odoo-toolbox/state-manager';
+} from '@marcfargas/odoo-state-manager';
 
 // 1. Connect to Odoo
 const client = new OdooClient({
@@ -90,7 +90,7 @@ Detects drift between desired and actual Odoo state by performing deep compariso
 Compare a single record's desired vs actual state:
 
 ```typescript
-import { compareRecord } from '@odoo-toolbox/state-manager';
+import { compareRecord } from '@marcfargas/odoo-state-manager';
 
 const changes = compareRecord(
   'project.task',
@@ -188,7 +188,7 @@ Generates ordered execution plans from comparison results. Plans show what opera
 Convert comparison results into an ordered list of operations:
 
 ```typescript
-import { generatePlan } from '@odoo-toolbox/state-manager';
+import { generatePlan } from '@marcfargas/odoo-state-manager';
 
 const plan = generatePlan(diffs, {
   autoReorder: true,
@@ -211,7 +211,7 @@ console.log(plan.summary);
 Display plan in Terraform-like format:
 
 ```typescript
-import { formatPlanForConsole } from '@odoo-toolbox/state-manager';
+import { formatPlanForConsole } from '@marcfargas/odoo-state-manager';
 
 console.log(formatPlanForConsole(plan));
 
@@ -310,7 +310,7 @@ Executes plans against Odoo, applying creates, updates, and deletes in safe orde
 Execute an execution plan:
 
 ```typescript
-import { applyPlan } from '@odoo-toolbox/state-manager';
+import { applyPlan } from '@marcfargas/odoo-state-manager';
 
 const result = await applyPlan(plan, client, {
   dryRun: false,
@@ -329,7 +329,7 @@ if (result.failed > 0) {
 Validate plan without making changes:
 
 ```typescript
-import { dryRunPlan } from '@odoo-toolbox/state-manager';
+import { dryRunPlan } from '@marcfargas/odoo-state-manager';
 
 const validation = await dryRunPlan(plan, client);
 
@@ -511,13 +511,13 @@ See the [examples/](../../examples/) directory:
 
 ## Tested Examples
 
-For comprehensive, tested examples of Odoo patterns including state management and CRUD operations, see the knowledge base in [@odoo-toolbox/create-skills](../create-skills/assets/base/).
+For comprehensive, tested examples of Odoo patterns including state management and CRUD operations, see the knowledge base in [@marcfargas/create-odoo-skills](../create-skills/assets/base/).
 
 ## Related Packages
 
-- [@odoo-toolbox/client](../odoo-client/README.md) - RPC client
-- [@odoo-toolbox/introspection](../odoo-introspection/README.md) - Schema introspection
-- [@odoo-toolbox/create-skills](../create-skills/README.md) - CLI for scaffolding AI agent skill projects
+- [@marcfargas/odoo-client](../odoo-client/README.md) - RPC client
+- [@marcfargas/odoo-introspection](../odoo-introspection/README.md) - Schema introspection
+- [@marcfargas/create-odoo-skills](../create-skills/README.md) - CLI for scaffolding AI agent skill projects
 
 ## License
 

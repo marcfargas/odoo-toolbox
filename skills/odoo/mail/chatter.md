@@ -20,7 +20,7 @@ Two functions, two intents — **no confusion possible**:
 Access via the `client.mail` service accessor:
 
 ```typescript
-import { createClient } from '@odoo-toolbox/client';
+import { createClient } from '@marcfargas/odoo-client';
 const client = await createClient();
 
 await client.mail.postInternalNote('crm.lead', 42, '<p>Called customer.</p>');

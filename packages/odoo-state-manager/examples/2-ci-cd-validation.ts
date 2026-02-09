@@ -8,7 +8,7 @@
  * let humans approve changes before application.
  */
 
-import { OdooClient } from '@odoo-toolbox/client';
+import { OdooClient } from '@marcfargas/odoo-client';
 import { compareRecords, generatePlan, formatPlanForConsole, dryRunPlan } from '../src';
 
 async function main() {

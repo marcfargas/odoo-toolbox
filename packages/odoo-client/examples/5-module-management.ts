@@ -8,7 +8,7 @@
  * - Get detailed module information
  */
 
-import { OdooClient, ModuleManager } from '@odoo-toolbox/client';
+import { OdooClient, ModuleManager } from '@marcfargas/odoo-client';
 
 async function main() {
   // Connect to Odoo

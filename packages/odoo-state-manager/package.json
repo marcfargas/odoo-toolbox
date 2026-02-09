@@ -1,9 +1,14 @@
 {
-  "name": "@odoo-toolbox/state-manager",
+  "name": "@marcfargas/odoo-state-manager",
   "version": "0.1.0",
   "description": "State management with drift detection and plan/apply workflow for Odoo",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "jest",
@@ -15,11 +20,16 @@
     "drift-detection",
     "infrastructure-as-code"
   ],
-  "author": "Marc",
+  "author": "Marc Fargas <marc@marcfargas.com>",
   "license": "LGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/marcfargas/odoo-toolbox.git",
+    "directory": "packages/odoo-state-manager"
+  },
   "dependencies": {
-    "@odoo-toolbox/client": "^0.1.0",
-    "@odoo-toolbox/introspection": "^0.1.0"
+    "@marcfargas/odoo-client": "^0.1.0",
+    "@marcfargas/odoo-introspection": "^0.1.0"
   },
   "devDependencies": {
     "@types/jest": "^29.0.0",

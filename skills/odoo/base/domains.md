@@ -346,7 +346,7 @@ const count = await client.searchCount('res.partner', [
 
 ## JSON-RPC Gotchas
 
-When calling Odoo over JSON-RPC (which `@odoo-toolbox/client` does), beware:
+When calling Odoo over JSON-RPC (which `@marcfargas/odoo-client` does), beware:
 
 **Nesting depth** — don't over-wrap domains:
 ```javascript

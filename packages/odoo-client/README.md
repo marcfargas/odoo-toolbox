@@ -1,4 +1,4 @@
-# @odoo-toolbox/client
+# @marcfargas/odoo-client
 
 Lightweight TypeScript client for Odoo RPC operations.
 
@@ -15,13 +15,13 @@ Lightweight TypeScript client for Odoo RPC operations.
 ## Installation
 
 ```bash
-npm install @odoo-toolbox/client
+npm install @marcfargas/odoo-client
 ```
 
 ## Quick Start
 
 ```typescript
-import { OdooClient } from '@odoo-toolbox/client';
+import { OdooClient } from '@marcfargas/odoo-client';
 
 // Create client
 const client = new OdooClient({
@@ -53,7 +53,7 @@ await client.unlink('res.partner', [newId]);
 ## Module Management
 
 ```typescript
-import { OdooClient, ModuleManager } from '@odoo-toolbox/client';
+import { OdooClient, ModuleManager } from '@marcfargas/odoo-client';
 
 const client = new OdooClient({ /* config */ });
 await client.authenticate();
@@ -109,10 +109,10 @@ export ODOO_PASSWORD=admin
 
 ## Code Generation
 
-To generate TypeScript interfaces from your Odoo schema, use [@odoo-toolbox/introspection](../odoo-introspection):
+To generate TypeScript interfaces from your Odoo schema, use [@marcfargas/odoo-introspection](../odoo-introspection):
 
 ```bash
-npm install @odoo-toolbox/introspection
+npm install @marcfargas/odoo-introspection
 
 # Generate types
 odoo-introspect generate \
@@ -124,13 +124,13 @@ odoo-introspect generate \
 
 ## Tested Examples
 
-For comprehensive, tested examples of Odoo patterns including CRUD operations, search patterns, and field handling, see the knowledge base in [@odoo-toolbox/create-skills](../create-skills/assets/base/).
+For comprehensive, tested examples of Odoo patterns including CRUD operations, search patterns, and field handling, see the knowledge base in [@marcfargas/create-odoo-skills](../create-skills/assets/base/).
 
 ## Related Packages
 
-- [@odoo-toolbox/introspection](../odoo-introspection) - Schema introspection and code generation
-- [@odoo-toolbox/state-manager](../odoo-state-manager) - State management and drift detection
-- [@odoo-toolbox/create-skills](../create-skills) - CLI for scaffolding AI agent skill projects
+- [@marcfargas/odoo-introspection](../odoo-introspection) - Schema introspection and code generation
+- [@marcfargas/odoo-state-manager](../odoo-state-manager) - State management and drift detection
+- [@marcfargas/create-odoo-skills](../create-skills) - CLI for scaffolding AI agent skill projects
 
 ## License
 

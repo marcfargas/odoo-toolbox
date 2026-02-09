@@ -1,5 +1,5 @@
 /**
- * @odoo-toolbox/introspection
+ * @marcfargas/odoo-introspection
  *
  * TypeScript introspection and code generation for Odoo models.
  *
@@ -10,8 +10,8 @@
  *
  * Usage:
  * ```typescript
- * import { OdooClient } from '@odoo-toolbox/client';
- * import { Introspector } from '@odoo-toolbox/introspection';
+ * import { OdooClient } from '@marcfargas/odoo-client';
+ * import { Introspector } from '@marcfargas/odoo-introspection';
  *
  * const client = new OdooClient({ ... });
  * await client.authenticate();

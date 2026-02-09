@@ -9,9 +9,9 @@ export function generatePackageJson(projectName: string): string {
     private: true,
     description: 'Odoo skills for AI agent integration',
     scripts: {
-      validate: 'npx @odoo-toolbox/create-skills validate',
-      test: 'npx @odoo-toolbox/create-skills test',
-      build: 'npx @odoo-toolbox/create-skills build',
+      validate: 'npx @marcfargas/create-odoo-skills validate',
+      test: 'npx @marcfargas/create-odoo-skills test',
+      build: 'npx @marcfargas/create-odoo-skills build',
     },
     keywords: ['odoo', 'skills', 'ai-agent'],
     license: 'CC0-1.0',

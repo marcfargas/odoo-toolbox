@@ -163,7 +163,7 @@ Check for credentials in this order:
 ### Step 2: Connect and Validate
 
 ```typescript
-import { createClient } from '@odoo-toolbox/client';
+import { createClient } from '@marcfargas/odoo-client';
 
 try {
   const client = await createClient();
@@ -197,7 +197,7 @@ Object.entries(modules)
 ### Step 4: Introspect Key Models
 
 ```typescript
-import { Introspector } from '@odoo-toolbox/introspection';
+import { Introspector } from '@marcfargas/odoo-introspection';
 
 const introspector = new Introspector(client);  // client from createClient()
 

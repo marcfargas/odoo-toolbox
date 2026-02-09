@@ -1,4 +1,4 @@
-# @odoo-toolbox/introspection Examples
+# @marcfargas/odoo-introspection Examples
 
 Practical examples demonstrating schema introspection and TypeScript code generation.
 
@@ -184,8 +184,8 @@ const userModels = models.filter(m => !m.model.includes('_'));
 2. Move to **Example 2** to generate TypeScript types
 3. Use the generated types in your applications
 4. Check out the other packages:
-   - **@odoo-toolbox/client** - RPC client for operations
-   - **@odoo-toolbox/state-manager** - State management and drift detection
+   - **@marcfargas/odoo-client** - RPC client for operations
+   - **@marcfargas/odoo-state-manager** - State management and drift detection
 
 ## Troubleshooting
 

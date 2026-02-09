@@ -1,4 +1,4 @@
-// Main entry point for @odoo-toolbox/state-manager
+// Main entry point for @marcfargas/odoo-state-manager
 // Export state manager classes and types
 
 export * from './types';

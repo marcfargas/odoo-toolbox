@@ -38,7 +38,7 @@ cp .env.example .env  # Add your Odoo credentials
 ### Option 2: Scaffold a Custom Skill Project
 
 ```bash
-npx @odoo-toolbox/create-skills my-odoo-skills
+npx @marcfargas/create-odoo-skills my-odoo-skills
 cd my-odoo-skills
 cp .env.example .env  # Configure your Odoo credentials
 ```
@@ -51,10 +51,10 @@ The skills are backed by tested TypeScript infrastructure:
 
 | Package | Description | Status |
 |---------|-------------|--------|
-| [@odoo-toolbox/client](./packages/odoo-client) | Lightweight RPC client for Odoo | Active |
-| [@odoo-toolbox/introspection](./packages/odoo-introspection) | Schema introspection and type generation | Active |
-| [@odoo-toolbox/create-skills](./packages/create-skills) | CLI to scaffold skill projects | Active |
-| [@odoo-toolbox/state-manager](./packages/odoo-state-manager) | Drift detection and plan/apply (Terraform-style) | Experimental |
+| [@marcfargas/odoo-client](./packages/odoo-client) | Lightweight RPC client for Odoo | Active |
+| [@marcfargas/odoo-introspection](./packages/odoo-introspection) | Schema introspection and type generation | Active |
+| [@marcfargas/create-odoo-skills](./packages/create-skills) | CLI to scaffold skill projects | Active |
+| [@marcfargas/odoo-state-manager](./packages/odoo-state-manager) | Drift detection and plan/apply (Terraform-style) | Experimental |
 
 ## Contributing
 
@@ -70,5 +70,8 @@ See [AGENTS.md](./AGENTS.md) for AI assistant coding conventions.
 
 ## License
 
-- **Code**: LGPL-3.0 — see [LICENSE](./LICENSE)
-- **Knowledge modules** (`skills/odoo/`): [CC-BY-4.0](./skills/odoo/LICENSE)
+**Code** (`packages/`): [LGPL-3.0](./LICENSE)
+
+**Skills** (`skills/`): [CC0 1.0 Universal](./skills/odoo/LICENSE) — **public domain**.
+Use the knowledge freely in any project, commercial or not, with no attribution required.
+AI agents, companies, competing projects — zero restrictions, zero friction.

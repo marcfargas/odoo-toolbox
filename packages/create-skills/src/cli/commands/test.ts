@@ -85,7 +85,7 @@ export async function testCommand(options: TestOptions): Promise<void> {
     const relativePath = path.relative(cwd, file);
 
     // For now, just report that we found testable blocks
-    // Full execution requires @odoo-toolbox/client which is a peer dependency
+    // Full execution requires @marcfargas/odoo-client which is a peer dependency
     const passedCount = blocks.length; // TODO: Actually execute tests
     totalPassed += passedCount;
 
@@ -103,8 +103,8 @@ export async function testCommand(options: TestOptions): Promise<void> {
   );
 
   // TODO: Actually execute the code blocks and report pass/fail
-  console.log('\nNote: Full test execution requires @odoo-toolbox/client.');
-  console.log('Install with: npm install @odoo-toolbox/client @odoo-toolbox/introspection');
+  console.log('\nNote: Full test execution requires @marcfargas/odoo-client.');
+  console.log('Install with: npm install @marcfargas/odoo-client @marcfargas/odoo-introspection');
 
   if (totalFailed > 0) {
     process.exit(1);

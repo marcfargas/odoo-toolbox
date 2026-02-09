@@ -5,7 +5,7 @@ How to establish an authenticated connection to an Odoo instance.
 ## Quick Start
 
 ```typescript
-import { createClient } from '@odoo-toolbox/client';
+import { createClient } from '@marcfargas/odoo-client';
 
 const client = await createClient();  // reads ODOO_URL, ODOO_DB, ODOO_USER, ODOO_PASSWORD
 ```
@@ -55,7 +55,7 @@ ODOO_PASSWORD=my_secure_password
 If you need control over the lifecycle (custom safety context, deferred auth):
 
 ```typescript testable id="connection-basic" needs="none"
-import { OdooClient } from '@odoo-toolbox/client';
+import { OdooClient } from '@marcfargas/odoo-client';
 
 const client = new OdooClient({
   url: process.env.ODOO_URL || 'http://localhost:8069',
@@ -95,7 +95,7 @@ session?.context    // User context (language, timezone, etc.)
 | `OdooNetworkError` | Cannot reach server |
 
 ```typescript
-import { createClient, OdooAuthError, OdooNetworkError, OdooError } from '@odoo-toolbox/client';
+import { createClient, OdooAuthError, OdooNetworkError, OdooError } from '@marcfargas/odoo-client';
 
 try {
   const client = await createClient();

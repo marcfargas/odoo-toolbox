@@ -5,8 +5,8 @@
  * handling setup, teardown, and dependency injection.
  */
 
-import { OdooClient, ModuleManager } from '@odoo-toolbox/client';
-import { Introspector } from '@odoo-toolbox/introspection';
+import { OdooClient, ModuleManager } from '@marcfargas/odoo-client';
+import { Introspector } from '@marcfargas/odoo-introspection';
 import type { TestableCodeBlock } from './markdown-example-extractor';
 import { getTestConfig, uniqueTestName } from './odoo-instance';
 

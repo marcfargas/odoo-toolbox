@@ -1,4 +1,4 @@
-# @odoo-toolbox/introspection
+# @marcfargas/odoo-introspection
 
 TypeScript introspection and code generation for Odoo models.
 
@@ -13,7 +13,7 @@ TypeScript introspection and code generation for Odoo models.
 ## Installation
 
 ```bash
-npm install @odoo-toolbox/introspection @odoo-toolbox/client
+npm install @marcfargas/odoo-introspection @marcfargas/odoo-client
 ```
 
 ## Quick Start
@@ -21,8 +21,8 @@ npm install @odoo-toolbox/introspection @odoo-toolbox/client
 ### Programmatic Usage
 
 ```typescript
-import { OdooClient } from '@odoo-toolbox/client';
-import { Introspector } from '@odoo-toolbox/introspection';
+import { OdooClient } from '@marcfargas/odoo-client';
+import { Introspector } from '@marcfargas/odoo-introspection';
 
 // Connect to Odoo
 const client = new OdooClient({
@@ -144,7 +144,7 @@ introspector.clearModelCache('res.partner');
 Generate TypeScript interfaces from Odoo schemas.
 
 ```typescript
-import { CodeGenerator } from '@odoo-toolbox/introspection';
+import { CodeGenerator } from '@marcfargas/odoo-introspection';
 
 const generator = new CodeGenerator(client);
 
@@ -230,13 +230,13 @@ DEBUG=odoo-introspection:introspection,odoo-introspection:codegen npm run test
 
 ## Tested Examples
 
-For comprehensive, tested examples of introspection patterns and model discovery, see the knowledge base in [@odoo-toolbox/create-skills](../create-skills/assets/base/).
+For comprehensive, tested examples of introspection patterns and model discovery, see the knowledge base in [@marcfargas/create-odoo-skills](../create-skills/assets/base/).
 
 ## Related Packages
 
-- [@odoo-toolbox/client](../odoo-client) - RPC client
-- [@odoo-toolbox/state-manager](../odoo-state-manager) - State management and drift detection
-- [@odoo-toolbox/create-skills](../create-skills) - CLI for scaffolding AI agent skill projects
+- [@marcfargas/odoo-client](../odoo-client) - RPC client
+- [@marcfargas/odoo-state-manager](../odoo-state-manager) - State management and drift detection
+- [@marcfargas/create-odoo-skills](../create-skills) - CLI for scaffolding AI agent skill projects
 
 ## License
 

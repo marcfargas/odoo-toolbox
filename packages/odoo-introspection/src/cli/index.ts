@@ -25,7 +25,7 @@
  */
 
 import * as path from 'path';
-import { OdooClient } from '@odoo-toolbox/client';
+import { OdooClient } from '@marcfargas/odoo-client';
 import { CodeGenerator } from '../codegen/generator';
 
 /**

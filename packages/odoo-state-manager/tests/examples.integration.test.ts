@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { OdooClient } from '@odoo-toolbox/client';
+import { OdooClient } from '@marcfargas/odoo-client';
 import { compareRecords, generatePlan, dryRunPlan } from '../src';
 
 describe('odoo-state-manager examples', () => {

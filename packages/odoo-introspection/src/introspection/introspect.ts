@@ -9,7 +9,7 @@
  * @see https://github.com/odoo/odoo/blob/17.0/odoo/addons/base/models/ir_model_fields.py
  */
 
-import type { OdooClient } from '@odoo-toolbox/client';
+import type { OdooClient } from '@marcfargas/odoo-client';
 import type { OdooModel, OdooField, ModelMetadata, IntrospectionOptions } from './types';
 import { IntrospectionCache } from './cache';
 

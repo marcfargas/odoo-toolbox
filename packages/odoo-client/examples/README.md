@@ -1,4 +1,4 @@
-# @odoo-toolbox/client Examples
+# @marcfargas/odoo-client Examples
 
 Practical examples demonstrating the Odoo RPC client features.
 
@@ -158,8 +158,8 @@ await client.create(
 4. Explore **Example 4** for advanced context features
 
 Then check out the other packages:
-- **@odoo-toolbox/introspection** - Generate types from schema
-- **@odoo-toolbox/state-manager** - Drift detection and state management
+- **@marcfargas/odoo-introspection** - Generate types from schema
+- **@marcfargas/odoo-state-manager** - Drift detection and state management
 
 ## Troubleshooting
 

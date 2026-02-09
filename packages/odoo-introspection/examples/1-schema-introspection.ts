@@ -14,7 +14,7 @@
  * Run: npx ts-node packages/odoo-introspection/examples/1-schema-introspection.ts
  */
 
-import { OdooClient } from '@odoo-toolbox/client';
+import { OdooClient } from '@marcfargas/odoo-client';
 import { Introspector } from '../src';
 
 async function main() {

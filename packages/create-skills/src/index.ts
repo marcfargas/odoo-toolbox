@@ -1,5 +1,5 @@
 /**
- * @odoo-toolbox/create-skills
+ * @marcfargas/create-odoo-skills
  *
  * CLI and library for scaffolding Odoo skill projects for AI agents.
  *

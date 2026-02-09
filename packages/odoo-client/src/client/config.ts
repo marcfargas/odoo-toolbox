@@ -47,7 +47,7 @@ export function configFromEnv(prefix: string = 'ODOO'): OdooClientConfig {
  * This is the recommended one-liner for scripts and agents:
  *
  * ```typescript
- * import { createClient } from '@odoo-toolbox/client';
+ * import { createClient } from '@marcfargas/odoo-client';
  *
  * const client = await createClient();
  * await client.mail.postInternalNote('crm.lead', 42, '<p>Done.</p>');

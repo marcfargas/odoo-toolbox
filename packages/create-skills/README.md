@@ -1,4 +1,4 @@
-# @odoo-toolbox/create-skills
+# @marcfargas/create-odoo-skills
 
 CLI to scaffold Odoo skill projects for AI agents.
 
@@ -16,10 +16,10 @@ The knowledge modules live at the repository root in [`skills/odoo/`](../../skil
 
 ```bash
 # Run directly with npx
-npx @odoo-toolbox/create-skills my-odoo-skills
+npx @marcfargas/create-odoo-skills my-odoo-skills
 
 # Or install globally
-npm install -g @odoo-toolbox/create-skills
+npm install -g @marcfargas/create-odoo-skills
 create-skills my-odoo-skills
 ```
 
@@ -28,7 +28,7 @@ create-skills my-odoo-skills
 ### Create a New Skill Project
 
 ```bash
-npx @odoo-toolbox/create-skills my-project
+npx @marcfargas/create-odoo-skills my-project
 cd my-project
 ```
 
@@ -82,9 +82,9 @@ The `skills/odoo/` directory at the repository root contains tested and validate
 
 ## Related Packages
 
-- [@odoo-toolbox/client](../odoo-client) - Lightweight RPC client for Odoo operations
-- [@odoo-toolbox/introspection](../odoo-introspection) - Schema introspection and TypeScript code generation
-- [@odoo-toolbox/state-manager](../odoo-state-manager) - Drift detection and plan/apply workflow
+- [@marcfargas/odoo-client](../odoo-client) - Lightweight RPC client for Odoo operations
+- [@marcfargas/odoo-introspection](../odoo-introspection) - Schema introspection and TypeScript code generation
+- [@marcfargas/odoo-state-manager](../odoo-state-manager) - Drift detection and plan/apply workflow
 
 ## License
 

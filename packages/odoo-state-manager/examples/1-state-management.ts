@@ -9,7 +9,7 @@
  * Use case: Ensure projects have consistent configuration across your Odoo instance
  */
 
-import { OdooClient } from '@odoo-toolbox/client';
+import { OdooClient } from '@marcfargas/odoo-client';
 import { compareRecords, generatePlan, formatPlanForConsole, applyPlan, dryRunPlan } from '../src';
 
 async function main() {

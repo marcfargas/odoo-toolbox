@@ -9,7 +9,7 @@ Odoo functionality is organized into modules. Before using module-specific featu
 ## Using the Module Service Accessor
 
 ```typescript
-import { createClient } from '@odoo-toolbox/client';
+import { createClient } from '@marcfargas/odoo-client';
 
 const client = await createClient();
 

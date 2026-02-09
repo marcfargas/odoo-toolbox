@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * CLI entry point for @odoo-toolbox/create-skills
+ * CLI entry point for @marcfargas/create-odoo-skills
  *
  * Commands:
  *   create-skills [project-name]  - Create new skills project
