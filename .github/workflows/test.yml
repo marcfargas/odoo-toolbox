@@ -56,6 +56,7 @@ jobs:
         with:
           name: build-artifacts
           path: packages/*/dist
+          include-hidden-files: true
           retention-days: 1
 
   lint:
