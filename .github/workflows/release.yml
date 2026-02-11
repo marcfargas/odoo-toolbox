@@ -1,7 +1,9 @@
 name: Release
 
 on:
-  push:
+  workflow_run:
+    workflows: ["tests"]
+    types: [completed]
     branches: [master]
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
@@ -15,6 +17,7 @@ jobs:
   release:
     name: Version or Publish
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -26,7 +29,6 @@ jobs:
 
       - run: npm ci
       - run: npm run build
-      - run: npm test
 
       - name: Create Release PR or Publish
         id: changesets

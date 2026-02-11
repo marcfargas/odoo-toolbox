@@ -13,8 +13,12 @@
     "typescript",
     "infrastructure-as-code",
     "state-management",
-    "drift-detection"
+    "drift-detection",
+    "pi-package"
   ],
+  "pi": {
+    "skills": ["skills"]
+  },
   "author": "Marc Fargas <marc@marcfargas.com>",
   "license": "LGPL-3.0",
   "workspaces": [
