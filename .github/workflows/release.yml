@@ -32,8 +32,15 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          publish: npx changeset publish
+          publish: npx changeset publish --provenance
           title: "chore: version packages"
           commit: "chore: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
+
+      - name: Register skills on skills.sh
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          npx -y skills add marcfargas/odoo-toolbox --full-depth --all 2>&1 || echo "⚠️ skills.sh registration failed (non-blocking)"
+          echo "skills.sh registration done ✅"
