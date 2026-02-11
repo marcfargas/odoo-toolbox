@@ -90,7 +90,8 @@ Load by reading the path shown below:
 |-------|------|------------------|-------------|
 | accounting | `modules/accounting.md` | `account` | Accounting patterns, cashflow, reconciliation, bank statements |
 | timesheets | `modules/timesheets.md` | `hr_timesheet` | Track employee time on projects and tasks |
-| mis-builder | `oca/mis-builder.md` | `mis_builder`, `date_range`, `report_xlsx` | MIS Builder financial reports (PnL, Balance Sheet) |
+| mis-builder | `oca/mis-builder.md` | `mis_builder`, `date_range`, `report_xlsx` | MIS Builder — reading, computing, exporting reports |
+| mis-builder-dev | `oca/mis-builder-dev.md` | `mis_builder`, `date_range`, `report_xlsx` | MIS Builder — creating & editing report templates, expression language, styling |
 
 ## Skill Generation Workflow
 

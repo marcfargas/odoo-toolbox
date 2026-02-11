@@ -1,6 +1,8 @@
-# MIS Builder
+# MIS Builder — Reading & Executing Reports
 
-Working with OCA MIS Builder for financial reports (PnL, Balance Sheet).
+Reading, computing, and exporting OCA MIS Builder financial reports (PnL, Balance Sheet).
+
+> **Companion skill**: See `mis-builder-dev.md` for *authoring* — creating and editing report templates, the expression language, and styling.
 
 ## Overview
 
@@ -22,7 +24,10 @@ MIS Builder (Management Information System Builder) is an OCA module for creatin
 | `mis.report.instance` | Configured report for specific periods/companies |
 | `mis.report.instance.period` | Period configuration within an instance |
 | `mis.report.kpi` | KPI/row definitions with formulas |
+| `mis.report.kpi.expression` | Individual expressions (one per sub-KPI, or one for non-multi KPIs) |
 | `mis.report.style` | Visual styling for reports |
+| `mis.report.subreport` | Cross-references to other report templates (for composition) |
+| `mis.report.query` | Queries to fetch data from non-accounting models |
 
 ## Listing Report Templates
 
@@ -128,6 +133,17 @@ console.log('Rows:', reportData.body.length);
   "notes": {}
 }
 ```
+
+### row.style vs cell.style
+
+Both `row.style` and `cell.style` are CSS strings (e.g., `"font-weight: bold; color: #ffa500"`).
+
+- **`row.style`**: Always reflects the KPI's base `style_id` (the static row style). Does **not** include `style_expression` results.
+- **`cell.style`**: Reflects the effective style **after** `style_expression` evaluation. If the KPI has a `style_expression`, the resolved style is merged on top of the base style and appears here.
+
+When processing `compute()` output programmatically, **always use `cell.style` for the effective formatting** — especially for color. The `row.style` is useful for layout properties like indentation.
+
+Rows with `hide_always = true` on their style are excluded from the `body` array entirely — they never appear in `compute()` output.
 
 ### Cell Values
 
