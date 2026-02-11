@@ -1,6 +1,6 @@
 {
   "name": "@marcfargas/odoo-skills",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Battle-tested Odoo knowledge modules for AI agents — 5,200+ lines validated against Odoo v17 in CI",
   "files": [
     "skills",
