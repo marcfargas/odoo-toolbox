@@ -1,5 +1,16 @@
 # @marcfargas/odoo-skills
 
+## 0.3.0
+
+### Minor Changes
+
+- 8ad2baf: Add attendance skill and update timesheets skill with timer operations
+
+  New skill: `modules/attendance.md` — clock in/out, presence tracking via `client.attendance.*`
+
+  Updated skill: `modules/timesheets.md` — add timer start/stop workflow, service accessor
+  documentation, standalone function exports, and timer architecture explanation
+
 ## 0.2.0
 
 ### Minor Changes
