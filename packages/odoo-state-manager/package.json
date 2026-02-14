@@ -1,6 +1,6 @@
 {
   "name": "@marcfargas/odoo-state-manager",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "State management with drift detection and plan/apply workflow for Odoo",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -28,8 +28,8 @@
     "directory": "packages/odoo-state-manager"
   },
   "dependencies": {
-    "@marcfargas/odoo-client": "^0.1.0",
-    "@marcfargas/odoo-introspection": "^0.1.0"
+    "@marcfargas/odoo-client": "^0.2.0",
+    "@marcfargas/odoo-introspection": "^0.1.1"
   },
   "devDependencies": {
     "@types/jest": "^29.0.0",
