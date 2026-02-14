@@ -36,6 +36,8 @@ Domain-specific helpers are accessed via lazy getters on the client:
 |----------|-------------|-----------|
 | `client.mail.*` | Post notes & messages on chatter | `mail/chatter.md` |
 | `client.modules.*` | Install, uninstall, check modules | `base/modules.md` |
+| `client.attendance.*` | Clock in/out, presence tracking | `modules/attendance.md` |
+| `client.timesheets.*` | Timer start/stop, time logging | `modules/timesheets.md` |
 
 Core CRUD (`searchRead`, `create`, `write`, `unlink`, etc.) stays directly on `client`.
 
@@ -89,7 +91,8 @@ Load by reading the path shown below:
 | Skill | Path | Required Modules | Description |
 |-------|------|------------------|-------------|
 | accounting | `modules/accounting.md` | `account` | Accounting patterns, cashflow, reconciliation, bank statements |
-| timesheets | `modules/timesheets.md` | `hr_timesheet` | Track employee time on projects and tasks |
+| attendance | `modules/attendance.md` | `hr_attendance` | Clock in/out, presence tracking (`client.attendance.*`) |
+| timesheets | `modules/timesheets.md` | `hr_timesheet` | Timer start/stop, time logging on projects (`client.timesheets.*`) |
 | mis-builder | `oca/mis-builder.md` | `mis_builder`, `date_range`, `report_xlsx` | MIS Builder — reading, computing, exporting reports |
 | mis-builder-dev | `oca/mis-builder-dev.md` | `mis_builder`, `date_range`, `report_xlsx` | MIS Builder — creating & editing report templates, expression language, styling |
 

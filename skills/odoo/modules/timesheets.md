@@ -6,6 +6,10 @@ Track employee time on projects and tasks using Odoo's timesheet system.
 
 The `hr_timesheet` module allows employees to log time spent on projects and tasks. Time entries are stored in `account.analytic.line` with project/task context.
 
+Two workflows:
+1. **Timer-based**: Start a timer → work → stop the timer (duration auto-computed)
+2. **Manual**: Log completed work with known hours
+
 ## Prerequisites
 
 - Authenticated OdooClient connection
@@ -20,6 +24,39 @@ The `hr_timesheet` module allows employees to log time spent on projects and tas
 | `project.project` | Projects (must have `allow_timesheets=true`) |
 | `project.task` | Tasks within projects |
 | `hr.employee` | Employees who log time |
+
+## Service Accessor
+
+Access timesheet operations via `client.timesheets`:
+
+```typescript
+const client = await createClient();
+
+// Timer workflow
+const entry = await client.timesheets.startTimer({
+  description: 'Feature development',
+  projectId: 5,
+  taskId: 42,
+});
+// ... work ...
+const stopped = await client.timesheets.stopTimer(entry.id);
+console.log(`Logged ${stopped.unit_amount.toFixed(2)} hours`);
+
+// Manual logging
+await client.timesheets.logTime({
+  description: 'Code review',
+  projectId: 5,
+  hours: 1.5,
+});
+
+// Check running timers (entries with unit_amount = 0)
+const running = await client.timesheets.getRunningTimers();
+
+// List entries
+const entries = await client.timesheets.list({ projectId: 5 });
+```
+
+All methods accept an optional `employeeId`. When omitted, the current user's linked `hr.employee` record is used automatically.
 
 ## Field Reference
 
@@ -36,6 +73,7 @@ The `hr_timesheet` module allows employees to log time spent on projects and tas
 | `company_id` | Many2one → res.company | Yes | Company (defaults to current) |
 | `amount` | Monetary | Yes | Cost amount (auto-calculated from hourly cost) |
 | `user_id` | Many2one → res.users | No | Related user |
+| `create_date` | Datetime | Auto | Record creation time (used to compute elapsed time for timers) |
 
 ## Checking Module Installation
 
@@ -362,8 +400,151 @@ The `amount` field is calculated based on:
 - `unit_amount` (hours) x employee's `hourly_cost`
 - Set hourly cost on `hr.employee.hourly_cost`
 
+## Timer Operations (via service accessor)
+
+### Start a Timer
+
+```typescript testable id="timesheets-start-timer" needs="client" creates="account.analytic.line" expect="result.success === true"
+// Find a project with timesheets enabled
+const [project] = await client.searchRead('project.project', [
+  ['allow_timesheets', '=', true]
+], { fields: ['id', 'name'], limit: 1 });
+
+if (!project) {
+  throw new Error('No project with timesheets enabled');
+}
+
+// Start a timer
+const entry = await client.timesheets.startTimer({
+  description: 'Working on feature X',
+  projectId: project.id,
+});
+trackRecord('account.analytic.line', entry.id);
+
+// Timer is now running — unit_amount = 0
+const isRunning = entry.unit_amount === 0;
+
+// Stop it to clean up
+await client.timesheets.stopTimer(entry.id);
+
+return { success: true, entryId: entry.id, wasRunning: isRunning };
+```
+
+### Stop a Timer
+
+```typescript testable id="timesheets-stop-timer" needs="client" creates="account.analytic.line" expect="result.success === true"
+const [project] = await client.searchRead('project.project', [
+  ['allow_timesheets', '=', true]
+], { fields: ['id'], limit: 1 });
+
+// Start then stop
+const entry = await client.timesheets.startTimer({
+  description: 'Timer to stop',
+  projectId: project.id,
+});
+trackRecord('account.analytic.line', entry.id);
+
+// Wait briefly so there's measurable time
+await new Promise(resolve => setTimeout(resolve, 500));
+
+const stopped = await client.timesheets.stopTimer(entry.id);
+
+return {
+  success: true,
+  hoursLogged: stopped.unit_amount,
+  timerStopped: stopped.unit_amount > 0
+};
+```
+
+### Find Running Timers
+
+```typescript testable id="timesheets-running-timers" needs="client" expect="result.success === true"
+const running = await client.timesheets.getRunningTimers();
+
+return {
+  success: true,
+  runningCount: running.length,
+  entries: running.map(e => ({
+    id: e.id,
+    description: e.name,
+    createdAt: e.create_date
+  }))
+};
+```
+
+### Log Completed Time (No Timer)
+
+```typescript testable id="timesheets-log-time" needs="client" creates="account.analytic.line" expect="result.success === true"
+const [project] = await client.searchRead('project.project', [
+  ['allow_timesheets', '=', true]
+], { fields: ['id'], limit: 1 });
+
+const entry = await client.timesheets.logTime({
+  description: 'Completed code review',
+  projectId: project.id,
+  hours: 1.5,
+});
+trackRecord('account.analytic.line', entry.id);
+
+return {
+  success: true,
+  entryId: entry.id,
+  hours: entry.unit_amount,
+  description: entry.name
+};
+```
+
+### List Timesheet Entries
+
+```typescript testable id="timesheets-list" needs="client" expect="result.success === true"
+const entries = await client.timesheets.list({
+  limit: 10,
+});
+
+const totalHours = entries.reduce((sum, e) => sum + (e.unit_amount || 0), 0);
+
+return {
+  success: true,
+  count: entries.length,
+  totalHours
+};
+```
+
+## Timer Architecture
+
+The timer concept is simple — it's just the `unit_amount` field:
+
+- **Running clock** = `unit_amount = 0` (entry without duration)
+- **Closed entry** = `unit_amount > 0` (duration filled)
+
+This is standard `hr_timesheet` behavior. No extra modules needed. The OCA module
+[`project_timesheet_time_control`](https://github.com/OCA/project/tree/17.0/project_timesheet_time_control)
+adds UI buttons (Start/Stop/Resume) for this workflow, but the data model is the same.
+
+The `client.timesheets` service wraps this into a clean API:
+- `startTimer()` → creates entry with `unit_amount = 0`
+- `stopTimer()` → computes elapsed time from `create_date`, writes `unit_amount`
+- `getRunningTimers()` → searches for entries with `unit_amount = 0`
+
+## Standalone Functions
+
+For advanced composition, standalone functions are also exported:
+
+```typescript
+import {
+  startTimer, stopTimer, getRunningTimers, logTime, listTimesheets
+} from '@marcfargas/odoo-client';
+
+const entry = await startTimer(client, { description: 'Work', projectId: 5 });
+const stopped = await stopTimer(client, entry.id);
+const running = await getRunningTimers(client, employeeId);
+const logged = await logTime(client, { description: 'Review', projectId: 5, hours: 2 });
+const list = await listTimesheets(client, { projectId: 5 });
+```
+
 ## Related Documents
 
+- [attendance.md](./attendance.md) - Clock in/out (physical presence, separate from time tracking)
 - [crud.md](../base/crud.md) - CRUD operations
 - [search.md](../base/search.md) - Search patterns
 - [domains.md](../base/domains.md) - Domain filters

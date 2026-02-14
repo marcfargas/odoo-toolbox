@@ -28,6 +28,8 @@ import {
 } from '../safety';
 import { MailService } from '../services/mail/mail-service';
 import { ModuleManager } from '../services/modules/module-manager';
+import { AttendanceService } from '../services/attendance/attendance-service';
+import { TimesheetsService } from '../services/timesheets/timesheets-service';
 
 export interface OdooClientConfig {
   url: string;
@@ -92,6 +94,51 @@ export class OdooClient {
    */
   get modules(): ModuleManager {
     return (this._modules ??= new ModuleManager(this));
+  }
+
+  private _attendance?: AttendanceService;
+
+  /**
+   * Attendance service — clock in/out and presence tracking.
+   *
+   * Requires the `hr_attendance` module to be installed.
+   *
+   * ```typescript
+   * await client.attendance.clockIn();
+   * const status = await client.attendance.getStatus();
+   * await client.attendance.clockOut();
+   * ```
+   */
+  get attendance(): AttendanceService {
+    return (this._attendance ??= new AttendanceService(this));
+  }
+
+  private _timesheets?: TimesheetsService;
+
+  /**
+   * Timesheets service — timer-based and manual time tracking on projects.
+   *
+   * Requires the `hr_timesheet` module to be installed.
+   *
+   * ```typescript
+   * // Timer workflow
+   * const entry = await client.timesheets.startTimer({
+   *   description: 'Feature work',
+   *   projectId: 5,
+   * });
+   * // ... later ...
+   * await client.timesheets.stopTimer(entry.id);
+   *
+   * // Manual logging
+   * await client.timesheets.logTime({
+   *   description: 'Code review',
+   *   projectId: 5,
+   *   hours: 1.5,
+   * });
+   * ```
+   */
+  get timesheets(): TimesheetsService {
+    return (this._timesheets ??= new TimesheetsService(this));
   }
 
   // ── Auth ────────────────────────────────────────────────────────────
