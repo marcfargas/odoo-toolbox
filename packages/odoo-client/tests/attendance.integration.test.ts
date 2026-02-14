@@ -7,12 +7,7 @@
 
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
 import { OdooClient, ModuleManager } from '../src';
-import {
-  clockIn,
-  clockOut,
-  getStatus,
-  listAttendances,
-} from '../src/services/attendance';
+import { clockIn, clockOut, getStatus, listAttendances } from '../src/services/attendance';
 import { OdooValidationError } from '../src/types/errors';
 import {
   installModuleForTest,
@@ -53,11 +48,10 @@ describe('Attendance service integration', () => {
 
     // Find or create an employee for current user
     const session = client.getSession();
-    const employees = await client.searchRead(
-      'hr.employee',
-      [['user_id', '=', session?.uid]],
-      { fields: ['id'], limit: 1 },
-    );
+    const employees = await client.searchRead('hr.employee', [['user_id', '=', session?.uid]], {
+      fields: ['id'],
+      limit: 1,
+    });
 
     if (employees.length > 0) {
       employeeId = employees[0].id;
