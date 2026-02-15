@@ -263,9 +263,16 @@ jobs:
           done
           echo "All SKILL.md files valid ✅"
 
+      # ── Path 2: npm package install ──────────────────────────────
+      # Build the package FIRST (before skills add modifies source tree with symlinks)
+
+      - name: Build odoo-skills package
+        run: npm run build --workspace=packages/odoo-skills
+
       # ── Path 1: GitHub repo install ──────────────────────────────
       # Users run: skills add marcfargas/odoo-toolbox
       # We test with local checkout (same file structure)
+      # NOTE: skills add creates symlinks in skills/, so this must run AFTER build
 
       - name: "Path 1: skills add from repo (discovery)"
         run: |
@@ -294,23 +301,6 @@ jobs:
           }
           echo "$OUTPUT"
           echo "GitHub repo install check done ✅"
-
-      # ── Path 2: npm package install ──────────────────────────────
-      # Users run: skills add @marcfargas/odoo-skills
-      # We test against the built package directory
-
-      - name: Debug filesystem before build
-        run: |
-          echo "=== Source directory ==="
-          ls -la skills/
-          file skills/odoo || ls -la skills/odoo/ | head -5
-          echo ""
-          echo "=== Destination directory ==="
-          ls -la packages/odoo-skills/ || echo "Not found"
-          ls -la packages/odoo-skills/skills/ 2>/dev/null || echo "packages/odoo-skills/skills/ does not exist (expected)"
-
-      - name: Build odoo-skills package
-        run: npm run build --workspace=packages/odoo-skills
 
       - name: "Path 2: skills add from npm package (discovery)"
         run: |
