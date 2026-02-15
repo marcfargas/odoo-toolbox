@@ -1,5 +1,13 @@
 # @marcfargas/odoo-skills
 
+## 0.4.1
+
+### Patch Changes
+
+- 3265832: Publish `.well-known/skills/index.json` in the npm package
+
+  This enables tooling to discover the skill entrypoint from the published package (not only from the repo).
+
 ## 0.4.0
 
 ### Minor Changes
