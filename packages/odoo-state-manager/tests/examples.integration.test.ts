@@ -4,7 +4,7 @@
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { OdooClient } from '@marcfargas/odoo-client';
-import { compareRecords, generatePlan, dryRunPlan } from '../src';
+import { compareRecords, generatePlan, dryRunPlan, type ModelDiff } from '../src';
 
 describe('odoo-state-manager examples', () => {
   let client: OdooClient;
@@ -58,11 +58,13 @@ describe('odoo-state-manager examples', () => {
     it('should generate an execution plan', async () => {
       const diffs = [
         {
+          model: 'project.project',
           id: 1,
-          type: 'update' as const,
+          isNew: false,
           changes: [
             {
               path: 'name',
+              operation: 'update' as const,
               oldValue: 'Old Name',
               newValue: 'New Name',
             },
@@ -82,7 +84,7 @@ describe('odoo-state-manager examples', () => {
 
     it('should validate plan with dry-run', async () => {
       // Create a simple test plan
-      const diffs = [];
+      const diffs: ModelDiff[] = [];
       const plan = generatePlan(diffs, {
         autoReorder: true,
       });
@@ -159,7 +161,7 @@ describe('odoo-state-manager examples', () => {
     });
 
     it('should validate without applying', async () => {
-      const diffs = [];
+      const diffs: ModelDiff[] = [];
       const plan = generatePlan(diffs);
 
       const validation = await dryRunPlan(plan, client, {

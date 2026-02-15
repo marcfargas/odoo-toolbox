@@ -12,9 +12,9 @@ export default defineConfig({
     // Only integration tests (packages)
     include: ['packages/*/tests/**/*.integration.test.ts'],
 
-    // Global setup/teardown for Docker containers
+    // Global setup for Docker containers.
+    // Teardown is returned from the globalSetup() function.
     globalSetup: './tests/helpers/globalSetup.ts',
-    globalTeardown: './tests/helpers/globalTeardown.ts',
 
     // Run sequentially for integration tests
     sequence: {

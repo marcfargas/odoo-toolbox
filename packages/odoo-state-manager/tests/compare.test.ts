@@ -10,7 +10,7 @@
  */
 
 import { compareRecord, compareRecords } from '../src/compare';
-import { OdooField } from '@marcfargas/odoo-client';
+import { OdooField } from '@marcfargas/odoo-introspection';
 
 describe('State Comparison Module', () => {
   describe('compareRecord - Primitive Fields', () => {

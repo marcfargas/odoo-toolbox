@@ -25,9 +25,19 @@ All code examples are **extracted and tested against real Odoo v17** in CI.
 
 ## Quick Start
 
+### Option 0: Install via skills.sh (recommended)
+
+If you're using the `skills` CLI (skills.sh), install directly from GitHub:
+
+```bash
+npx -y skills add marcfargas/odoo-toolbox --all
+```
+
+This will install the skills into your agent's skills directory (typically under `~/.pi/agent/skills/`).
+
 ### Option 1: Download Pre-built Skills
 
-Download `odoo-skills.zip` from the [latest CI build](https://github.com/marcfargas/odoo-toolbox/actions) (look for the "odoo-skills" artifact).
+Download `odoo-skills.zip` from the [latest GitHub release](https://github.com/marcfargas/odoo-toolbox/releases) (recommended) or from the [latest CI build](https://github.com/marcfargas/odoo-toolbox/actions) artifacts.
 
 ```bash
 unzip odoo-skills.zip
