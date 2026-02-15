@@ -27,13 +27,17 @@ All code examples are **extracted and tested against real Odoo v17** in CI.
 
 ### Option 0: Install via skills.sh (recommended)
 
-If you're using the `skills` CLI (skills.sh), install directly from GitHub:
+**Safety note:** `npx skills add ...` may create local agent directories. To avoid touching your live system, run it in a disposable Docker container.
 
 ```bash
-npx -y skills add marcfargas/odoo-toolbox --all
+docker run --rm \
+  -e HOME=/tmp/home \
+  -w /tmp \
+  node:24-bookworm \
+  bash -lc "apt-get update -qq && apt-get install -y -qq git >/dev/null && mkdir -p \"$HOME/.pi/agent\" && npx -y skills add marcfargas/odoo-toolbox --all"
 ```
 
-This will install the skills into your agent's skills directory (typically under `~/.pi/agent/skills/`).
+This installs the skills into the container’s `HOME` (non-persistent). If you want to copy them out, download `odoo-skills.zip` instead (Option 1).
 
 ### Option 1: Download Pre-built Skills
 

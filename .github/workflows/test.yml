@@ -274,10 +274,23 @@ jobs:
       - name: Install skills tooling
         run: pip install skills-ref
 
-      - name: Test discovery
+      - name: Test discovery (docker-isolated)
         run: |
           set -e
-          OUTPUT=$(npx -y skills add . --list 2>&1) || true
+          OUTPUT=$(docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src:ro" \
+            -e HOME=/tmp/home \
+            -w /tmp \
+            node:18-bookworm \
+            bash -lc '
+              set -e
+              apt-get update -qq && apt-get install -y -qq git rsync >/dev/null
+              mkdir -p /work
+              rsync -a /src/ /work/
+              cd /work
+              mkdir -p "$HOME/.pi/agent"
+              npx -y skills add . --list
+            ' 2>&1) || true
           echo "$OUTPUT"
 
           if echo "$OUTPUT" | grep -qi "odoo"; then
@@ -287,17 +300,27 @@ jobs:
             exit 1
           fi
 
-      - name: Test installation
+      - name: Test installation (docker-isolated)
         run: |
           set -e
-          export HOME=$(mktemp -d)
-          mkdir -p "$HOME/.pi/agent"
-
-          OUTPUT=$(npx -y skills add . --all 2>&1) || {
-            echo "❌ skills add from repo failed:"
-            echo "$OUTPUT"
-            exit 1
-          }
+          OUTPUT=$(docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src:ro" \
+            -e HOME=/tmp/home \
+            -w /tmp \
+            node:18-bookworm \
+            bash -lc '
+              set -e
+              apt-get update -qq && apt-get install -y -qq git rsync >/dev/null
+              mkdir -p /work
+              rsync -a /src/ /work/
+              cd /work
+              mkdir -p "$HOME/.pi/agent"
+              npx -y skills add . --all
+            ' 2>&1) || {
+              echo "❌ skills add from repo failed:"
+              echo "$OUTPUT"
+              exit 1
+            }
           echo "$OUTPUT"
           echo "✅ GitHub repo path works"
 
@@ -324,10 +347,23 @@ jobs:
       - name: Install skills tooling
         run: pip install skills-ref
 
-      - name: Test discovery
+      - name: Test discovery (docker-isolated)
         run: |
           set -e
-          OUTPUT=$(npx -y skills add ./packages/odoo-skills --list 2>&1) || true
+          OUTPUT=$(docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src:ro" \
+            -e HOME=/tmp/home \
+            -w /tmp \
+            node:18-bookworm \
+            bash -lc '
+              set -e
+              apt-get update -qq && apt-get install -y -qq git rsync >/dev/null
+              mkdir -p /work
+              rsync -a /src/ /work/
+              cd /work
+              mkdir -p "$HOME/.pi/agent"
+              npx -y skills add ./packages/odoo-skills --list
+            ' 2>&1) || true
           echo "$OUTPUT"
 
           if echo "$OUTPUT" | grep -qi "odoo"; then
@@ -337,16 +373,26 @@ jobs:
             exit 1
           fi
 
-      - name: Test installation
+      - name: Test installation (docker-isolated)
         run: |
           set -e
-          export HOME=$(mktemp -d)
-          mkdir -p "$HOME/.pi/agent"
-
-          OUTPUT=$(npx -y skills add ./packages/odoo-skills --all 2>&1) || {
-            echo "❌ skills add from npm package failed:"
-            echo "$OUTPUT"
-            exit 1
-          }
+          OUTPUT=$(docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src:ro" \
+            -e HOME=/tmp/home \
+            -w /tmp \
+            node:18-bookworm \
+            bash -lc '
+              set -e
+              apt-get update -qq && apt-get install -y -qq git rsync >/dev/null
+              mkdir -p /work
+              rsync -a /src/ /work/
+              cd /work
+              mkdir -p "$HOME/.pi/agent"
+              npx -y skills add ./packages/odoo-skills --all
+            ' 2>&1) || {
+              echo "❌ skills add from npm package failed:"
+              echo "$OUTPUT"
+              exit 1
+            }
           echo "$OUTPUT"
           echo "✅ npm package path works"
