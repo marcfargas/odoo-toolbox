@@ -29,9 +29,13 @@ describe('odoo-client examples', () => {
       expect(sessionInfo.uid).toBeGreaterThan(0);
     });
 
-    it('should verify connection by reading partner', async () => {
+    it('should verify connection by reading current user partner', async () => {
       const sessionInfo = await client.authenticate();
-      const [partnerId] = await client.search('res.partner', [['id', '=', sessionInfo.partner_id]]);
+
+      // Odoo session info doesn’t expose partner_id; resolve via res.users
+      const [user] = await client.read('res.users', [sessionInfo.uid], ['partner_id']);
+      const partnerId = Array.isArray(user.partner_id) ? user.partner_id[0] : user.partner_id;
+
       const [partner] = await client.read('res.partner', [partnerId], ['name', 'email']);
       expect(partner).toBeDefined();
       expect(partner.name).toBeDefined();

@@ -10,6 +10,7 @@
  */
 
 import { OdooClient } from '@marcfargas/odoo-client';
+import { Introspector } from '@marcfargas/odoo-introspection';
 import { compareRecords, generatePlan, formatPlanForConsole, applyPlan, dryRunPlan } from '../src';
 
 async function main() {
@@ -89,16 +90,13 @@ async function main() {
   console.log('───────────────────────────────────────\n');
 
   // Get field metadata for readonly field filtering (optional but recommended)
-  const fieldMetadata = await client.getFieldMetadata('project.project', [
-    'name',
-    'active',
-    'description',
-  ]);
+  // We use the Introspector which queries ir.model.fields.
+  const introspector = new Introspector(client);
+  const fields = await introspector.getFields('project.project');
+  const fieldMetadata = new Map([['project.project', new Map(fields.map((f) => [f.name, f]))]]);
 
   // Perform deep comparison
-  const diffs = compareRecords('project.project', desiredProjects, actualStates, {
-    fieldMetadata,
-  });
+  const diffs = compareRecords('project.project', desiredProjects, actualStates, { fieldMetadata });
 
   console.log(`Detected ${diffs.length} record(s) with changes:`);
   diffs.forEach((diff) => {

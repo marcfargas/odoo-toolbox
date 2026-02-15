@@ -1,0 +1,14 @@
+{
+  "ignoreMatches": [
+    "@changesets/changelog-github",
+    "@vitest/coverage-v8",
+    "cross-env",
+    "typescript"
+  ],
+  "ignoreDirs": [
+    "dist",
+    "packages/*/dist",
+    "packages/*/generated",
+    "packages/odoo-skills/skills"
+  ]
+}

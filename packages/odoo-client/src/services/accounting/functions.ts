@@ -255,8 +255,9 @@ export async function isClosingEntry(client: OdooClient, moveId: number): Promis
  * @param lines - Array of move lines with account_id field
  * @returns true if any line uses a 129x account
  */
-export function isClosingEntryFromLines(lines: Array<{ account_id: any }>): boolean {
+export function isClosingEntryFromLines(lines: Array<{ account_id?: any }>): boolean {
   return lines.some((l) => {
+    if (!l.account_id) return false;
     const name = m2oName(l.account_id);
     return /^129/.test(name);
   });

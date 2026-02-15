@@ -4,6 +4,7 @@
   "description": "Battle-tested Odoo knowledge modules for AI agents — 5,200+ lines validated against Odoo v17 in CI",
   "files": [
     "skills",
+    ".well-known",
     "LICENSE",
     "README.md"
   ],
