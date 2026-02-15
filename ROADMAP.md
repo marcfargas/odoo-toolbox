@@ -15,6 +15,13 @@
 
 ## Future
 
+- **CLI for service helpers** (`@marcfargas/odoo-cli`) — expose client services as shell commands for scripting and debugging. Potential commands:
+  - `odoo mail note/message` — post to chatter from shell/CI
+  - `odoo modules list/install/uninstall` — module management (migrate from dev scripts)
+  - `odoo accounting trace-recon` — reconciliation debugging
+  - `odoo accounting cash-balance --as-of YYYY-MM-DD --json` — monitoring/dashboards
+  - Follow patterns from `gh`, `gcloud`, `aws` CLIs (subcommands, JSON output, scriptable)
+  - Wait for demand signals before building — programmatic API + dev scripts sufficient for now
 - State manager: plan/apply workflow (drift detection exists, apply is experimental)
 - Relational field handling in desired state (by ID, search criteria, nested creation)
 - npm publishing and release automation (Changesets)
