@@ -299,6 +299,16 @@ jobs:
       # Users run: skills add @marcfargas/odoo-skills
       # We test against the built package directory
 
+      - name: Debug filesystem before build
+        run: |
+          echo "=== Source directory ==="
+          ls -la skills/
+          file skills/odoo || ls -la skills/odoo/ | head -5
+          echo ""
+          echo "=== Destination directory ==="
+          ls -la packages/odoo-skills/ || echo "Not found"
+          ls -la packages/odoo-skills/skills/ 2>/dev/null || echo "packages/odoo-skills/skills/ does not exist (expected)"
+
       - name: Build odoo-skills package
         run: npm run build --workspace=packages/odoo-skills
 
