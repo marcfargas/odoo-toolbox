@@ -44,19 +44,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
 
-      - name: Register skills on skills.sh (docker-isolated)
+      - name: Register skills on skills.sh
         if: steps.changesets.outputs.published == 'true'
         run: |
-          docker run --rm \
-            -e HOME=/tmp/home \
-            -w /tmp \
-            node:24-bookworm \
-            bash -lc '
-              set -e
-              apt-get update -qq && apt-get install -y -qq git >/dev/null
-              mkdir -p "$HOME/.pi/agent"
-              npx -y skills add marcfargas/odoo-toolbox --all
-            ' 2>&1 || echo "⚠️ skills.sh registration failed (non-blocking)"
+          npx -y skills add marcfargas/odoo-toolbox --all 2>&1 || echo "⚠️ skills.sh registration failed (non-blocking)"
           echo "skills.sh registration done ✅"
 
   build-and-attach-skills-zip:
@@ -103,37 +94,34 @@ jobs:
         with:
           node-version: 24
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Wait for GitHub to be updated
         run: |
           echo "Waiting 30s for GitHub repo to reflect latest commit..."
           sleep 30
 
-      - name: Validate skills add marcfargas/odoo-toolbox (docker-isolated)
+      - name: Install skills tooling
+        run: pip install skills-ref
+
+      - name: Validate skills add marcfargas/odoo-toolbox
         run: |
           set -e
+          export HOME=$(mktemp -d)
+          mkdir -p "$HOME/.pi/agent"
 
-          echo "Testing (docker): skills add marcfargas/odoo-toolbox"
-
-          OUTPUT=$(docker run --rm \
-            -e HOME=/tmp/home \
-            -w /tmp \
-            node:24-bookworm \
-            bash -lc '
-              set -e
-              apt-get update -qq && apt-get install -y -qq git >/dev/null
-              mkdir -p "$HOME/.pi/agent"
-              echo "--- discovery ---"
-              npx -y skills add marcfargas/odoo-toolbox --list
-              echo "--- install ---"
-              npx -y skills add marcfargas/odoo-toolbox --all
-            ' 2>&1) || {
-              echo "❌ skills add failed"
-              echo "$OUTPUT"
-              exit 1
-            }
-
+          echo "Testing: skills add marcfargas/odoo-toolbox"
+          
+          # Discovery test
+          OUTPUT=$(npx -y skills add marcfargas/odoo-toolbox --list 2>&1) || {
+            echo "❌ Discovery failed for marcfargas/odoo-toolbox"
+            echo "$OUTPUT"
+            exit 1
+          }
           echo "$OUTPUT"
-
+          
           if echo "$OUTPUT" | grep -qi "odoo"; then
             echo "  ✅ odoo skill discovered from GitHub repo"
           else
@@ -141,6 +129,13 @@ jobs:
             exit 1
           fi
 
+          # Installation test
+          OUTPUT=$(npx -y skills add marcfargas/odoo-toolbox --all 2>&1) || {
+            echo "❌ Installation failed for marcfargas/odoo-toolbox"
+            echo "$OUTPUT"
+            exit 1
+          }
+          echo "$OUTPUT"
           echo "  ✅ GitHub repo installs successfully"
 
       - name: Validation summary
