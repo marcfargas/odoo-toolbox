@@ -47,7 +47,7 @@ jobs:
       - name: Register skills on skills.sh
         if: steps.changesets.outputs.published == 'true'
         run: |
-          npx -y skills add marcfargas/odoo-toolbox --full-depth --all 2>&1 || echo "⚠️ skills.sh registration failed (non-blocking)"
+          npx -y skills add marcfargas/odoo-toolbox --all 2>&1 || echo "⚠️ skills.sh registration failed (non-blocking)"
           echo "skills.sh registration done ✅"
 
   build-and-attach-skills-zip:
@@ -82,8 +82,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  validate-published-packages:
-    name: Validate Published Packages
+  validate-published-skills:
+    name: Validate Published Skills
     runs-on: ubuntu-latest
     needs: release
     if: needs.release.outputs.published == 'true'
@@ -98,47 +98,15 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Wait for npm registry propagation
+      - name: Wait for GitHub to be updated
         run: |
-          echo "Waiting 60s for npm registry to propagate..."
-          sleep 60
+          echo "Waiting 30s for GitHub repo to reflect latest commit..."
+          sleep 30
 
       - name: Install skills tooling
         run: pip install skills-ref
 
-      - name: Validate @marcfargas/odoo-skills from npmjs.com
-        run: |
-          set -e
-          export HOME=$(mktemp -d)
-          mkdir -p "$HOME/.pi/agent"
-
-          echo "Testing: skills add @marcfargas/odoo-skills"
-          
-          # Discovery test
-          OUTPUT=$(npx -y skills add @marcfargas/odoo-skills --list 2>&1) || {
-            echo "❌ Discovery failed for @marcfargas/odoo-skills"
-            echo "$OUTPUT"
-            exit 1
-          }
-          echo "$OUTPUT"
-          
-          if echo "$OUTPUT" | grep -qi "odoo"; then
-            echo "  ✅ odoo skill discovered from published package"
-          else
-            echo "  ❌ odoo skill NOT found in published package"
-            exit 1
-          fi
-
-          # Installation test
-          OUTPUT=$(npx -y skills add @marcfargas/odoo-skills --all 2>&1) || {
-            echo "❌ Installation failed for @marcfargas/odoo-skills"
-            echo "$OUTPUT"
-            exit 1
-          }
-          echo "$OUTPUT"
-          echo "  ✅ Published package installs successfully"
-
-      - name: Validate marcfargas/odoo-toolbox from GitHub
+      - name: Validate skills add marcfargas/odoo-toolbox
         run: |
           set -e
           export HOME=$(mktemp -d)
@@ -147,7 +115,7 @@ jobs:
           echo "Testing: skills add marcfargas/odoo-toolbox"
           
           # Discovery test
-          OUTPUT=$(npx -y skills add marcfargas/odoo-toolbox --full-depth --list 2>&1) || {
+          OUTPUT=$(npx -y skills add marcfargas/odoo-toolbox --list 2>&1) || {
             echo "❌ Discovery failed for marcfargas/odoo-toolbox"
             echo "$OUTPUT"
             exit 1
@@ -162,7 +130,7 @@ jobs:
           fi
 
           # Installation test
-          OUTPUT=$(npx -y skills add marcfargas/odoo-toolbox --full-depth --all 2>&1) || {
+          OUTPUT=$(npx -y skills add marcfargas/odoo-toolbox --all 2>&1) || {
             echo "❌ Installation failed for marcfargas/odoo-toolbox"
             echo "$OUTPUT"
             exit 1
@@ -174,11 +142,8 @@ jobs:
         run: |
           echo ""
           echo "══════════════════════════════════════════════"
-          echo "✅ All published packages validated"
+          echo "✅ Published skills validated"
           echo "══════════════════════════════════════════════"
           echo ""
-          echo "Tested installation paths:"
-          echo "  1. npm package: skills add @marcfargas/odoo-skills"
-          echo "  2. GitHub repo:  skills add marcfargas/odoo-toolbox"
-          echo ""
-          echo "Both paths work correctly!"
+          echo "Command tested: skills add marcfargas/odoo-toolbox"
+          echo "Installation from GitHub repo works correctly!"

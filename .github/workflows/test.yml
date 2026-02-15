@@ -275,7 +275,7 @@ jobs:
       - name: "Path 1: skills add from repo (discovery)"
         run: |
           set -e
-          OUTPUT=$(npx -y skills add . --full-depth --list 2>&1) || true
+          OUTPUT=$(npx -y skills add . --list 2>&1) || true
           echo "$OUTPUT"
 
           if echo "$OUTPUT" | grep -qi "odoo"; then
@@ -292,7 +292,7 @@ jobs:
           export HOME=$(mktemp -d)
           mkdir -p "$HOME/.pi/agent"
 
-          OUTPUT=$(npx -y skills add . --full-depth --all 2>&1) || {
+          OUTPUT=$(npx -y skills add . --all 2>&1) || {
             echo "❌ skills add from repo failed:"
             echo "$OUTPUT"
             exit 1
