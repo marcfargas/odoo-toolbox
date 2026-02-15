@@ -245,13 +245,8 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Restore node_modules cache
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-modules-
+      - name: Install dependencies
+        run: npm ci
 
       - uses: actions/setup-python@v5
         with:
