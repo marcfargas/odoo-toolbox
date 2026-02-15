@@ -33,6 +33,7 @@ npx @marcfargas/create-odoo-skills my-odoo-skills
 | [introspection](./skills/base/introspection.md) | Discover models and fields dynamically |
 | [properties](./skills/base/properties.md) | Dynamic user-defined fields |
 | [modules](./skills/base/modules.md) | Module lifecycle management |
+| [skill-generation](./skills/base/skill-generation.md) | How to create new skills |
 
 ### Mail System
 
@@ -46,9 +47,12 @@ npx @marcfargas/create-odoo-skills my-odoo-skills
 
 | Module | Required Odoo Modules | What it teaches |
 |--------|----------------------|-----------------|
+| [accounting](./skills/modules/accounting.md) | `account` | Accounting patterns, cash discovery, reconciliation, PnL, validation |
+| [attendance](./skills/modules/attendance.md) | `hr_attendance` | Clock in/out, presence tracking |
+| [contracts](./skills/modules/contracts.md) | `contract` (OCA) | Recurring contracts, billing schedules, revenue projection |
 | [timesheets](./skills/modules/timesheets.md) | `hr_timesheet` | Time tracking on projects |
-| [accounting](./skills/modules/accounting.md) | `account` | Accounting patterns |
-| [mis-builder](./skills/oca/mis-builder.md) | `mis_builder` | OCA financial reports |
+| [mis-builder](./skills/oca/mis-builder.md) | `mis_builder` | OCA financial reports (reading, computing, exporting) |
+| [mis-builder-dev](./skills/oca/mis-builder-dev.md) | `mis_builder` | OCA financial reports (creating, editing, expression language) |
 
 ## Prerequisites
 
