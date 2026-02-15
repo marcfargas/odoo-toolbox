@@ -30,6 +30,7 @@ import { MailService } from '../services/mail/mail-service';
 import { ModuleManager } from '../services/modules/module-manager';
 import { AttendanceService } from '../services/attendance/attendance-service';
 import { TimesheetsService } from '../services/timesheets/timesheets-service';
+import { AccountingService } from '../services/accounting/accounting-service';
 
 export interface OdooClientConfig {
   url: string;
@@ -139,6 +140,24 @@ export class OdooClient {
    */
   get timesheets(): TimesheetsService {
     return (this._timesheets ??= new TimesheetsService(this));
+  }
+
+  private _accounting?: AccountingService;
+
+  /**
+   * Accounting service — cash discovery, reconciliation tracing, partner resolution.
+   *
+   * Requires the `account` module (Invoicing/Accounting) to be installed.
+   *
+   * ```typescript
+   * const cashIds = await client.accounting.getCashAccountIds();
+   * const balance = await client.accounting.getCashBalance(cashIds, '2025-06-30');
+   * const partner = await client.accounting.resolvePartnerFromMove(moveId, cashIds);
+   * const daysToPay = await client.accounting.calculateDaysToPay(invoiceId);
+   * ```
+   */
+  get accounting(): AccountingService {
+    return (this._accounting ??= new AccountingService(this));
   }
 
   // ── Auth ────────────────────────────────────────────────────────────

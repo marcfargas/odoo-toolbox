@@ -233,3 +233,104 @@ jobs:
           name: odoo-skills
           path: dist/odoo-skills.zip
           retention-days: 30
+
+  validate-skills:
+    name: Validate Skills Installation
+    runs-on: ubuntu-latest
+    needs: [lint, unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate SKILL.md (Agent Skills spec)
+        run: |
+          pip install skills-ref
+          set -e
+          for skill_md in $(find skills -name SKILL.md); do
+            skill_dir=$(dirname "$skill_md")
+            echo "Validating $skill_dir..."
+            agentskills validate "$skill_dir"
+          done
+          echo "All SKILL.md files valid ✅"
+
+      # ── Path 1: GitHub repo install ──────────────────────────────
+      # Users run: skills add marcfargas/odoo-toolbox
+      # We test with local checkout (same file structure)
+
+      - name: "Path 1: skills add from repo (discovery)"
+        run: |
+          set -e
+          OUTPUT=$(npx -y skills add . --full-depth --list 2>&1) || true
+          echo "$OUTPUT"
+
+          if echo "$OUTPUT" | grep -qi "odoo"; then
+            echo "  ✅ odoo skill detected"
+          else
+            echo "  ❌ odoo skill NOT detected"
+            exit 1
+          fi
+          echo "GitHub repo discovery check done ✅"
+
+      - name: "Path 1: skills add from repo (install)"
+        run: |
+          set -e
+          export HOME=$(mktemp -d)
+          mkdir -p "$HOME/.pi/agent"
+
+          OUTPUT=$(npx -y skills add . --full-depth --all 2>&1) || {
+            echo "❌ skills add from repo failed:"
+            echo "$OUTPUT"
+            exit 1
+          }
+          echo "$OUTPUT"
+          echo "GitHub repo install check done ✅"
+
+      # ── Path 2: npm package install ──────────────────────────────
+      # Users run: skills add @marcfargas/odoo-skills
+      # We test against the built package directory
+
+      - name: Build odoo-skills package
+        run: npm run build --workspace=packages/odoo-skills
+
+      - name: "Path 2: skills add from npm package (discovery)"
+        run: |
+          set -e
+          OUTPUT=$(npx -y skills add ./packages/odoo-skills --list 2>&1) || true
+          echo "$OUTPUT"
+
+          if echo "$OUTPUT" | grep -qi "odoo"; then
+            echo "  ✅ odoo skill detected in npm package"
+          else
+            echo "  ❌ odoo skill NOT detected in npm package"
+            exit 1
+          fi
+          echo "npm package discovery check done ✅"
+
+      - name: "Path 2: skills add from npm package (install)"
+        run: |
+          set -e
+          export HOME=$(mktemp -d)
+          mkdir -p "$HOME/.pi/agent"
+
+          OUTPUT=$(npx -y skills add ./packages/odoo-skills --all 2>&1) || {
+            echo "❌ skills add from npm package failed:"
+            echo "$OUTPUT"
+            exit 1
+          }
+          echo "$OUTPUT"
+          echo "npm package install check done ✅"
