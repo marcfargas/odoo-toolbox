@@ -157,9 +157,11 @@ return { channelId };
 
 ## Posting to a Channel
 
-> **Note**: Channel messaging uses `message_post` RPC (not `client.mail.*`). The `client.mail` service accessor
-> is for chatter on records (CRM leads, partners, etc.). For Discuss channels, `message_post` works reliably
-> because channels handle it differently than chatter records. See [chatter.md](./chatter.md) for record messaging.
+> **⚠️ HTML Escaping Warning**: `message_post` via RPC HTML-escapes the body
+> (see [chatter.md](./chatter.md#️-critical-message_post-escapes-html-via-rpc--use-mailmessage-create) for the full explanation).
+> For **record chatter**, always use `client.mail.*` helpers which use direct `mail.message` create.
+> For **Discuss channels**, `message_post` is the only option — use `body_is_html: true` if you
+> need HTML formatting (deprecated param, works for internal users), or stick to plain text.
 
 ```typescript testable id="discuss-post-message" needs="client" creates="discuss.channel,mail.message" expect="result.messageId > 0"
 // Detect the correct model
