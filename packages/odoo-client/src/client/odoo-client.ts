@@ -31,6 +31,7 @@ import { ModuleManager } from '../services/modules/module-manager';
 import { AttendanceService } from '../services/attendance/attendance-service';
 import { TimesheetsService } from '../services/timesheets/timesheets-service';
 import { AccountingService } from '../services/accounting/accounting-service';
+import { UrlService } from '../services/urls/url-service';
 
 export interface OdooClientConfig {
   url: string;
@@ -158,6 +159,28 @@ export class OdooClient {
    */
   get accounting(): AccountingService {
     return (this._accounting ??= new AccountingService(this));
+  }
+
+  private _urls?: UrlService;
+
+  /**
+   * URL service — generate links to Odoo records that work across all versions.
+   *
+   * Uses Odoo's built-in `/mail/view` redirect controller (same as notification emails).
+   * No need to worry about hash-based vs path-based URL formats.
+   *
+   * ```typescript
+   * // Backend link (any model, any Odoo version)
+   * const url = await client.urls.getRecordUrl('crm.lead', 42);
+   * // → 'https://mycompany.odoo.com/mail/view?model=crm.lead&res_id=42'
+   *
+   * // Portal link (models with portal.mixin)
+   * const portal = await client.urls.getPortalUrl('sale.order', 15);
+   * // → { url: 'https://mycompany.odoo.com/my/orders/15?access_token=...' }
+   * ```
+   */
+  get urls(): UrlService {
+    return (this._urls ??= new UrlService(this));
   }
 
   // ── Auth ────────────────────────────────────────────────────────────

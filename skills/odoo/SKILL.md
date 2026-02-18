@@ -36,6 +36,7 @@ Domain-specific helpers are accessed via lazy getters on the client:
 |----------|-------------|-----------|
 | `client.mail.*` | Post notes & messages on chatter | `mail/chatter.md` |
 | `client.modules.*` | Install, uninstall, check modules | `base/modules.md` |
+| `client.urls.*` | Generate version-agnostic record URLs | `base/urls.md` |
 | `client.accounting.*` | Cash discovery, reconciliation, partner resolution | `modules/accounting.md` |
 | `client.attendance.*` | Clock in/out, presence tracking | `modules/attendance.md` |
 | `client.timesheets.*` | Timer start/stop, time logging | `modules/timesheets.md` |
@@ -61,6 +62,7 @@ Load as needed by reading `base/{name}.md`:
 | search | Search & filtering patterns |
 | properties | Dynamic user-defined fields |
 | modules | Module lifecycle management |
+| urls | Version-agnostic record URL generation |
 | skill-generation | How to create new skills |
 
 ## Mail & Messaging
