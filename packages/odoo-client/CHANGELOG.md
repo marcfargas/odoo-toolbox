@@ -1,5 +1,33 @@
 # @marcfargas/odoo-client
 
+## 0.3.0
+
+### Minor Changes
+
+- f0329e0: Add accounting service (`client.accounting.*`) with 9 helpers.
+  - Cash account discovery via journal analysis
+  - Partner resolution from counterpart move lines
+  - Reconciliation status tracing
+  - Closing entry detection
+  - Days-to-pay computation
+  - Cash balance queries
+  - Posted journal entry filtering
+
+- f0329e0: Add URL service (`client.urls.*`) for generating version-agnostic record URLs.
+  - `client.urls.getRecordUrl()` — direct record URL via `/web#model=...&id=...`
+  - `client.urls.getMailRedirectUrl()` — `/mail/view` redirect (works across Odoo versions)
+  - `client.urls.getMenuUrl()` — URL with specific menu context
+  - Pure URL construction, no RPC calls needed
+
+- f0329e0: Switch mail helpers to use `message_post` with full Odoo behavior.
+  - `postInternalNote()` and `postOpenMessage()` now use `message_post` instead of direct `mail.message` create
+  - Follower notifications are now sent for open messages (previously silently dropped)
+  - Auto-subscribe and post-hooks now execute correctly
+  - HTML body preserved via `body_is_html=true`
+  - `is_internal=true` explicitly set for notes (message_post does not set it from subtype)
+
+  **Breaking:** Open messages (`postOpenMessage`) now send email notifications to followers. This is the correct Odoo behavior that was previously missing.
+
 ## 0.2.0
 
 ### Minor Changes
