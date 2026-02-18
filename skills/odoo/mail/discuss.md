@@ -1,30 +1,12 @@
 # Discuss (Channels)
 
-Working with Odoo Discuss channels for team communication.
+Odoo Discuss for team communication — public channels, private groups, and direct messages.
 
-## Overview
+**⚠️ Model names changed in Odoo 16+:** `mail.channel` → `discuss.channel`, `mail.channel.partner` → `discuss.channel.member`.
 
-Odoo Discuss provides real-time chat and messaging through channels. Channels can be public, private (groups), or direct messages between users.
-
-## Prerequisites
-
-- Authenticated OdooClient connection
-- Module: **mail** (base module)
-
-## Key Models
-
-| Model (Odoo 16+) | Model (Odoo 15) | Description |
-|------------------|-----------------|-------------|
-| `discuss.channel` | `mail.channel` | Chat channels |
-| `discuss.channel.member` | `mail.channel.partner` | Channel membership |
-| `mail.message` | `mail.message` | Messages within channels |
-
-*Note: In Odoo 16+, `mail.channel` was renamed to `discuss.channel`. The code examples below handle both versions.*
-
-## Detecting Channel Model
+## Detect Channel Model
 
 ```typescript testable id="discuss-detect-model" needs="client" expect="result.channelModel !== null"
-// Check which channel model exists in this Odoo version
 const discussChannelCount = await client.searchCount('ir.model', [
   ['model', '=', 'discuss.channel']
 ]);
@@ -42,25 +24,16 @@ return {
 };
 ```
 
-## Channel Types
+Channel types: `channel` (public), `group` (private/invite-only), `chat` (DM), `livechat`.
 
-| Type | Description |
-|------|-------------|
-| `channel` | Public channel (anyone can join) |
-| `group` | Private group (invite only) |
-| `chat` | Direct message (1-on-1 or small group) |
-| `livechat` | Website livechat |
-
-## Listing Channels
+## List Channels
 
 ```typescript testable id="discuss-list-channels" needs="client" expect="result.success === true"
-// Detect the correct model
 const discussExists = await client.searchCount('ir.model', [
   ['model', '=', 'discuss.channel']
 ]) > 0;
 const channelModel = discussExists ? 'discuss.channel' : 'mail.channel';
 
-// List public and group channels
 const channels = await client.searchRead(channelModel, [
   ['channel_type', 'in', ['channel', 'group']]
 ], {
@@ -69,23 +42,17 @@ const channels = await client.searchRead(channelModel, [
   limit: 20
 });
 
-channels.forEach(ch => {
-  console.log(`[${ch.id}] ${ch.name} (${ch.channel_type})`);
-});
-
 return { success: true, channelCount: channels.length };
 ```
 
-## Reading Messages from a Channel
+## Read Messages from a Channel
 
 ```typescript testable id="discuss-read-messages" needs="client" expect="result.success === true"
-// Detect the correct model
 const discussExists = await client.searchCount('ir.model', [
   ['model', '=', 'discuss.channel']
 ]) > 0;
 const channelModel = discussExists ? 'discuss.channel' : 'mail.channel';
 
-// Find a channel to read from
 const channels = await client.search(channelModel, [
   ['channel_type', '=', 'channel']
 ], { limit: 1 });
@@ -94,37 +61,26 @@ if (channels.length === 0) {
   return { success: true, message: 'No public channels found' };
 }
 
-const channelId = channels[0];
-
-// Read messages from the channel
 const messages = await client.searchRead('mail.message', [
   ['model', '=', channelModel],
-  ['res_id', '=', channelId]
+  ['res_id', '=', channels[0]]
 ], {
   fields: ['body', 'author_id', 'date', 'message_type'],
   order: 'date desc',
   limit: 20
 });
 
-return {
-  success: true,
-  messageCount: messages.length,
-  latestMessage: messages[0]?.body || null
-};
+return { success: true, messageCount: messages.length };
 ```
 
-## Creating Channels
-
-### Public Channel
+## Create Channels
 
 ```typescript testable id="discuss-create-public" needs="client" creates="discuss.channel" expect="result.channelId > 0"
-// Detect the correct model
 const discussExists = await client.searchCount('ir.model', [
   ['model', '=', 'discuss.channel']
 ]) > 0;
 const channelModel = discussExists ? 'discuss.channel' : 'mail.channel';
 
-// Create a public channel
 const channelId = await client.create(channelModel, {
   name: uniqueTestName('Test Public Channel'),
   channel_type: 'channel',
@@ -135,51 +91,42 @@ trackRecord(channelModel, channelId);
 return { channelId };
 ```
 
-### Private Group
-
 ```typescript testable id="discuss-create-group" needs="client" creates="discuss.channel" expect="result.channelId > 0"
-// Detect the correct model
 const discussExists = await client.searchCount('ir.model', [
   ['model', '=', 'discuss.channel']
 ]) > 0;
 const channelModel = discussExists ? 'discuss.channel' : 'mail.channel';
 
-// Create a private group
 const channelId = await client.create(channelModel, {
   name: uniqueTestName('Test Private Group'),
   channel_type: 'group',
-  description: 'A private group for team discussions',
 });
 
 trackRecord(channelModel, channelId);
 return { channelId };
 ```
 
-## Posting to a Channel
+## Post to a Channel
 
-> **⚠️ HTML Escaping Warning**: `message_post` via RPC HTML-escapes the body
-> (see [chatter.md](./chatter.md#️-critical-message_post-escapes-html-via-rpc--use-mailmessage-create) for the full explanation).
-> For **record chatter**, always use `client.mail.*` helpers which use direct `mail.message` create.
-> For **Discuss channels**, `message_post` is the only option — use `body_is_html: true` if you
-> need HTML formatting (deprecated param, works for internal users), or stick to plain text.
+**Safety: DESTRUCTIVE** — sends messages visible to channel members.
+
+Use `body_is_html: true` to preserve HTML formatting (same as chatter — see [chatter.md](./chatter.md)).
 
 ```typescript testable id="discuss-post-message" needs="client" creates="discuss.channel,mail.message" expect="result.messageId > 0"
-// Detect the correct model
 const discussExists = await client.searchCount('ir.model', [
   ['model', '=', 'discuss.channel']
 ]) > 0;
 const channelModel = discussExists ? 'discuss.channel' : 'mail.channel';
 
-// Create a test channel
 const channelId = await client.create(channelModel, {
   name: uniqueTestName('Post Test Channel'),
   channel_type: 'channel',
 });
 trackRecord(channelModel, channelId);
 
-// Post a message to the channel
 const messageId = await client.call(channelModel, 'message_post', [[channelId]], {
-  body: '<p>Hello from the API! This is a test message.</p>',
+  body: '<p>Hello from the API!</p>',
+  body_is_html: true,
   message_type: 'comment',
 });
 
@@ -187,69 +134,53 @@ trackRecord('mail.message', messageId);
 return { messageId, channelId };
 ```
 
-## Managing Channel Members
-
-### Get Channel Members
+## Manage Members
 
 ```typescript testable id="discuss-get-members" needs="client" creates="discuss.channel" expect="result.success === true"
-// Detect the correct models
 const discussExists = await client.searchCount('ir.model', [
   ['model', '=', 'discuss.channel']
 ]) > 0;
 const channelModel = discussExists ? 'discuss.channel' : 'mail.channel';
 const memberModel = discussExists ? 'discuss.channel.member' : 'mail.channel.partner';
 
-// Create a test channel
 const channelId = await client.create(channelModel, {
   name: uniqueTestName('Members Test Channel'),
   channel_type: 'channel',
 });
 trackRecord(channelModel, channelId);
 
-// Get channel members
 const members = await client.searchRead(memberModel, [
   ['channel_id', '=', channelId]
-], {
-  fields: ['partner_id', 'is_pinned'],
-});
+], { fields: ['partner_id', 'is_pinned'] });
 
-return {
-  success: true,
-  memberCount: members.length,
-  members: members.map(m => m.partner_id?.[1] || 'Unknown')
-};
+return { success: true, memberCount: members.length };
 ```
 
-### Add Members to a Channel
+### Add Members
 
 ```typescript testable id="discuss-add-members" needs="client" creates="discuss.channel,res.partner" expect="result.added === true"
-// Detect the correct model
 const discussExists = await client.searchCount('ir.model', [
   ['model', '=', 'discuss.channel']
 ]) > 0;
 const channelModel = discussExists ? 'discuss.channel' : 'mail.channel';
 
-// Create a channel
 const channelId = await client.create(channelModel, {
   name: uniqueTestName('Add Members Channel'),
-  channel_type: 'group',  // Private group to control membership
+  channel_type: 'group',
 });
 trackRecord(channelModel, channelId);
 
-// Create a partner to add
 const partnerId = await client.create('res.partner', {
   name: uniqueTestName('Channel Member Partner'),
   email: 'member@example.com',
 });
 trackRecord('res.partner', partnerId);
 
-// Add member to channel (method varies by version)
 try {
   await client.call(channelModel, 'add_members', [[channelId]], {
     partner_ids: [partnerId],
   });
 } catch (e) {
-  // Fallback for older versions
   await client.call(channelModel, 'channel_invite', [[channelId]], {
     partner_ids: [partnerId],
   });
@@ -258,89 +189,45 @@ try {
 return { added: true, channelId, partnerId };
 ```
 
-### Remove Member / Leave Channel
-
-```typescript
-// Leave channel (current user)
-await client.call(channelModel, 'action_unfollow', [[channelId]);
-
-// Or unsubscribe specific partners
-await client.call(channelModel, 'message_unsubscribe', [[channelId]], {
-  partner_ids: [partnerId],
-});
-```
-
 ## Direct Messages
 
-### Get or Create Direct Message Channel
-
 ```typescript testable id="discuss-direct-message" needs="client" creates="res.partner" expect="result.success === true"
-// Detect the correct model
 const discussExists = await client.searchCount('ir.model', [
   ['model', '=', 'discuss.channel']
 ]) > 0;
 const channelModel = discussExists ? 'discuss.channel' : 'mail.channel';
 
-// Create a partner to message
 const partnerId = await client.create('res.partner', {
   name: uniqueTestName('DM Partner'),
   email: 'dm@example.com',
 });
 trackRecord('res.partner', partnerId);
 
-// Get or create DM channel with this partner
 let dmChannelId;
 try {
-  // Odoo 16+ method
   const result = await client.call(channelModel, 'channel_get', [], {
     partners_to: [partnerId],
   });
   dmChannelId = result?.id || result;
 } catch (e) {
-  // Fallback: search for existing or create
   const existing = await client.search(channelModel, [
     ['channel_type', '=', 'chat'],
     ['channel_partner_ids', 'in', [partnerId]]
   ], { limit: 1 });
-
-  if (existing.length > 0) {
-    dmChannelId = existing[0];
-  }
+  if (existing.length > 0) dmChannelId = existing[0];
 }
 
-return {
-  success: true,
-  dmChannelId: dmChannelId || null,
-  partnerId
-};
+return { success: true, dmChannelId: dmChannelId || null, partnerId };
 ```
 
-### Send Direct Message
-
-```typescript
-// Get DM channel
-const result = await client.call(channelModel, 'channel_get', [], {
-  partners_to: [targetPartnerId],
-});
-const dmChannelId = result?.id || result;
-
-// Post message to DM
-await client.call(channelModel, 'message_post', [[dmChannelId]], {
-  body: '<p>Hey! Quick question about the project...</p>',
-  message_type: 'comment',
-});
-```
-
-## Searching Messages Across Channels
+## Search Messages Across Channels
 
 ```typescript testable id="discuss-search-messages" needs="client" expect="result.success === true"
-// Detect the correct model
 const discussExists = await client.searchCount('ir.model', [
   ['model', '=', 'discuss.channel']
 ]) > 0;
 const channelModel = discussExists ? 'discuss.channel' : 'mail.channel';
 
-// Search for messages containing specific text across all channels
 const messages = await client.searchRead('mail.message', [
   ['model', '=', channelModel],
   ['body', 'ilike', 'test']
@@ -350,135 +237,31 @@ const messages = await client.searchRead('mail.message', [
   limit: 50
 });
 
-// Group by channel
-const byChannel = {};
-for (const msg of messages) {
-  const chId = msg.res_id;
-  if (!byChannel[chId]) byChannel[chId] = [];
-  byChannel[chId].push(msg);
-}
-
-return {
-  success: true,
-  totalMessages: messages.length,
-  channelCount: Object.keys(byChannel).length
-};
+return { success: true, totalMessages: messages.length };
 ```
 
-## Marking Messages as Read
-
-Channel read status is tracked via `discuss.channel.member` (Odoo 17+) or `mail.channel.partner` (older versions).
-
-### Key Fields for Read Tracking
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `seen_message_id` | Many2one → mail.message | Last message the user has seen |
-| `fetched_message_id` | Many2one → mail.message | Last message fetched by the client |
-| `message_unread_counter` | Integer | Number of unread messages |
-| `last_seen_dt` | Datetime | When the user last viewed the channel |
-
-### Get Unread Message Count
+## Unread Tracking
 
 ```typescript testable id="discuss-unread-count" needs="client" creates="discuss.channel" expect="result.success === true"
-// Detect the correct models
 const discussExists = await client.searchCount('ir.model', [
   ['model', '=', 'discuss.channel']
 ]) > 0;
 const channelModel = discussExists ? 'discuss.channel' : 'mail.channel';
 const memberModel = discussExists ? 'discuss.channel.member' : 'mail.channel.partner';
 
-// Create a test channel
 const channelId = await client.create(channelModel, {
   name: uniqueTestName('Unread Test Channel'),
   channel_type: 'channel',
 });
 trackRecord(channelModel, channelId);
 
-// Get current user's partner ID
-const session = client.getSession();
-const [currentUser] = await client.searchRead('res.users', [
-  ['id', '=', session?.uid]
-], { fields: ['partner_id'], limit: 1 });
-
-// Alternative: Get membership status directly
 const membership = await client.searchRead(memberModel, [
   ['channel_id', '=', channelId]
 ], {
   fields: ['partner_id', 'seen_message_id', 'message_unread_counter', 'last_seen_dt']
 });
 
-return {
-  success: true,
-  memberModel,
-  membershipCount: membership.length
-};
+return { success: true, membershipCount: membership.length };
 ```
 
-### Mark Channel as Read
-
-To mark messages as read, update the `seen_message_id` to the latest message:
-
-```typescript
-// Get the latest message in the channel
-const latestMessages = await client.searchRead('mail.message', [
-  ['model', '=', channelModel],
-  ['res_id', '=', channelId]
-], {
-  fields: ['id'],
-  order: 'id desc',
-  limit: 1
-});
-
-if (latestMessages.length > 0) {
-  const latestMessageId = latestMessages[0].id;
-
-  // Find the membership record
-  const [membership] = await client.searchRead(memberModel, [
-    ['channel_id', '=', channelId],
-    ['partner_id', '=', currentUserPartnerId]
-  ], { fields: ['id'] });
-
-  if (membership) {
-    // Mark as read by updating seen_message_id
-    await client.write(memberModel, membership.id, {
-      seen_message_id: latestMessageId,
-      last_seen_dt: new Date().toISOString().replace('T', ' ').substring(0, 19)
-    });
-  }
-}
-```
-
-### Alternative: Use Channel Method (if available)
-
-Some Odoo versions provide a method to mark channels as read:
-
-```typescript
-try {
-  // Try the channel_seen method (marks all messages as read)
-  await client.call(channelModel, 'channel_seen', [[channelId]], {
-    last_message_id: latestMessageId
-  });
-} catch (e) {
-  // Fall back to direct membership update
-  // (use the pattern above)
-}
-```
-
-## Channel Fields Reference
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `name` | Char | Channel name |
-| `channel_type` | Selection | channel, group, chat, livechat |
-| `description` | Text | Channel description |
-| `channel_partner_ids` | Many2Many | Channel members (partners) |
-| `message_ids` | One2Many | Messages in channel |
-| `is_pinned` | Boolean | Pinned by current user |
-
-## Related Documents
-
-- [chatter.md](./chatter.md) - Chatter messages
-- [activities.md](./activities.md) - Activity management
-- [search.md](../base/search.md) - Search patterns
-- [crud.md](../base/crud.md) - CRUD operations
+Read tracking fields: `seen_message_id`, `fetched_message_id`, `message_unread_counter`, `last_seen_dt`.

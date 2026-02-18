@@ -309,9 +309,4 @@ The helpers call `message_post` with `body_is_html=true` and `is_internal` set e
 
 Do NOT call `message_post` directly without `body_is_html: true` — your HTML will be escaped.
 
-## Related Documents
 
-- [activities.md](./activities.md) — Activity management
-- [discuss.md](./discuss.md) — Chat channels and direct messages
-- [../base/crud.md](../base/crud.md) — CRUD operations
-- [../base/field-types.md](../base/field-types.md) — Field type behaviors

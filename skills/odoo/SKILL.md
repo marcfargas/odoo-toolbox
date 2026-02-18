@@ -43,6 +43,25 @@ Domain-specific helpers are accessed via lazy getters on the client:
 
 Core CRUD (`searchRead`, `create`, `write`, `unlink`, etc.) stays directly on `client`.
 
+## Safety Model
+
+| Operation | Level | Notes |
+|-----------|-------|-------|
+| `client.search()`, `searchRead()`, `read()`, `searchCount()` | READ | |
+| `client.create()` | WRITE | |
+| `client.write()` | WRITE | |
+| `client.unlink()` | DESTRUCTIVE | Permanent deletion |
+| `client.call()` | VARIES | Depends on method — check per-skill docs |
+| `client.mail.postInternalNote()` | WRITE | Internal only, no emails sent |
+| `client.mail.postOpenMessage()` | DESTRUCTIVE | Sends email to followers (may be external) |
+| `client.modules.isModuleInstalled()` | READ | |
+| `client.modules.installModule()` | DESTRUCTIVE | Schema change, hard to rollback |
+| `client.modules.uninstallModule()` | DESTRUCTIVE | Deletes module data, irreversible |
+| `client.accounting.*` | READ | All accounting helpers are read-only |
+| `client.timesheets.logTime()`, `startTimer()`, `stopTimer()` | WRITE | |
+| `client.attendance.*` | WRITE | Clock in/out |
+| `client.urls.*` | READ | Pure URL construction, no RPC |
+
 ## Prerequisites (Must Read First)
 
 Before any Odoo operation, load these foundational modules:
@@ -76,14 +95,6 @@ Skills for Odoo's mail system. Load by reading `mail/{name}.md`:
 | discuss | Chat channels and direct messages |
 
 **Note:** The `mail` module is part of base Odoo and is typically always installed.
-
-## Version-Specific Notes
-
-Breaking changes between Odoo versions are documented in `CHANGES_V{XX}.md`:
-
-| Document | Version | Key Changes |
-|----------|---------|-------------|
-| `CHANGES_V17.md` | Odoo 17 | mail.channel → discuss.channel, read tracking |
 
 ## Module-Specific Skills
 

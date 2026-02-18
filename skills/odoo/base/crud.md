@@ -1,14 +1,8 @@
 # CRUD Operations
 
-Patterns for Create, Read, Update, and Delete operations in Odoo.
-
-## Overview
-
-All Odoo data manipulation follows CRUD patterns. Understanding these patterns is essential for any Odoo integration.
+Create, Read, Update, Delete patterns for Odoo records.
 
 ## Create
-
-### Basic Create
 
 ```typescript testable id="crud-basic-create" needs="client" creates="res.partner" expect="id > 0"
 const id = await client.create('res.partner', {
@@ -20,38 +14,16 @@ trackRecord('res.partner', id);
 return id;
 ```
 
-### Create with Required Fields
-
-Always check required fields first:
+### Relations in Create
 
 ```typescript
-import { Introspector } from '@marcfargas/odoo-introspection';
-
-const introspector = new Introspector(client);
-const fields = await introspector.getFields('crm.lead');
-
-// Find required fields (excluding readonly/computed)
-const required = fields.filter(f => f.required && !f.readonly);
-console.log('Required fields:', required.map(f => f.name));
-
-// Then create with all required fields
-const leadId = await client.create('crm.lead', {
-  name: 'New Lead',  // Usually required
-  // ... other required fields
-});
-```
-
-### Create with Relations
-
-```typescript
-// Many2One: Pass just the ID
+// Many2One: pass the ID
 const leadId = await client.create('crm.lead', {
   name: 'Lead with Partner',
-  partner_id: 42,  // ID of existing res.partner
-  team_id: 1,      // ID of existing crm.team
+  partner_id: 42,
 });
 
-// Many2Many: Pass array of IDs using commands
+// Many2Many: use command syntax
 const userId = await client.create('res.users', {
   name: 'New User',
   login: 'user@example.com',
@@ -59,35 +31,27 @@ const userId = await client.create('res.users', {
 });
 ```
 
-### Create with Defaults
+### X2Many Command Reference
 
-Odoo often provides default values. You can rely on them:
-
-```typescript testable id="crud-create-defaults" needs="client" creates="res.partner" expect="id > 0"
-// Minimal create - Odoo fills defaults
-const partnerId = await client.create('res.partner', {
-  name: uniqueTestName('Minimal Partner'),
-  // is_company defaults to false
-  // active defaults to true
-  // etc.
-});
-trackRecord('res.partner', partnerId);
-return partnerId; // Return the ID for testing
-```
+| Command | Format | Effect |
+|---------|--------|--------|
+| Create | `[0, 0, {values}]` | Create and link new record |
+| Update | `[1, id, {values}]` | Update linked record |
+| Delete | `[2, id, 0]` | Delete linked record |
+| Unlink | `[3, id, 0]` | Remove link (don't delete) |
+| Add | `[4, id, 0]` | Link existing record |
+| Remove all | `[5, 0, 0]` | Remove all links |
+| Replace | `[6, 0, [ids]]` | Replace with exactly these IDs |
 
 ## Read
 
-### Read by ID
-
 ```typescript testable id="crud-read-by-id" needs="client" creates="res.partner" expect="result.name !== null"
-// Create a record to read
 const id = await client.create('res.partner', {
   name: uniqueTestName('Read Test'),
   email: 'read@example.com',
 });
 trackRecord('res.partner', id);
 
-// Read single record
 const records = await client.read('res.partner', [id], [
   'name', 'email', 'phone'
 ]);
@@ -96,49 +60,32 @@ const partner = records[0];
 return { name: partner.name, email: partner.email };
 ```
 
-### Read All Fields
+### Relational Field Read Format
 
-```typescript
-// Omit fields array to get all fields (expensive!)
-const records = await client.read('res.partner', [id]);
-```
-
-### Reading Relational Fields
+**⚠️ Odoo gotcha:** Many2one fields return `[id, display_name]` tuples on read, but you write just the ID.
 
 ```typescript
 const records = await client.read('crm.lead', [leadId], [
-  'name',
-  'partner_id',  // Returns [id, display_name]
-  'team_id',     // Returns [id, display_name]
-  'tag_ids',     // Returns [id1, id2, ...]
+  'partner_id',  // Returns [42, 'Acme Corp'] or false
+  'tag_ids',     // Returns [1, 2, 3] (array of IDs)
 ]);
 
-const lead = records[0];
-
-// Many2One returns [id, name] or false
-if (lead.partner_id) {
-  const partnerId = lead.partner_id[0];
-  const partnerName = lead.partner_id[1];
-}
-
-// One2Many/Many2Many return array of IDs
-const tagIds = lead.tag_ids;  // [1, 2, 3]
+const partnerId = records[0].partner_id[0];    // Extract ID from tuple
+const partnerName = records[0].partner_id[1];  // Extract display name
 ```
 
-### Read with Search
+### searchRead
 
 ```typescript testable id="crud-searchread" needs="client" creates="res.partner" expect="result.found === true"
-// Create a test company
 const id = await client.create('res.partner', {
   name: uniqueTestName('SearchRead Company'),
   is_company: true,
 });
 trackRecord('res.partner', id);
 
-// Combined search and read - more efficient
 const partners = await client.searchRead(
   'res.partner',
-  [['id', '=', id]],  // Domain filter
+  [['id', '=', id]],
   {
     fields: ['name', 'email', 'is_company'],
     limit: 10,
@@ -150,39 +97,34 @@ const partners = await client.searchRead(
 return { found: partners.length > 0 && partners[0].is_company === true };
 ```
 
+**⚠️ `searchRead` default limit is 100** — always pass explicit `limit` for large queries.
+
 ## Update (Write)
 
-### Basic Write
-
 ```typescript testable id="crud-basic-write" needs="client" creates="res.partner" expect="result.updated === true"
-// Create a record to update
 const id = await client.create('res.partner', {
   name: uniqueTestName('Write Test'),
   email: 'old@email.com',
 });
 trackRecord('res.partner', id);
 
-// Update single record
 await client.write('res.partner', id, {
   email: 'new@email.com',
   phone: '+1 555-0123',
 });
 
-// Verify the update
 const [partner] = await client.read('res.partner', [id], ['email', 'phone']);
 
 return { updated: partner.email === 'new@email.com' };
 ```
 
-### Write with Relations
+### Relations in Write
 
 ```typescript
-// Many2One: Pass just the ID
-await client.write('crm.lead', leadId, {
-  partner_id: newPartnerId,
-});
+// Many2One: pass just the ID
+await client.write('crm.lead', leadId, { partner_id: newPartnerId });
 
-// Many2Many: Use commands
+// Many2Many: use commands
 await client.write('res.partner', partnerId, {
   category_id: [
     [4, tagId, 0],      // Add tag
@@ -192,105 +134,51 @@ await client.write('res.partner', partnerId, {
 
 // Replace all Many2Many
 await client.write('res.partner', partnerId, {
-  category_id: [[6, 0, [1, 2, 3]]],  // Replace with exactly these IDs
+  category_id: [[6, 0, [1, 2, 3]]],
 });
 ```
 
-### Safe Update Pattern
-
-Read first, then update to avoid overwriting:
-
-```typescript
-// Read current values
-const [record] = await client.read('crm.lead', [id], [
-  'name', 'expected_revenue'
-]);
-
-// Modify and write
-await client.write('crm.lead', id, {
-  expected_revenue: record.expected_revenue * 1.1,  // 10% increase
-});
-```
-
-### Computed Fields Warning
-
-Never try to write computed/readonly fields:
-
-```typescript
-// WRONG - display_name is computed
-await client.write('res.partner', id, {
-  display_name: 'New Name',  // Error!
-});
-
-// CORRECT - write the source field
-await client.write('res.partner', id, {
-  name: 'New Name',
-});
-```
+**⚠️ Never write computed/readonly fields** — write the source field instead (e.g., `name` not `display_name`).
 
 ## Delete (Unlink)
 
-### Basic Delete
+**⚠️ DESTRUCTIVE — permanent deletion.**
 
 ```typescript testable id="crud-basic-delete" needs="client" creates="res.partner" expect="result.deleted === true"
-// Create a record to delete
 const id = await client.create('res.partner', {
   name: uniqueTestName('Delete Test'),
 });
-// Don't track - we're going to delete it
 
-// Delete single record
 await client.unlink('res.partner', id);
 
-// Verify deletion
 const remaining = await client.search('res.partner', [['id', '=', id]]);
 
 return { deleted: remaining.length === 0 };
 ```
 
-### Safe Delete
+### Archive Instead of Delete
 
-```typescript testable id="crud-safe-delete" needs="client" creates="res.partner" expect="result.safeDeleted === true"
-// Create a record
+Prefer archiving over deletion — it's reversible and avoids constraint errors:
+
+```typescript testable id="crud-archive" needs="client" creates="res.partner" expect="result.archived === true && result.restored === true"
 const id = await client.create('res.partner', {
-  name: uniqueTestName('Safe Delete Test'),
+  name: uniqueTestName('Archive Test'),
+  active: true,
 });
+trackRecord('res.partner', id);
 
-// Check if record exists first
-const existing = await client.search('res.partner', [['id', '=', id]], { limit: 1 });
+await client.write('res.partner', id, { active: false });
+const [archived] = await client.read('res.partner', [id], ['active']);
 
-let deleted = false;
-if (existing.length > 0) {
-  await client.unlink('res.partner', id);
-  deleted = true;
-}
+await client.write('res.partner', id, { active: true });
+const [restored] = await client.read('res.partner', [id], ['active']);
 
-return { safeDeleted: deleted };
+return { archived: archived.active === false, restored: restored.active === true };
 ```
 
-### Cascade Considerations
-
-Deleting records may fail if other records reference them:
-
-```typescript
-try {
-  await client.unlink('res.partner', partnerId);
-} catch (error) {
-  if (error.message.includes('constraint')) {
-    console.log('Cannot delete: record is referenced by other records');
-    // Option 1: Archive instead of delete
-    await client.write('res.partner', partnerId, { active: false });
-    // Option 2: Find and handle references first
-  }
-}
-```
-
-## Common Patterns
-
-### Create or Update (Upsert)
+## Upsert Pattern
 
 ```typescript testable id="crud-upsert" needs="client" creates="res.partner" expect="result.created === true && result.updated === true"
-// Upsert function
 async function upsert(model, domain, values) {
   const existing = await client.search(model, domain, { limit: 1 });
 
@@ -305,7 +193,6 @@ async function upsert(model, domain, values) {
 
 const testEmail = `upsert-${Date.now()}@example.com`;
 
-// First call creates
 const result1 = await upsert(
   'res.partner',
   [['email', '=', testEmail]],
@@ -313,7 +200,6 @@ const result1 = await upsert(
 );
 trackRecord('res.partner', result1.id);
 
-// Second call updates
 const result2 = await upsert(
   'res.partner',
   [['email', '=', testEmail]],
@@ -321,77 +207,6 @@ const result2 = await upsert(
 );
 
 return { created: result1.created === true, updated: result2.created === false };
-```
-
-### Batch Operations
-
-```typescript
-// Create multiple records
-const ids = [];
-for (const data of recordsToCreate) {
-  const id = await client.create('res.partner', data);
-  ids.push(id);
-}
-
-// Batch update
-await client.write('res.partner', ids, { active: true });
-```
-
-### Transaction-Like Pattern
-
-Odoo doesn't expose transactions via API, but you can handle cleanup:
-
-```typescript
-const createdIds = [];
-
-try {
-  const partnerId = await client.create('res.partner', { name: 'Test' });
-  createdIds.push({ model: 'res.partner', id: partnerId });
-
-  const orderId = await client.create('sale.order', {
-    partner_id: partnerId,
-  });
-  createdIds.push({ model: 'sale.order', id: orderId });
-
-  // ... more operations
-
-} catch (error) {
-  // Cleanup on failure
-  console.error('Operation failed, cleaning up...');
-  for (const { model, id } of createdIds.reverse()) {
-    try {
-      await client.unlink(model, id);
-    } catch (e) {
-      // Ignore cleanup errors
-    }
-  }
-  throw error;
-}
-```
-
-### Archive Instead of Delete
-
-```typescript testable id="crud-archive" needs="client" creates="res.partner" expect="result.archived === true && result.restored === true"
-// Create a record
-const id = await client.create('res.partner', {
-  name: uniqueTestName('Archive Test'),
-  active: true,
-});
-trackRecord('res.partner', id);
-
-// "Soft delete" by archiving
-await client.write('res.partner', id, { active: false });
-
-// Check archived
-const [archived] = await client.read('res.partner', [id], ['active']);
-
-// Restore
-await client.write('res.partner', id, { active: true });
-
-// Check restored
-const [restored] = await client.read('res.partner', [id], ['active']);
-
-return { archived: archived.active === false, restored: restored.active === true };
 ```
 
 ## Error Handling
@@ -404,19 +219,8 @@ try {
 } catch (error) {
   if (error instanceof OdooValidationError) {
     console.error('Validation failed:', error.message);
-    // Usually missing required fields or invalid values
   } else if (error instanceof OdooError) {
     console.error('Odoo error:', error.message);
-    // Permission denied, record not found, etc.
-  } else {
-    throw error;
   }
 }
 ```
-
-## Related Documents
-
-- [field-types.md](./field-types.md) - Field types and behaviors
-- [domains.md](./domains.md) - Filtering records
-- [search.md](./search.md) - Search patterns
-- [properties.md](./properties.md) - Properties fields
