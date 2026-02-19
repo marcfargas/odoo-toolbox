@@ -1,15 +1,15 @@
 /**
- * Example 5: Working with Properties Fields
+ * Example 5: Properties Fields - Basic Overview
  *
- * Demonstrates how to:
- * - Read and write PropertiesDefinition fields
- * - Create and update properties values
- * - Convert between read and write formats
- * - Use helper functions for properties
+ * ⚠️ IMPORTANT: This example shows the structure of properties fields only.
+ * For actual property updates, use the safe helper functions in the Odoo skill:
+ * skills/odoo/base/properties.md
+ *
+ * Properties are dangerous - they use full-replacement semantics.
+ * Writing properties directly causes data loss.
  *
  * Prerequisites:
- * - Odoo instance with CRM or Project module installed
- * - Properties-enabled models (e.g., crm.lead, project.task)
+ * - Odoo instance with CRM module installed
  *
  * Run: npx ts-node packages/odoo-client/examples/5-properties.ts
  */
@@ -17,7 +17,6 @@
 import {
   OdooClient,
   PropertiesDefinition,
-  PropertiesWriteFormat,
   getPropertyValue,
   propertiesToWriteFormat,
 } from '../src';
@@ -34,13 +33,11 @@ async function main() {
     await client.authenticate();
     console.log('🔐 Authenticated\n');
 
-    // ==========================================
-    // Part 1: Creating Property Definitions
-    // ==========================================
+    console.log('📚 Properties Fields Structure Demo\n');
+    console.log('⚠️  WARNING: For actual property updates, use the safe helpers');
+    console.log('    documented in skills/odoo/base/properties.md\n');
 
-    console.log('📝 Part 1: Creating Property Definitions\n');
-
-    // Get a CRM team to define properties on
+    // Get a CRM team
     const teams = await client.searchRead('crm.team', [], { fields: ['id', 'name'], limit: 1 });
 
     if (teams.length === 0) {
@@ -49,185 +46,103 @@ async function main() {
     }
 
     const teamId = teams[0].id;
-    console.log(`Working with CRM Team: ${teams[0].name} (ID: ${teamId})\n`);
+    console.log(`Using CRM Team: ${teams[0].name} (ID: ${teamId})\n`);
 
-    // Define custom properties
-    // Each property needs: name, type, and string (label)
+    // ==========================================
+    // Part 1: Properties Definition Structure
+    // ==========================================
+
+    console.log('📝 Part 1: Properties Definition Structure\n');
+
     const propertiesDefinition: PropertiesDefinition = [
       {
-        name: 'priority_level',
-        string: 'Priority Level',
+        name: 'demo_priority',
+        string: 'Demo Priority',
         type: 'selection',
         selection: [
           ['low', 'Low'],
-          ['medium', 'Medium'],
           ['high', 'High'],
-          ['critical', 'Critical'],
         ],
       },
       {
-        name: 'estimated_revenue',
-        string: 'Estimated Revenue',
-        type: 'float',
-      },
-      {
-        name: 'contact_attempts',
-        string: 'Contact Attempts',
+        name: 'demo_score',
+        string: 'Demo Score',
         type: 'integer',
-      },
-      {
-        name: 'special_notes',
-        string: 'Special Notes',
-        type: 'char', // Note: use 'char' not 'text' - only standard types are allowed
-      },
-      {
-        name: 'requires_approval',
-        string: 'Requires Approval',
-        type: 'boolean',
       },
     ];
 
-    console.log('Creating property definitions...');
     await client.write('crm.team', teamId, {
       lead_properties_definition: propertiesDefinition,
     });
-    console.log('✅ Property definitions created\n');
 
-    // Read back the definitions
-    const teamData = await client.read('crm.team', teamId, ['lead_properties_definition']);
-
-    console.log('Stored property definitions:');
-    teamData[0].lead_properties_definition.forEach((def: any) => {
-      console.log(`  - ${def.string} (${def.name}): ${def.type}`);
-    });
-    console.log();
+    console.log('✅ Property definitions created');
+    console.log('   - demo_priority: selection');
+    console.log('   - demo_score: integer\n');
 
     // ==========================================
-    // Part 2: Creating Records with Properties
+    // Part 2: Read/Write Format Differences
     // ==========================================
 
-    console.log('📝 Part 2: Creating Records with Properties\n');
+    console.log('📝 Part 2: Read/Write Format Differences\n');
 
-    // When creating/writing, use simple key-value format
-    const leadProperties: PropertiesWriteFormat = {
-      priority_level: 'high',
-      estimated_revenue: 50000.0,
-      contact_attempts: 3,
-      special_notes: 'VIP customer, handle with care',
-      requires_approval: true,
-    };
-
-    console.log('Creating lead with properties...');
+    // Create a lead with properties
     const leadId = await client.create('crm.lead', {
-      name: 'High Priority Deal',
+      name: 'Demo Lead',
       team_id: teamId,
-      lead_properties: leadProperties,
+      lead_properties: {
+        demo_priority: 'high',
+        demo_score: 85,
+      },
     });
-    console.log(`✅ Lead created with ID: ${leadId}\n`);
 
-    // ==========================================
-    // Part 3: Reading Properties
-    // ==========================================
+    // Read properties (returns array with metadata)
+    const [lead] = await client.read('crm.lead', [leadId], ['lead_properties']);
 
-    console.log('📝 Part 3: Reading Properties\n');
-
-    // When reading, Odoo returns full metadata
-    const leadData = await client.read('crm.lead', leadId, ['name', 'lead_properties']);
-
-    const lead = leadData[0];
-    console.log(`Lead: ${lead.name}`);
-    console.log('Properties (read format - array with metadata):');
+    console.log('READ format (array with metadata):');
     console.log(JSON.stringify(lead.lead_properties, null, 2));
     console.log();
 
-    // ==========================================
-    // Part 4: Using Helper Functions
-    // ==========================================
-
-    console.log('📝 Part 4: Using Helper Functions\n');
-
-    // Extract specific property value
-    const priorityLevel = getPropertyValue(lead.lead_properties, 'priority_level');
-    const estimatedRevenue = getPropertyValue(lead.lead_properties, 'estimated_revenue');
-
-    console.log('Extracted values:');
-    console.log(`  Priority Level: ${priorityLevel}`);
-    console.log(`  Estimated Revenue: $${estimatedRevenue}\n`);
-
-    // Convert from read format to write format
+    console.log('Helper functions:');
+    const priority = getPropertyValue(lead.lead_properties, 'demo_priority');
     const writeFormat = propertiesToWriteFormat(lead.lead_properties);
-    console.log('Converted to write format:');
-    console.log(JSON.stringify(writeFormat, null, 2));
+
+    console.log(`  getPropertyValue: ${priority}`);
+    console.log(`  propertiesToWriteFormat:`, writeFormat);
     console.log();
 
     // ==========================================
-    // Part 5: Updating Properties
+    // Part 3: The Critical Warning
     // ==========================================
 
-    console.log('📝 Part 5: Updating Properties\n');
+    console.log('🚫 Part 3: WHY DIRECT WRITES ARE DANGEROUS\n');
 
-    // Update some properties
-    const updatedProperties: PropertiesWriteFormat = {
-      priority_level: 'critical',
-      estimated_revenue: 75000.0,
-      contact_attempts: 5,
-      special_notes: 'VIP customer - CEO contacted directly',
-      requires_approval: false, // Approval obtained
-    };
-
-    console.log('Updating lead properties...');
-    await client.write('crm.lead', leadId, {
-      lead_properties: updatedProperties,
+    console.log('❌ NEVER do this (causes data loss):');
+    console.log(`
+    await client.write('crm.lead', ${leadId}, {
+      lead_properties: { demo_priority: 'low' }  // ← Wipes out demo_score!
     });
-    console.log('✅ Properties updated\n');
+    `);
 
-    // Read updated lead
-    const updatedLead = await client.read('crm.lead', leadId, ['name', 'lead_properties']);
-
-    console.log('Updated properties:');
-    updatedLead[0].lead_properties.forEach((prop: any) => {
-      console.log(`  ${prop.string}: ${JSON.stringify(prop.value)}`);
+    console.log('✅ ALWAYS use safe helpers from skills/odoo/base/properties.md:');
+    console.log(`
+    await updatePropertiesSafely(client, 'crm.lead', ${leadId}, 'lead_properties', {
+      demo_priority: 'low'  // ← Preserves demo_score automatically
     });
-    console.log();
+    `);
 
     // ==========================================
-    // Part 6: Partial Updates (Important!)
+    // Cleanup
     // ==========================================
 
-    console.log('📝 Part 6: Understanding Property Updates\n');
+    console.log('🧹 Cleaning up demo data...');
+    await client.unlink('crm.lead', [leadId]);
 
-    // IMPORTANT: When writing properties, Odoo replaces ALL properties
-    // If you only write some properties, others will be set to 'false'
-    // To update only specific properties, you must:
-    // 1. Read current properties
-    // 2. Convert to write format
-    // 3. Modify the values you want
-    // 4. Write back ALL properties
-
-    console.log('Reading current properties...');
-    const currentLead = await client.read('crm.lead', leadId, ['lead_properties']);
-    const currentProps = propertiesToWriteFormat(currentLead[0].lead_properties);
-
-    console.log('Current properties:');
-    console.log(JSON.stringify(currentProps, null, 2));
-    console.log();
-
-    // Modify only what we want to change
-    console.log('Updating only contact_attempts to 10...');
-    currentProps.contact_attempts = 10;
-
-    await client.write('crm.lead', leadId, {
-      lead_properties: currentProps, // Write ALL properties, not just the changed one
-    });
-
-    const finalLead = await client.read('crm.lead', leadId, ['lead_properties']);
-    const contactAttempts = getPropertyValue(finalLead[0].lead_properties, 'contact_attempts');
-    const finalPriorityLevel = getPropertyValue(finalLead[0].lead_properties, 'priority_level');
-
-    console.log(`✅ Contact attempts updated to: ${contactAttempts}`);
-    console.log(`✅ Priority level preserved: ${finalPriorityLevel}\n`);
-
-    console.log('🎉 All operations completed successfully!');
+    console.log('✅ Demo complete!\n');
+    console.log('📚 Next Steps:');
+    console.log('   1. Read skills/odoo/base/properties.md');
+    console.log('   2. Copy the safe helper functions');
+    console.log('   3. Never write properties directly');
+    console.log('   4. Always use updatePropertiesSafely()');
 
     await client.logout();
   } catch (error) {

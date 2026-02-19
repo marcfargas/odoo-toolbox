@@ -32,6 +32,7 @@ import { AttendanceService } from '../services/attendance/attendance-service';
 import { TimesheetsService } from '../services/timesheets/timesheets-service';
 import { AccountingService } from '../services/accounting/accounting-service';
 import { UrlService } from '../services/urls/url-service';
+import { PropertiesService } from '../services/properties/properties-service';
 
 export interface OdooClientConfig {
   url: string;
@@ -181,6 +182,36 @@ export class OdooClient {
    */
   get urls(): UrlService {
     return (this._urls ??= new UrlService(this));
+  }
+
+  private _properties?: PropertiesService;
+
+  /**
+   * Properties service — safe operations for Odoo properties fields.
+   *
+   * Properties use full-replacement semantics. This service prevents data loss
+   * by automatically reading current values, merging changes, and writing back.
+   *
+   * ```typescript
+   * // Safe update - preserves other properties
+   * await client.properties.updateSafely(
+   *   'crm.lead',
+   *   leadId,
+   *   'lead_properties',
+   *   { priority: 'critical' }
+   * );
+   *
+   * // Batch update multiple records
+   * await client.properties.updateSafelyBatch(
+   *   'crm.lead',
+   *   [123, 456],
+   *   'lead_properties',
+   *   { priority: 'high' }
+   * );
+   * ```
+   */
+  get properties(): PropertiesService {
+    return (this._properties ??= new PropertiesService(this));
   }
 
   // ── Auth ────────────────────────────────────────────────────────────

@@ -37,6 +37,7 @@ Domain-specific helpers are accessed via lazy getters on the client:
 | `client.mail.*` | Post notes & messages on chatter | `mail/chatter.md` |
 | `client.modules.*` | Install, uninstall, check modules | `base/modules.md` |
 | `client.urls.*` | Generate version-agnostic record URLs | `base/urls.md` |
+| `client.properties.*` | Safe operations for properties fields | `base/properties.md` |
 | `client.accounting.*` | Cash discovery, reconciliation, partner resolution | `modules/accounting.md` |
 | `client.attendance.*` | Clock in/out, presence tracking | `modules/attendance.md` |
 | `client.timesheets.*` | Timer start/stop, time logging | `modules/timesheets.md` |
@@ -57,6 +58,7 @@ Core CRUD (`searchRead`, `create`, `write`, `unlink`, etc.) stays directly on `c
 | `client.modules.isModuleInstalled()` | READ | |
 | `client.modules.installModule()` | DESTRUCTIVE | Schema change, hard to rollback |
 | `client.modules.uninstallModule()` | DESTRUCTIVE | Deletes module data, irreversible |
+| `client.properties.*` | WRITE | Safe property updates, prevents data loss |
 | `client.accounting.*` | READ | All accounting helpers are read-only |
 | `client.timesheets.logTime()`, `startTimer()`, `stopTimer()` | WRITE | |
 | `client.attendance.*` | WRITE | Clock in/out |
