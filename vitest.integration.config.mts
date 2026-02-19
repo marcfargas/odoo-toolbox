@@ -9,8 +9,10 @@ export default defineConfig({
 
     root: '.',
 
-    // Only integration tests (packages)
+    // Integration tests for all packages except odoo-testcontainers
+    // (it starts its own containers — tested in a separate CI job)
     include: ['packages/*/tests/**/*.integration.test.ts'],
+    exclude: ['packages/odoo-testcontainers/**'],
 
     // Global setup for Docker containers.
     // Teardown is returned from the globalSetup() function.

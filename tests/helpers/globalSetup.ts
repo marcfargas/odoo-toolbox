@@ -1,62 +1,86 @@
-import { execSync } from 'child_process';
+/**
+ * Global test setup using Testcontainers.
+ *
+ * Starts fresh PostgreSQL + Odoo containers for each test run.
+ * Tests connect to localhost on dynamic ports — no shared state between runs.
+ *
+ * In CI, we also use testcontainers (no more manual docker-compose).
+ */
 
-const CI = process.env.CI === 'true';
-const KEEP_CONTAINERS = process.env.KEEP_CONTAINERS === 'true';
+import { GenericContainer, Network, Wait } from 'testcontainers';
+import { PostgreSqlContainer } from '@testcontainers/postgresql';
+import path from 'path';
+
 const SKIP_TEARDOWN = process.env.SKIP_TEARDOWN === 'true';
 
 export default async function globalSetup() {
-  if (CI) {
-    // In GitHub Actions CI, services are handled by the workflow
-    console.log('🔄 CI mode detected - skipping Docker setup');
-    return;
-  }
+  console.log('🚀 Starting Odoo test environment with Testcontainers...');
 
-  console.log('🚀 Starting Odoo test environment...');
+  const projectRoot = path.resolve(__dirname, '..', '..');
 
   try {
-    // Start containers and wait for healthchecks to pass
-    console.log('📦 Starting Docker containers...');
-    execSync('docker-compose -f docker-compose.test.yml up -d --wait', {
-      stdio: 'inherit',
-    });
+    // Create an isolated network
+    const network = await new Network().start();
 
-    console.log('✅ Test environment ready');
+    // Start PostgreSQL
+    const postgres = await new PostgreSqlContainer('postgres:15-alpine')
+      .withDatabase('postgres')
+      .withUsername('admin')
+      .withPassword('admin')
+      .withNetwork(network)
+      .withNetworkAliases('postgres')
+      .start();
+
+    const pgPort = postgres.getMappedPort(5432);
+    console.log(`✅ PostgreSQL ready on port ${pgPort}`);
+
+    // Start Odoo — mirrors docker-compose.test.yml exactly
+    const odoo = await new GenericContainer('odoo:17.0')
+      .withNetwork(network)
+      .withEnvironment({
+        HOST: 'postgres',
+        USER: 'admin',
+        PASSWORD: 'admin',
+      })
+      .withEntrypoint(['/mnt/docker/odoo-entrypoint.sh'])
+      .withCommand(['--database', 'odoo', '--init', 'base,mail,crm', '--without-demo', 'all'])
+      .withBindMounts([
+        { source: path.join(projectRoot, 'docker'), target: '/mnt/docker', readOnly: true },
+        { source: path.join(projectRoot, 'test-addons'), target: '/mnt/oca', readOnly: true },
+      ])
+      .withExposedPorts(8069)
+      .withWaitStrategy(
+        Wait.forHttp('/web/health', 8069).forStatusCode(200).withStartupTimeout(180_000)
+      )
+      .start();
+
+    const odooPort = odoo.getMappedPort(8069);
+    console.log(`✅ Odoo ready on port ${odooPort}`);
+
+    // Set env vars so tests find the containers (dynamic ports)
+    process.env.ODOO_URL = `http://localhost:${odooPort}`;
+    process.env.ODOO_DB_NAME = 'odoo';
+    process.env.ODOO_DB_USER = 'admin';
+    process.env.ODOO_DB_PASSWORD = 'admin';
+
+    console.log(`✅ Test environment ready (Odoo at ${process.env.ODOO_URL})`);
+
+    // Return teardown function
+    return async () => {
+      if (SKIP_TEARDOWN) {
+        console.log('⏭️  Skipping teardown (SKIP_TEARDOWN=true)');
+        return;
+      }
+
+      console.log('🧹 Cleaning up Testcontainers...');
+      await odoo.stop();
+      await postgres.stop();
+      await network.stop();
+      console.log('✅ Test environment cleaned up');
+    };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('❌ Failed to start test environment:', errorMessage);
     process.exit(1);
   }
-
-  // Return teardown function
-  return async () => {
-    if (CI) {
-      // CI handles cleanup via workflow
-      console.log('🔄 CI mode detected - skipping cleanup');
-      return;
-    }
-
-    if (KEEP_CONTAINERS) {
-      console.log('🧊 Keeping containers for debugging (KEEP_CONTAINERS=true)');
-      return;
-    }
-
-    if (SKIP_TEARDOWN) {
-      console.log('⏭️  Skipping teardown for fast iteration (SKIP_TEARDOWN=true)');
-      console.log('   Run "npm run docker:down" or "npm run docker:clean" to cleanup manually');
-      return;
-    }
-
-    console.log('🧹 Cleaning up test environment...');
-
-    try {
-      execSync('docker-compose -f docker-compose.test.yml down -v', {
-        stdio: 'inherit',
-      });
-      console.log('✅ Test environment cleaned up');
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.warn('⚠️ Error during cleanup:', errorMessage);
-      // Don't fail teardown on cleanup errors
-    }
-  };
 }

@@ -3,6 +3,11 @@
  *
  * Tests clock-in, clock-out, status, and listing against a real Odoo instance.
  * Requires: hr_attendance module installed (auto-installed via module manager).
+ *
+ * Key design: ensureClockedOut() DELETES open records instead of closing them.
+ * Odoo's _check_validity constraint compares timestamps at second precision,
+ * so closing a record and immediately creating a new one in the same second
+ * triggers overlap validation errors. Deleting avoids this entirely.
  */
 
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
@@ -19,17 +24,22 @@ describe('Attendance service integration', () => {
   let moduleManager: ModuleManager;
   let employeeId: number;
   const installedModules: string[] = [];
-  const cleanup: Array<{ model: string; id: number }> = [];
 
-  /** Force-close any open attendance for our test employee. */
+  /**
+   * Delete any open attendance records for our test employee.
+   *
+   * We DELETE instead of writing check_out because Odoo's _check_validity
+   * uses second-precision timestamps. If we close record A at second S and
+   * create record B at the same second S, Odoo sees overlapping attendances
+   * and throws a ValidationError. Deleting avoids this entirely.
+   */
   async function ensureClockedOut(): Promise<void> {
     const open = await client.search('hr.attendance', [
       ['employee_id', '=', employeeId],
       ['check_out', '=', false],
     ]);
-    for (const id of open) {
-      const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
-      await client.write('hr.attendance', id, { check_out: now });
+    if (open.length > 0) {
+      await client.unlink('hr.attendance', open);
     }
   }
 
@@ -60,24 +70,24 @@ describe('Attendance service integration', () => {
         name: `__test_attendance_emp_${Date.now()}`,
         user_id: session?.uid,
       });
-      cleanup.push({ model: 'hr.employee', id: employeeId });
     }
   }, 120_000);
 
-  // Ensure clean state before each test — no open attendance
   beforeEach(async () => {
     await ensureClockedOut();
   });
 
   afterAll(async () => {
-    await ensureClockedOut();
-    for (const { model, id } of cleanup.reverse()) {
+    // Delete ALL attendance records for our test employee
+    const all = await client.search('hr.attendance', [['employee_id', '=', employeeId]]);
+    if (all.length > 0) {
       try {
-        await client.unlink(model, [id]);
+        await client.unlink('hr.attendance', all);
       } catch {
-        // ignore
+        // Ignore cleanup errors
       }
     }
+
     await cleanupInstalledModules(moduleManager, installedModules);
     client.logout();
   }, 120_000);
@@ -87,7 +97,6 @@ describe('Attendance service integration', () => {
   describe('clockIn', () => {
     it('should create an open attendance record', async () => {
       const record = await clockIn(client, employeeId);
-      cleanup.push({ model: 'hr.attendance', id: record.id });
 
       expect(record.id).toBeGreaterThan(0);
       expect(record.check_in).toBeTruthy();
@@ -96,8 +105,7 @@ describe('Attendance service integration', () => {
     });
 
     it('should reject if already clocked in', async () => {
-      const record = await clockIn(client, employeeId);
-      cleanup.push({ model: 'hr.attendance', id: record.id });
+      await clockIn(client, employeeId);
 
       await expect(clockIn(client, employeeId)).rejects.toThrow(OdooValidationError);
       await expect(clockIn(client, employeeId)).rejects.toThrow(/already clocked in/);
@@ -108,11 +116,8 @@ describe('Attendance service integration', () => {
 
   describe('clockOut', () => {
     it('should close the open attendance and compute worked_hours', async () => {
-      // Clock in first
       const openRecord = await clockIn(client, employeeId);
-      cleanup.push({ model: 'hr.attendance', id: openRecord.id });
 
-      // Clock out
       const closedRecord = await clockOut(client, employeeId);
 
       expect(closedRecord.id).toBe(openRecord.id);
@@ -139,8 +144,6 @@ describe('Attendance service integration', () => {
 
     it('should return checkedIn=true when clocked in', async () => {
       const record = await clockIn(client, employeeId);
-      cleanup.push({ model: 'hr.attendance', id: record.id });
-
       const status = await getStatus(client, employeeId);
 
       expect(status.checkedIn).toBe(true);
@@ -154,8 +157,6 @@ describe('Attendance service integration', () => {
   describe('client.attendance accessor', () => {
     it('should work via client.attendance.clockIn/clockOut', async () => {
       const record = await client.attendance.clockIn(employeeId);
-      cleanup.push({ model: 'hr.attendance', id: record.id });
-
       expect(record.check_in).toBeTruthy();
 
       const closed = await client.attendance.clockOut(employeeId);
