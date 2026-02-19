@@ -1,5 +1,23 @@
 # @marcfargas/odoo-state-manager
 
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies [e30750a]
+  - @marcfargas/odoo-client@0.4.0
+  - @marcfargas/odoo-introspection@0.1.3
+
+## 0.1.2
+
+### Patch Changes
+
+- Updated dependencies [f0329e0]
+- Updated dependencies [f0329e0]
+- Updated dependencies [f0329e0]
+  - @marcfargas/odoo-client@0.3.0
+  - @marcfargas/odoo-introspection@0.1.2
+
 ## 0.1.1
 
 ### Patch Changes

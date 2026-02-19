@@ -1,5 +1,27 @@
 # @marcfargas/odoo-skills
 
+## 0.5.1
+
+### Patch Changes
+
+- e30750a: Add Properties service for safe Odoo properties operations.
+  - New `client.properties.*` service with `updateSafely()`, `updateSafelyBatch()`, and `getCurrentWriteFormat()` methods
+  - Prevents data loss from Odoo's full-replacement semantics when updating properties
+  - Comprehensive test coverage including integration tests
+  - Updated skills documentation to reference service methods instead of embedding implementation logic
+  - Maintains backward compatibility with existing helper functions
+
+## 0.5.0
+
+### Minor Changes
+
+- f0329e0: Skill docs overhaul: add safety model, cut 24% token bloat.
+  - Add Safety Model table to SKILL.md classifying all operations as READ/WRITE/DESTRUCTIVE
+  - Cut 57KB across 13 skill docs (238KB → 181KB) — remove boilerplate, duplicates, common-sense patterns
+  - Preserve all Odoo-specific gotchas and testable code blocks
+  - New skill docs: `base/urls.md` (URL generation), updated `modules/accounting.md`
+  - Simplified `mail/chatter.md` and `mail/discuss.md`
+
 ## 0.4.1
 
 ### Patch Changes

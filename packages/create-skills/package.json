@@ -42,8 +42,8 @@
     "vitest": "^4.0.0"
   },
   "peerDependencies": {
-    "@marcfargas/odoo-client": "^0.2.0",
-    "@marcfargas/odoo-introspection": "^0.1.1"
+    "@marcfargas/odoo-client": "^0.4.1",
+    "@marcfargas/odoo-introspection": "^0.1.3"
   },
   "peerDependenciesMeta": {
     "@marcfargas/odoo-client": {
