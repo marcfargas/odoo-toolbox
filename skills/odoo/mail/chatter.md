@@ -339,6 +339,85 @@ trackRecord('res.partner', partnerId);
 return { created: partnerId > 0 };
 ```
 
+## Verification Patterns
+
+After posting a message or note, read it back from `mail.message` to confirm it landed correctly.
+
+### Post Internal Note → Verify
+
+```typescript testable id="chatter-verify-note" needs="client" creates="res.partner,mail.message" expect="result.found === true && result.isInternal === true"
+const partnerId = await client.create('res.partner', {
+  name: uniqueTestName('Verify Note Partner'),
+});
+trackRecord('res.partner', partnerId);
+
+await client.mail.postInternalNote('res.partner', partnerId, '<p>Verification note body</p>');
+
+const messages = await client.searchRead('mail.message', [
+  ['res_id', '=', partnerId],
+  ['model', '=', 'res.partner'],
+  ['is_internal', '=', true],
+], {
+  fields: ['body', 'is_internal', 'date'],
+  order: 'date desc',
+  limit: 1,
+});
+
+return {
+  found: messages.length > 0,
+  isInternal: messages[0]?.is_internal === true,
+  bodyMatches: messages[0]?.body?.includes('Verification note body') ?? false,
+};
+```
+
+CLI equivalent:
+
+```bash
+odoo mail note crm.lead 42 "Called customer" --confirm
+# Verify the note landed
+odoo records search mail.message \
+  --domain '[["res_id","=",42],["model","=","crm.lead"],["is_internal","=",true]]' \
+  --fields body,date --limit 1
+```
+
+### Post Public Message → Verify
+
+```typescript testable id="chatter-verify-public" needs="client" creates="res.partner,mail.message" expect="result.found === true && result.isPublic === true"
+const partnerId = await client.create('res.partner', {
+  name: uniqueTestName('Verify Public Partner'),
+});
+trackRecord('res.partner', partnerId);
+
+await client.mail.postOpenMessage('res.partner', partnerId, '<p>Shipped your order.</p>');
+
+const messages = await client.searchRead('mail.message', [
+  ['res_id', '=', partnerId],
+  ['model', '=', 'res.partner'],
+  ['is_internal', '=', false],
+  ['message_type', '=', 'comment'],
+], {
+  fields: ['body', 'is_internal', 'subtype_id'],
+  order: 'date desc',
+  limit: 1,
+});
+
+return {
+  found: messages.length > 0,
+  isPublic: messages[0]?.is_internal === false,
+};
+```
+
+CLI equivalent:
+
+```bash
+odoo mail post sale.order 88 "Your order has been shipped" --confirm
+odoo records search mail.message \
+  --domain '[["res_id","=",88],["model","=","sale.order"],["is_internal","=",false]]' \
+  --fields body,date --limit 1
+```
+
+---
+
 ## Reference
 
 ### Models
