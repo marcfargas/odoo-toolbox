@@ -181,6 +181,7 @@ Load as needed by reading `base/{name}.md`:
 | properties | — | Dynamic user-defined fields |
 | modules | `odoo modules` | Module lifecycle management |
 | urls | `odoo url` | Version-agnostic record URL generation |
+| multi-company | `odoo records search --context` | Multi-company context, `allowed_company_ids`, common gotchas |
 
 ## Mail & Messaging
 

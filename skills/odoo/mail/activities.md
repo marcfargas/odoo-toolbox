@@ -255,3 +255,71 @@ return { canceled: remaining.length === 0 };
 | `date_deadline` | Date | Due date (YYYY-MM-DD) |
 | `user_id` | Many2One | Assigned user |
 | `state` | Selection | `overdue` / `today` / `planned` (computed) |
+
+## Verification Patterns
+
+After scheduling an activity, confirm it appears in `mail.activity` before proceeding.
+
+### Schedule → Verify Exists
+
+```typescript testable id="activities-verify-scheduled" needs="client" creates="res.partner,mail.activity" expect="result.found === true && result.summaryMatches === true"
+const partnerId = await client.create('res.partner', {
+  name: uniqueTestName('Verify Activity Partner'),
+});
+trackRecord('res.partner', partnerId);
+
+const deadline = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+await client.call('res.partner', 'activity_schedule', [[partnerId]], {
+  act_type_xmlid: 'mail.mail_activity_data_todo',
+  summary: 'Verification call',
+  note: '<p>Confirm this activity was scheduled</p>',
+  date_deadline: deadline,
+});
+
+const activities = await client.searchRead('mail.activity', [
+  ['res_model', '=', 'res.partner'],
+  ['res_id', '=', partnerId],
+], {
+  fields: ['summary', 'date_deadline', 'state', 'activity_type_id'],
+  limit: 5,
+});
+
+return {
+  found: activities.length > 0,
+  summaryMatches: activities[0]?.summary === 'Verification call',
+  state: activities[0]?.state,
+};
+```
+
+### Verify via Record's activity_state Field
+
+```typescript testable id="activities-verify-state" needs="client" creates="res.partner,mail.activity" expect="result.hasActivity === true"
+const partnerId = await client.create('res.partner', {
+  name: uniqueTestName('Activity State Partner'),
+});
+trackRecord('res.partner', partnerId);
+
+const deadline = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+const activityId = await client.call('res.partner', 'activity_schedule', [[partnerId]], {
+  act_type_xmlid: 'mail.mail_activity_data_call',
+  summary: 'State check call',
+  date_deadline: deadline,
+});
+trackRecord('mail.activity', activityId);
+
+// Read the record's computed activity summary fields
+const [partner] = await client.read('res.partner', [partnerId], [
+  'activity_ids',
+  'activity_state',
+  'activity_summary',
+  'activity_date_deadline',
+]);
+
+return {
+  hasActivity: partner.activity_ids.length > 0,
+  state: partner.activity_state,
+  nextDeadline: partner.activity_date_deadline,
+};
+```

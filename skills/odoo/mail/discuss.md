@@ -265,3 +265,69 @@ return { success: true, membershipCount: membership.length };
 ```
 
 Read tracking fields: `seen_message_id`, `fetched_message_id`, `message_unread_counter`, `last_seen_dt`.
+
+## Verification Patterns
+
+After channel operations, read back to confirm the channel and messages exist as expected.
+
+### Create Channel → Verify
+
+```typescript testable id="discuss-verify-create-channel" needs="client" creates="discuss.channel" expect="result.nameMatches === true && result.typeCorrect === true"
+const discussExists = await client.searchCount('ir.model', [
+  ['model', '=', 'discuss.channel']
+]) > 0;
+const channelModel = discussExists ? 'discuss.channel' : 'mail.channel';
+
+const channelId = await client.create(channelModel, {
+  name: uniqueTestName('Verify Channel'),
+  channel_type: 'channel',
+  description: 'Created for verification',
+});
+trackRecord(channelModel, channelId);
+
+const [channel] = await client.read(channelModel, [channelId], [
+  'name', 'channel_type', 'description'
+]);
+
+return {
+  nameMatches: channel.name.includes('Verify Channel'),
+  typeCorrect: channel.channel_type === 'channel',
+};
+```
+
+### Post Message → Verify in Channel
+
+```typescript testable id="discuss-verify-post-message" needs="client" creates="discuss.channel,mail.message" expect="result.messageFound === true"
+const discussExists = await client.searchCount('ir.model', [
+  ['model', '=', 'discuss.channel']
+]) > 0;
+const channelModel = discussExists ? 'discuss.channel' : 'mail.channel';
+
+const channelId = await client.create(channelModel, {
+  name: uniqueTestName('Verify Post Channel'),
+  channel_type: 'channel',
+});
+trackRecord(channelModel, channelId);
+
+const messageId = await client.call(channelModel, 'message_post', [[channelId]], {
+  body: '<p>Verification message content</p>',
+  body_is_html: true,
+  message_type: 'comment',
+});
+trackRecord('mail.message', messageId);
+
+// Verify the message appears when searching by channel
+const messages = await client.searchRead('mail.message', [
+  ['model', '=', channelModel],
+  ['res_id', '=', channelId],
+  ['id', '=', messageId],
+], {
+  fields: ['body', 'message_type'],
+  limit: 1,
+});
+
+return {
+  messageFound: messages.length > 0,
+  bodyContains: messages[0]?.body?.includes('Verification message content') ?? false,
+};
+```

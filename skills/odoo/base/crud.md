@@ -224,3 +224,120 @@ try {
   }
 }
 ```
+
+## Verification Patterns
+
+Read back after every mutation to confirm Odoo accepted the values exactly as intended.
+Some fields are silently transformed (trimmed strings, coerced types, computed overrides).
+
+### Create → Read-back
+
+```typescript testable id="crud-verify-create" needs="client" creates="res.partner" expect="result.nameMatches === true && result.isCompany === true"
+const id = await client.create('res.partner', {
+  name: uniqueTestName('Verify Create Corp'),
+  is_company: true,
+});
+trackRecord('res.partner', id);
+
+const [created] = await client.read('res.partner', [id], ['name', 'is_company']);
+
+return {
+  nameMatches: created.name.includes('Verify Create Corp'),
+  isCompany: created.is_company === true,
+};
+```
+
+CLI equivalent:
+
+```bash
+# Create and immediately read back the new record
+id=$(odoo records create res.partner --data '{"name":"Acme Corp","is_company":true}' --confirm --format json | jq -r '.id')
+odoo records get res.partner "$id" --fields name,is_company
+```
+
+### Write → Read-back
+
+```typescript testable id="crud-verify-write" needs="client" creates="res.partner" expect="result.emailUpdated === true && result.phoneUpdated === true"
+const id = await client.create('res.partner', {
+  name: uniqueTestName('Verify Write Partner'),
+  email: 'old@example.com',
+});
+trackRecord('res.partner', id);
+
+await client.write('res.partner', id, {
+  email: 'new@example.com',
+  phone: '+1 555-9999',
+});
+
+const [updated] = await client.read('res.partner', [id], ['email', 'phone']);
+
+return {
+  emailUpdated: updated.email === 'new@example.com',
+  phoneUpdated: updated.phone === '+1 555-9999',
+};
+```
+
+CLI equivalent:
+
+```bash
+odoo records write res.partner 42 --data '{"email":"new@example.com"}' --confirm
+odoo records get res.partner 42 --fields email
+```
+
+### Unlink → Count Verification
+
+```typescript testable id="crud-verify-unlink" needs="client" creates="res.partner" expect="result.isGone === true"
+const id = await client.create('res.partner', {
+  name: uniqueTestName('Verify Delete Partner'),
+});
+
+await client.unlink('res.partner', id);
+
+const count = await client.searchCount('res.partner', [['id', '=', id]]);
+
+return { isGone: count === 0 };
+```
+
+CLI equivalent:
+
+```bash
+odoo records delete res.partner 42 --confirm
+odoo records count res.partner --domain '[["id","=",42]]'
+# Should print 0
+```
+
+### searchRead Pagination Verification
+
+When paginating large result sets, verify totals match across pages:
+
+```typescript testable id="crud-verify-pagination" needs="client" expect="result.paginationConsistent === true"
+const PAGE_SIZE = 5;
+
+const total = await client.searchCount('res.partner', [['is_company', '=', true]]);
+
+const page1 = await client.searchRead('res.partner', [['is_company', '=', true]], {
+  fields: ['id', 'name'],
+  limit: PAGE_SIZE,
+  offset: 0,
+  order: 'id asc',
+});
+
+const page2 = await client.searchRead('res.partner', [['is_company', '=', true]], {
+  fields: ['id', 'name'],
+  limit: PAGE_SIZE,
+  offset: PAGE_SIZE,
+  order: 'id asc',
+});
+
+// No overlap between pages
+const ids1 = new Set(page1.map(r => r.id));
+const ids2 = new Set(page2.map(r => r.id));
+const overlap = [...ids2].some(id => ids1.has(id));
+
+return {
+  paginationConsistent: !overlap,
+  total,
+  page1Count: page1.length,
+  page2Count: page2.length,
+};
+```
