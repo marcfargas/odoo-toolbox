@@ -5,5 +5,9 @@
     "rootDir": "src"
   },
   "include": ["src"],
-  "exclude": ["dist", "tests", "**/*.test.ts"]
+  "exclude": ["dist", "tests", "**/*.test.ts"],
+  "references": [
+    { "path": "../odoo-testcontainers" },
+    { "path": "../odoo-client" }
+  ]
 }
