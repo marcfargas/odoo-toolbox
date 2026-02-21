@@ -13,8 +13,8 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
+    "build": "tsc -b",
+    "dev": "tsc -b --watch",
     "test": "vitest run --config vitest.config.ts",
     "test:unit": "vitest run --config vitest.config.ts tests/unit",
     "test:e2e": "vitest run tests/e2e",
@@ -46,5 +46,8 @@
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0",
     "vitest": "^4.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
