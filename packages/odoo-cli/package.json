@@ -1,0 +1,50 @@
+{
+  "name": "@marcfargas/odoo-cli",
+  "version": "0.1.0",
+  "description": "CLI for Odoo ERP — records, mail, modules, attendance, timesheets, accounting",
+  "main": "dist/cli.js",
+  "bin": {
+    "odoo": "./dist/cli.js",
+    "odoo-cli": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run --config vitest.config.ts",
+    "test:unit": "vitest run --config vitest.config.ts tests/unit",
+    "test:e2e": "vitest run tests/e2e",
+    "test:packaging": "vitest run --config vitest.packaging.config.ts"
+  },
+  "keywords": [
+    "odoo",
+    "cli",
+    "erp",
+    "commander",
+    "typescript"
+  ],
+  "author": "Marc Fargas <marc@marcfargas.com>",
+  "license": "LGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/marcfargas/odoo-toolbox.git",
+    "directory": "packages/odoo-cli"
+  },
+  "dependencies": {
+    "@marcfargas/odoo-client": "^0.4.1",
+    "@marcfargas/odoo-introspection": "^0.1.3",
+    "cli-table3": "^0.6.3",
+    "commander": "^12.0.0",
+    "debug": "^4.3.4"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.12",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^4.0.0"
+  }
+}

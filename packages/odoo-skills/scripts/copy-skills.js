@@ -9,7 +9,7 @@ const pkgRoot = resolve(__dirname, '..');
 const repoRoot = resolve(pkgRoot, '..', '..');
 
 const src = resolve(repoRoot, 'skills', 'odoo');
-const dest = resolve(pkgRoot, 'skills');
+const dest = resolve(pkgRoot, 'skills', 'odoo');
 const wellKnownSrc = resolve(repoRoot, '.well-known');
 const wellKnownDest = resolve(pkgRoot, '.well-known');
 
@@ -18,8 +18,9 @@ if (!existsSync(src)) {
   process.exit(1);
 }
 
-if (existsSync(dest)) {
-  rmSync(dest, { recursive: true });
+const skillsDir = resolve(pkgRoot, 'skills');
+if (existsSync(skillsDir)) {
+  rmSync(skillsDir, { recursive: true });
 }
 if (existsSync(wellKnownDest)) {
   rmSync(wellKnownDest, { recursive: true });
