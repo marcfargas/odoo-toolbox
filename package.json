@@ -27,10 +27,10 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces",
+    "build": "npm run build -w @marcfargas/odoo-client && npm run build -w @marcfargas/odoo-introspection -w @marcfargas/odoo-testcontainers && npm run build -w @marcfargas/create-odoo-skills -w @marcfargas/odoo-cli -w @marcfargas/odoo-skills -w @marcfargas/odoo-state-manager -w @marcfargas/odoo-test-harness",
     "build:dist": "node scripts/build-dist.js",
     "build:skills-zip": "node scripts/build-skills-zip.js",
-    "clean": "rm -rf packages/*/dist dist",
+    "clean": "rm -rf packages/*/dist packages/*/tsconfig.tsbuildinfo dist",
     "test": "vitest run",
     "test:unit": "vitest run",
     "test:integration": "vitest run --config vitest.integration.config.mts",
