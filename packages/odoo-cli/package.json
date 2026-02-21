@@ -1,6 +1,6 @@
 {
   "name": "@marcfargas/odoo-cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "CLI for Odoo ERP — records, mail, modules, attendance, timesheets, accounting",
   "main": "dist/cli.js",
   "bin": {
@@ -35,7 +35,7 @@
     "directory": "packages/odoo-cli"
   },
   "dependencies": {
-    "@marcfargas/odoo-client": "^0.4.1",
+    "@marcfargas/odoo-client": "^0.4.2",
     "@marcfargas/odoo-introspection": "^0.1.3",
     "cli-table3": "^0.6.3",
     "commander": "^12.0.0",

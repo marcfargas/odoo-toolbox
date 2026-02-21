@@ -1,5 +1,17 @@
 # @marcfargas/odoo-skills
 
+## 0.5.2
+
+### Patch Changes
+
+- feat: odoo-cli v0.2.0 — 10 command groups, safety model, domain parser, 4 output formats
+
+  New packages and improvements:
+  - **odoo-cli**: Full CLI with records, modules, mail, schema, config, state, attendance, timesheets, accounting, and url commands
+  - **odoo-client**: Module install retry for cron lock conflicts, new service accessors (accounting, attendance, timesheets, urls, properties)
+  - **odoo-skills**: CLI examples in all skill modules, verification patterns, multi-company guide
+  - **odoo-testcontainers**: Improved cleanup resilience, CI-friendly timeouts
+
 ## 0.5.1
 
 ### Patch Changes
