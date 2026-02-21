@@ -155,14 +155,25 @@ export class OdooTestContainer {
         cleanup: async () => {
           console.log('🧹 Cleaning up Odoo testcontainer...');
           client.logout();
-          await startedOdooContainer.stop();
-          await postgresContainer.stop();
-          await network.stop();
+          // Stop containers first (parallel, settle all)
+          await Promise.allSettled([
+            startedOdooContainer.stop(),
+            postgresContainer.stop(),
+          ]);
+          // Give Docker a moment to release network endpoints
+          await new Promise(r => setTimeout(r, 1000));
+          // Network cleanup with retry
+          try {
+            await network.stop();
+          } catch {
+            await new Promise(r => setTimeout(r, 2000));
+            try { await network.stop(); } catch { /* best-effort */ }
+          }
           console.log('✅ Cleanup complete');
         },
       };
     } catch (error) {
-      await network.stop();
+      try { await network.stop(); } catch { /* best-effort */ }
       throw error;
     }
   }
