@@ -1,40 +1,58 @@
 # Roadmap
 
-## Active Focus
-
-- Expand knowledge modules (new Odoo modules, broader OCA coverage)
-- Client enhancements (retry logic, better error messages, batch operations)
-- Improve create-skills CLI (instance detection, better scaffolding)
-
-## Next Up
-
-- Type-safe domain selectors (generated per model, fluent builder API)
-- Selection field union type generation
-- Improved error handling (parse Odoo errors, categorize, suggest fixes)
-- Multi-version support (v14+)
-
-## Future
-
-- **CLI for service helpers** (`@marcfargas/odoo-cli`) — expose client services as shell commands for scripting and debugging. Potential commands:
-  - `odoo mail note/message` — post to chatter from shell/CI
-  - `odoo modules list/install/uninstall` — module management (migrate from dev scripts)
-  - `odoo accounting trace-recon` — reconciliation debugging
-  - `odoo accounting cash-balance --as-of YYYY-MM-DD --json` — monitoring/dashboards
-  - Follow patterns from `gh`, `gcloud`, `aws` CLIs (subcommands, JSON output, scriptable)
-  - Wait for demand signals before building — programmatic API + dev scripts sufficient for now
-- State manager: plan/apply workflow (drift detection exists, apply is experimental)
-- Relational field handling in desired state (by ID, search criteria, nested creation)
-- npm publishing and release automation (Changesets)
-- Documentation site
-
-## Not Now
-
-- VS Code extension
-- Plugin system
-- Web UI for drift visualization
-- Multi-instance orchestration
-- State backends (Git, S3, database)
+A living document tracking where odoo-toolbox has been and where it's going.
+Updated: 2026-02-21.
 
 ---
 
-Revisit when: completing a milestone, monthly during active development, or when new requirements emerge from usage.
+## ✅ Done
+
+**Packages shipped:**
+- [`@marcfargas/odoo-client`](packages/odoo-client) — RPC client with 7 service accessors (mail, modules, accounting, timesheets, …)
+- [`@marcfargas/odoo-introspection`](packages/odoo-introspection) — schema discovery + TypeScript codegen
+- [`@marcfargas/odoo-cli`](packages/odoo-cli) — 10 command groups, safety model, domain parser, 4 output formats
+- [`@marcfargas/odoo-skills`](packages/odoo-skills) — AI agent skills for pi (5,200+ lines, CC-BY-4.0)
+- [`@marcfargas/odoo-testcontainers`](packages/odoo-testcontainers) — Docker-based Odoo test containers, all integration tests passing
+- [`@marcfargas/odoo-state-manager`](packages/odoo-state-manager) — declarative drift detection + experimental apply
+
+**Infrastructure & docs:**
+- 19 developer documentation files in `docs/`
+- Skills rewrite: CLI examples in all skill modules
+- Verification examples in skills (GH #20)
+- Multi-company documentation (GH #18)
+- pi-package compliance
+- Scope rename to `@marcfargas/*`
+
+---
+
+## 🔄 Current Focus
+
+- **`@marcfargas/odoo-test-harness`** — declarative test setup for consumer projects (in progress)
+- **npm publishing** — Trusted Publishing (OIDC) + Changesets release automation
+- **Branch merge** — `feat/odoo-cli` → `develop`
+
+---
+
+## 📋 Next Up
+
+- CLI binary distribution — standalone executables without requiring Node.js
+- Additional service coverage: activities, discuss, contracts
+- API reference generation from TSDoc comments
+- CI for `docs/` testable code blocks
+
+---
+
+## Future
+
+- State manager v2: relational fields, nested creation, full plan/apply
+- VS Code extension
+- Multi-instance orchestration
+- Documentation site (if scale warrants it)
+
+---
+
+## Not Now
+
+- Plugin system
+- Web UI
+- State backends (Git, S3, database)
