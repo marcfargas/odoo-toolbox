@@ -4,6 +4,7 @@
  * Tests various ways to mount custom addons from local directories.
  */
 
+import path from 'path';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { startOdoo, type StartedOdooContainer } from '../src';
 
@@ -16,9 +17,10 @@ describe('Custom Addons Mounting', () => {
       // In a real test, you'd have test addons in the repo
       odoo = await startOdoo({
         modules: ['base'],
-        addonsPath: './test-addons', // This directory would need to exist
+        addonsPath: path.resolve('./test-addons'), // absolute path required for Docker on CI
+        startupTimeout: 300_000,
       });
-    }, 300_000);
+    }, 600_000);
 
     afterAll(async () => {
       await odoo?.cleanup();
@@ -38,18 +40,19 @@ describe('Custom Addons Mounting', () => {
         modules: ['base'],
         addonsPath: [
           {
-            source: './oca-addons',
+            source: path.resolve('./oca-addons'), // absolute path required for Docker on CI
             target: '/mnt/oca-addons',
             mode: 'ro',
           },
           {
-            source: './custom-addons',
+            source: path.resolve('./custom-addons'), // absolute path required for Docker on CI
             target: '/mnt/custom-addons',
             mode: 'ro',
           },
         ],
+        startupTimeout: 300_000,
       });
-    }, 300_000);
+    }, 600_000);
 
     afterAll(async () => {
       await odoo?.cleanup();
@@ -67,9 +70,10 @@ describe('Custom Addons Mounting', () => {
       // This demonstrates using the OCA preset with a local OCA checkout
       odoo = await startOdoo({
         modules: ['base', 'account'], // Core modules
-        addonsPath: './oca-server-tools', // Local OCA checkout
+        addonsPath: path.resolve('./oca-server-tools'), // absolute path required for Docker on CI
+        startupTimeout: 300_000,
       });
-    }, 300_000);
+    }, 600_000);
 
     afterAll(async () => {
       await odoo?.cleanup();
