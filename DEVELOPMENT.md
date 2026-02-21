@@ -29,7 +29,8 @@ npm install
 
 ## Testing
 
-Integration tests run against real Odoo instances in Docker. Tests are automated but can be run locally.
+Integration tests run against real Odoo instances using [Testcontainers](https://node.testcontainers.org/).
+Containers start automatically — no manual Docker setup needed.
 
 ### Test Execution Order
 
@@ -49,27 +50,40 @@ This saves time and resources by failing fast on style/logic issues before spinn
 ### Quick Start
 
 ```bash
-# Run all tests (unit + integration, starts Docker automatically)
-npm test
-
 # Run only unit tests (no Docker)
 npm run test:unit
 
-# Run only integration tests
+# Run integration tests (Testcontainers starts Docker automatically)
 npm run test:integration
+
+# Run a single integration test file
+npm run test:integration -- packages/odoo-client/tests/mail.integration.test.ts
 ```
 
-### Local Development
+### How It Works
+
+Integration tests use Testcontainers via `tests/helpers/globalSetup.ts`:
+
+1. **Fresh containers** start for each `npm run test:integration` invocation
+2. PostgreSQL + Odoo containers are created with dynamic ports
+3. `ODOO_URL` is set automatically — tests don't need configuration
+4. Containers are destroyed after tests complete (or on failure)
+
+No shared state between runs — every test run gets a clean database.
+
+### Manual Docker (optional, for debugging)
+
+You can still start containers manually for iterating on tests:
 
 ```bash
 # Start Odoo test environment
 npm run odoo:up
 
+# Run tests with SKIP_TEARDOWN to keep containers alive
+SKIP_TEARDOWN=true npm run test:integration
+
 # View logs in another terminal
 npm run odoo:logs
-
-# Run tests
-npm run test:integration
 
 # Stop when done
 npm run odoo:down
@@ -79,8 +93,7 @@ npm run odoo:clean
 ```
 
 **Environment variables for test control:**
-- `KEEP_CONTAINERS=true` - Keep Docker containers running after tests complete
-- `SKIP_TEARDOWN=true` - Skip teardown phase during integration tests
+- `SKIP_TEARDOWN=true` - Keep containers running after tests (for debugging)
 
 ### Configuration
 

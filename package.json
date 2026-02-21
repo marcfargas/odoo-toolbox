@@ -13,8 +13,14 @@
     "typescript",
     "infrastructure-as-code",
     "state-management",
-    "drift-detection"
+    "drift-detection",
+    "pi-package"
   ],
+  "pi": {
+    "skills": [
+      "skills"
+    ]
+  },
   "author": "Marc Fargas <marc@marcfargas.com>",
   "license": "LGPL-3.0",
   "workspaces": [
@@ -49,6 +55,9 @@
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.2",
     "@changesets/cli": "^2.29.8",
+    "@marcfargas/odoo-client": "workspace:*",
+    "@marcfargas/odoo-introspection": "workspace:*",
+    "@testcontainers/postgresql": "^11.12.0",
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
@@ -59,10 +68,11 @@
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "prettier": "^3.8.0",
+    "testcontainers": "^11.12.0",
     "typescript": "^5.0.0",
     "vitest": "^4.0.18"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=24.0.0"
   }
 }

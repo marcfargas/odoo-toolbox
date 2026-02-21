@@ -28,6 +28,11 @@ import {
 } from '../safety';
 import { MailService } from '../services/mail/mail-service';
 import { ModuleManager } from '../services/modules/module-manager';
+import { AttendanceService } from '../services/attendance/attendance-service';
+import { TimesheetsService } from '../services/timesheets/timesheets-service';
+import { AccountingService } from '../services/accounting/accounting-service';
+import { UrlService } from '../services/urls/url-service';
+import { PropertiesService } from '../services/properties/properties-service';
 
 export interface OdooClientConfig {
   url: string;
@@ -92,6 +97,121 @@ export class OdooClient {
    */
   get modules(): ModuleManager {
     return (this._modules ??= new ModuleManager(this));
+  }
+
+  private _attendance?: AttendanceService;
+
+  /**
+   * Attendance service — clock in/out and presence tracking.
+   *
+   * Requires the `hr_attendance` module to be installed.
+   *
+   * ```typescript
+   * await client.attendance.clockIn();
+   * const status = await client.attendance.getStatus();
+   * await client.attendance.clockOut();
+   * ```
+   */
+  get attendance(): AttendanceService {
+    return (this._attendance ??= new AttendanceService(this));
+  }
+
+  private _timesheets?: TimesheetsService;
+
+  /**
+   * Timesheets service — timer-based and manual time tracking on projects.
+   *
+   * Requires the `hr_timesheet` module to be installed.
+   *
+   * ```typescript
+   * // Timer workflow
+   * const entry = await client.timesheets.startTimer({
+   *   description: 'Feature work',
+   *   projectId: 5,
+   * });
+   * // ... later ...
+   * await client.timesheets.stopTimer(entry.id);
+   *
+   * // Manual logging
+   * await client.timesheets.logTime({
+   *   description: 'Code review',
+   *   projectId: 5,
+   *   hours: 1.5,
+   * });
+   * ```
+   */
+  get timesheets(): TimesheetsService {
+    return (this._timesheets ??= new TimesheetsService(this));
+  }
+
+  private _accounting?: AccountingService;
+
+  /**
+   * Accounting service — cash discovery, reconciliation tracing, partner resolution.
+   *
+   * Requires the `account` module (Invoicing/Accounting) to be installed.
+   *
+   * ```typescript
+   * const cashIds = await client.accounting.getCashAccountIds();
+   * const balance = await client.accounting.getCashBalance(cashIds, '2025-06-30');
+   * const partner = await client.accounting.resolvePartnerFromMove(moveId, cashIds);
+   * const daysToPay = await client.accounting.calculateDaysToPay(invoiceId);
+   * ```
+   */
+  get accounting(): AccountingService {
+    return (this._accounting ??= new AccountingService(this));
+  }
+
+  private _urls?: UrlService;
+
+  /**
+   * URL service — generate links to Odoo records that work across all versions.
+   *
+   * Uses Odoo's built-in `/mail/view` redirect controller (same as notification emails).
+   * No need to worry about hash-based vs path-based URL formats.
+   *
+   * ```typescript
+   * // Backend link (any model, any Odoo version)
+   * const url = await client.urls.getRecordUrl('crm.lead', 42);
+   * // → 'https://mycompany.odoo.com/mail/view?model=crm.lead&res_id=42'
+   *
+   * // Portal link (models with portal.mixin)
+   * const portal = await client.urls.getPortalUrl('sale.order', 15);
+   * // → { url: 'https://mycompany.odoo.com/my/orders/15?access_token=...' }
+   * ```
+   */
+  get urls(): UrlService {
+    return (this._urls ??= new UrlService(this));
+  }
+
+  private _properties?: PropertiesService;
+
+  /**
+   * Properties service — safe operations for Odoo properties fields.
+   *
+   * Properties use full-replacement semantics. This service prevents data loss
+   * by automatically reading current values, merging changes, and writing back.
+   *
+   * ```typescript
+   * // Safe update - preserves other properties
+   * await client.properties.updateSafely(
+   *   'crm.lead',
+   *   leadId,
+   *   'lead_properties',
+   *   { priority: 'critical' }
+   * );
+   *
+   * // Batch update multiple records
+   * await client.properties.updateSafelyBatch(
+   *   'crm.lead',
+   *   [123, 456],
+   *   'lead_properties',
+   *   { priority: 'high' }
+   * );
+   * ```
+   */
+  get properties(): PropertiesService {
+    return (this._properties ??= new PropertiesService(this));
   }
 
   // ── Auth ────────────────────────────────────────────────────────────

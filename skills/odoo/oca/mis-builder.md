@@ -1,6 +1,8 @@
-# MIS Builder
+# MIS Builder — Reading & Executing Reports
 
-Working with OCA MIS Builder for financial reports (PnL, Balance Sheet).
+Reading, computing, and exporting OCA MIS Builder financial reports (PnL, Balance Sheet).
+
+> **Companion skill**: See `mis-builder-dev.md` for *authoring* — creating and editing report templates, the expression language, and styling.
 
 ## Overview
 
@@ -22,7 +24,10 @@ MIS Builder (Management Information System Builder) is an OCA module for creatin
 | `mis.report.instance` | Configured report for specific periods/companies |
 | `mis.report.instance.period` | Period configuration within an instance |
 | `mis.report.kpi` | KPI/row definitions with formulas |
+| `mis.report.kpi.expression` | Individual expressions (one per sub-KPI, or one for non-multi KPIs) |
 | `mis.report.style` | Visual styling for reports |
+| `mis.report.subreport` | Cross-references to other report templates (for composition) |
+| `mis.report.query` | Queries to fetch data from non-accounting models |
 
 ## Listing Report Templates
 
@@ -128,6 +133,17 @@ console.log('Rows:', reportData.body.length);
   "notes": {}
 }
 ```
+
+### row.style vs cell.style
+
+Both `row.style` and `cell.style` are CSS strings (e.g., `"font-weight: bold; color: #ffa500"`).
+
+- **`row.style`**: Always reflects the KPI's base `style_id` (the static row style). Does **not** include `style_expression` results.
+- **`cell.style`**: Reflects the effective style **after** `style_expression` evaluation. If the KPI has a `style_expression`, the resolved style is merged on top of the base style and appears here.
+
+When processing `compute()` output programmatically, **always use `cell.style` for the effective formatting** — especially for color. The `row.style` is useful for layout properties like indentation.
+
+Rows with `hide_always = true` on their style are excluded from the `body` array entirely — they never appear in `compute()` output.
 
 ### Cell Values
 
@@ -282,6 +298,67 @@ These templates use Spanish PGCE 2008 account codes (7XX for income, 6XX for exp
 | `comparison_mode` | boolean | No | Enable period comparison |
 | `currency_id` | many2one | No | Target currency |
 | `landscape_pdf` | boolean | No | PDF orientation |
+
+## Gotchas
+
+### Archived Budgets Need `active_test: false`
+
+MIS budgets (`mis.budget`) are often archived after the period ends. Without the context flag, they become invisible — easy to miss because "it worked last month."
+
+```typescript
+// ✅ Include archived budgets
+const budgets = await client.searchRead('mis.budget',
+  [],
+  { fields: ['name', 'active'], context: { active_test: false }, limit: 0 }
+);
+```
+
+### `mis.report.instance` Has NO `active` Field
+
+Don't filter by `active` — the field doesn't exist and will cause an error:
+
+```typescript
+// ❌ WRONG — will error
+const instances = await client.searchRead('mis.report.instance',
+  [['active', '=', true]], { fields: ['name'] }
+);
+
+// ✅ CORRECT — no active field, just query directly
+const instances = await client.searchRead('mis.report.instance',
+  [], { fields: ['name'] }
+);
+```
+
+### `mis.report.instance.period` Has NO `company_id` Field
+
+Company filtering is on the **instance** (`mis.report.instance`), not on individual periods. Don't try to filter periods by company.
+
+```typescript
+// ❌ WRONG — company_id doesn't exist on periods
+const periods = await client.searchRead('mis.report.instance.period',
+  [['company_id', '=', 1]], { fields: ['name'] }
+);
+
+// ✅ CORRECT — filter at the instance level
+const instances = await client.searchRead('mis.report.instance',
+  [['company_id', '=', 1]],
+  { fields: ['name', 'period_ids'] }
+);
+```
+
+### Budget Account Codes Differ from Actual Accounting
+
+Budgets often use different account codes than the general ledger. Example: a person budgeted as "employee" (account 640) but actually paid as "subcontractor" (account 607).
+
+**Solution**: Build an explicit equivalence table mapping budget codes to actual codes. Always adjust the budget side — the actual accounting entries are correct.
+
+```typescript
+// Equivalence table: budget code → actual code(s)
+const budgetEquivalences: Record<string, string[]> = {
+  '640': ['640', '607'],  // Budget "employees" includes some subcontractors
+  '621': ['621', '622'],  // Budget "leases" includes both rent types
+};
+```
 
 ## Error Handling
 

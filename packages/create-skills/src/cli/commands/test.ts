@@ -86,7 +86,7 @@ export async function testCommand(options: TestOptions): Promise<void> {
 
     // For now, just report that we found testable blocks
     // Full execution requires @marcfargas/odoo-client which is a peer dependency
-    const passedCount = blocks.length; // TODO: Actually execute tests
+    const passedCount = blocks.length; // Currently only counting blocks, not executing
     totalPassed += passedCount;
 
     console.log(`✓ ${relativePath} - ${passedCount} examples found`);
@@ -102,7 +102,7 @@ export async function testCommand(options: TestOptions): Promise<void> {
     `\n${totalFailed === 0 ? 'All' : totalPassed} ${totalPassed === 1 ? 'example' : 'examples'} found.`
   );
 
-  // TODO: Actually execute the code blocks and report pass/fail
+  // Full test execution implementation pending - currently validates testable block discovery
   console.log('\nNote: Full test execution requires @marcfargas/odoo-client.');
   console.log('Install with: npm install @marcfargas/odoo-client @marcfargas/odoo-introspection');
 

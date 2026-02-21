@@ -1,0 +1,44 @@
+{
+  "name": "@marcfargas/odoo-testcontainers",
+  "version": "0.1.0",
+  "description": "Testcontainers module for Odoo development",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rimraf dist"
+  },
+  "keywords": [
+    "odoo",
+    "testcontainers",
+    "testing",
+    "integration-testing",
+    "docker"
+  ],
+  "author": "Marc Fargas <marc@marcfargas.com>",
+  "license": "LGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/marcfargas/odoo-toolbox.git",
+    "directory": "packages/odoo-testcontainers"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "testcontainers": "^10.13.2",
+    "@testcontainers/postgresql": "^10.13.2",
+    "@marcfargas/odoo-client": "^0.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "peerDependencies": {
+    "@marcfargas/odoo-client": "^0.4.0"
+  }
+}

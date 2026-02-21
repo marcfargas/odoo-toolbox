@@ -61,13 +61,20 @@ const leads = await client.searchRead('crm.lead', []); // core CRUD stays on cli
 - Module helpers live in `services/{module}/` with a service class
 - Each service gets a lazy getter on OdooClient (3 lines: field + getter + import)
 - Standalone functions exist as implementation core and for cross-service composition
-- Skill docs show `client.{module}.*` as the canonical pattern — not standalone functions
+- **Skills reference service methods (`client.{module}.*`) — NEVER embed implementation**
+- **Skills are documentation, not implementation repositories**
 
 **Adding a new service:**
 1. Create `services/{module}/` (service class + functions + types + index)
 2. Add lazy getter in `odoo-client.ts`
 3. Export from `services/index.ts`
-4. Update skill docs with `client.{module}.*` examples
+4. Update skill docs to show `client.{module}.*` examples
+
+**❌ NEVER embed logic in skills:**
+- Skills show how to use the library, not where code lives
+- Implementation belongs in `packages/odoo-client/src/services/{module}/`
+- Skills reference service methods with `client.{module}.*` pattern
+- Code replication creates maintenance burden and breaks non-agent consumers
 
 ```
 packages/odoo-client/src/

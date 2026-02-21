@@ -200,6 +200,148 @@ describe('Mail helpers integration', () => {
     });
   });
 
+  // ── Follower notifications ───────────────────────────────────────────
+
+  describe('follower notifications', () => {
+    let followerPartnerId: number;
+
+    beforeAll(async () => {
+      // Create a follower partner and subscribe them
+      followerPartnerId = await client.create('res.partner', {
+        name: `__test_follower_${Date.now()}`,
+        email: 'test-follower@example.com',
+      });
+      cleanup.push({ model: 'res.partner', id: followerPartnerId });
+
+      await client.call('res.partner', 'message_subscribe', [[partnerId]], {
+        partner_ids: [followerPartnerId],
+      });
+    });
+
+    it('should create notifications for followers on open messages', async () => {
+      const msgId = await postOpenMessage(
+        client,
+        'res.partner',
+        partnerId,
+        '<p>Public message that should <b>notify</b> followers.</p>'
+      );
+      cleanup.push({ model: 'mail.message', id: msgId });
+
+      const [msg] = await client.read('mail.message', msgId, ['notification_ids']);
+      const notifIds = msg.notification_ids as number[];
+
+      expect(notifIds.length).toBeGreaterThan(0);
+
+      // Verify notification targets our follower
+      const notifs = await client.read('mail.notification', notifIds, [
+        'res_partner_id',
+        'notification_type',
+      ]);
+      const followerNotif = notifs.find(
+        (n: any) => (n.res_partner_id as any)[0] === followerPartnerId
+      );
+      expect(followerNotif).toBeDefined();
+    });
+
+    it('should NOT create notifications for followers on internal notes', async () => {
+      const msgId = await postInternalNote(
+        client,
+        'res.partner',
+        partnerId,
+        '<p>Internal note — followers should NOT be notified.</p>'
+      );
+      cleanup.push({ model: 'mail.message', id: msgId });
+
+      const [msg] = await client.read('mail.message', msgId, ['notification_ids']);
+      const notifIds = msg.notification_ids as number[];
+
+      expect(notifIds.length).toBe(0);
+    });
+  });
+
+  // ── No outgoing email for internal notes ─────────────────────────────
+
+  describe('outgoing email safety', () => {
+    it('should NOT generate outgoing mail.mail for internal notes', async () => {
+      const msgId = await postInternalNote(
+        client,
+        'res.partner',
+        partnerId,
+        '<p>CONFIDENTIAL: do not share with customer.</p>'
+      );
+      cleanup.push({ model: 'mail.message', id: msgId });
+
+      const emails = await client.searchRead('mail.mail', [['mail_message_id', '=', msgId]], {
+        fields: ['id'],
+      });
+      expect(emails.length).toBe(0);
+    });
+
+    it('should generate outgoing mail.mail for open messages', async () => {
+      // Need a follower with email to trigger mail generation
+      const follower2Id = await client.create('res.partner', {
+        name: `__test_mail_follower2_${Date.now()}`,
+        email: 'follower2@example.com',
+      });
+      cleanup.push({ model: 'res.partner', id: follower2Id });
+
+      await client.call('res.partner', 'message_subscribe', [[partnerId]], {
+        partner_ids: [follower2Id],
+      });
+
+      const msgId = await postOpenMessage(
+        client,
+        'res.partner',
+        partnerId,
+        '<p>Public update for all followers.</p>'
+      );
+      cleanup.push({ model: 'mail.message', id: msgId });
+
+      const emails = await client.searchRead('mail.mail', [['mail_message_id', '=', msgId]], {
+        fields: ['id'],
+      });
+      expect(emails.length).toBeGreaterThan(0);
+    });
+  });
+
+  // ── is_internal filter in searches ──────────────────────────────────
+
+  describe('is_internal search filter', () => {
+    it('should correctly separate internal from public in domain queries', async () => {
+      const noteId = await postInternalNote(
+        client,
+        'res.partner',
+        partnerId,
+        '<p>Secret internal info.</p>'
+      );
+      cleanup.push({ model: 'mail.message', id: noteId });
+
+      const openId = await postOpenMessage(
+        client,
+        'res.partner',
+        partnerId,
+        '<p>Public customer-facing update.</p>'
+      );
+      cleanup.push({ model: 'mail.message', id: openId });
+
+      // Simulate what a portal user query would see
+      const publicVisible = await client.searchRead(
+        'mail.message',
+        [
+          ['model', '=', 'res.partner'],
+          ['res_id', '=', partnerId],
+          ['message_type', '=', 'comment'],
+          ['is_internal', '=', false],
+        ],
+        { fields: ['id'] }
+      );
+
+      const publicIds = publicVisible.map((m: any) => m.id);
+      expect(publicIds).toContain(openId);
+      expect(publicIds).not.toContain(noteId);
+    });
+  });
+
   // ── Round-trip: post both types, read back, verify distinction ──────
 
   describe('round-trip: internal vs open on same record', () => {

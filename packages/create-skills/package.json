@@ -1,6 +1,6 @@
 {
   "name": "@marcfargas/create-odoo-skills",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "CLI to scaffold Odoo skill projects for AI agents",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -42,8 +42,8 @@
     "vitest": "^4.0.0"
   },
   "peerDependencies": {
-    "@marcfargas/odoo-client": "^0.1.0",
-    "@marcfargas/odoo-introspection": "^0.1.0"
+    "@marcfargas/odoo-client": "^0.4.1",
+    "@marcfargas/odoo-introspection": "^0.1.3"
   },
   "peerDependenciesMeta": {
     "@marcfargas/odoo-client": {
@@ -52,5 +52,8 @@
     "@marcfargas/odoo-introspection": {
       "optional": true
     }
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

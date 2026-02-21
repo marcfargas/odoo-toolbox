@@ -1,125 +1,250 @@
 # Timesheets (hr_timesheet)
 
-Track employee time on projects and tasks using Odoo's timesheet system.
+Track time on projects/tasks. Requires `hr_timesheet` module. Model: `account.analytic.line`.
 
-## Overview
+## CLI
 
-The `hr_timesheet` module allows employees to log time spent on projects and tasks. Time entries are stored in `account.analytic.line` with project/task context.
+Requires: `hr_timesheet` Odoo module.
 
-## Prerequisites
+**Safety:**
+- `running`, `list` — READ (no confirmation)
+- `start`, `stop`, `log` — WRITE (requires `--confirm`)
 
-- Authenticated OdooClient connection
-- Module: **hr_timesheet** (must be installed)
-- Depends on: **project**, **hr**, **analytic**
+All commands accept `--employee-id <n>` (default: current user's employee).
 
-## Key Models
+### Timer workflow (start → work → stop)
 
-| Model | Description |
-|-------|-------------|
-| `account.analytic.line` | Timesheet entries (hours logged) |
-| `project.project` | Projects (must have `allow_timesheets=true`) |
-| `project.task` | Tasks within projects |
-| `hr.employee` | Employees who log time |
+```bash
+# Start a timer on a task
+odoo timesheets start --task-id 42 --description "Fixing login bug" --confirm
 
-## Field Reference
+# Start on a project (no task)
+odoo timesheets start --project-id 5 --description "Project work" --confirm
 
-### account.analytic.line (Timesheet Entry)
+# Check what's running
+odoo timesheets running
+# ● RUNNING: Task#42 "Login Fix" — started 2024-03-15 09:02 (1h 23m elapsed)
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | Char | Yes | Description of work done |
-| `date` | Date | Yes | Date of the timesheet entry |
-| `unit_amount` | Float | No | Hours logged (quantity) |
-| `project_id` | Many2one → project.project | No | Project being worked on |
-| `task_id` | Many2one → project.task | No | Specific task (filtered by project) |
-| `employee_id` | Many2one → hr.employee | No | Employee logging time (defaults to current user's employee) |
-| `company_id` | Many2one → res.company | Yes | Company (defaults to current) |
-| `amount` | Monetary | Yes | Cost amount (auto-calculated from hourly cost) |
-| `user_id` | Many2one → res.users | No | Related user |
+# Stop the running timer
+odoo timesheets stop --confirm
+# ✓ Stopped: Task#42 "Login Fix" — 1h 23m logged
+```
 
-## Checking Module Installation
+**Notes:**
+- `--task-id` OR `--project-id` is required for `start`.
+- `--description` is required for `start`.
+- `timesheets running` exits with code `3` if no timer is running — useful in scripts.
+
+### Log time manually (retroactive)
+
+```bash
+# Hours as decimal
+odoo timesheets log --task-id 42 --hours 2.5 --description "Code review" --confirm
+
+# Hours as H:MM
+odoo timesheets log --task-id 42 --hours 1:30 --description "Pair programming" --confirm
+
+# Specific date (default: today)
+odoo timesheets log --task-id 42 --hours 3.0 --date 2024-03-14 \
+  --description "API integration" --confirm
+
+# From CI — log deploy time
+odoo timesheets log --task-id $ODOO_TASK --hours 0.25 \
+  --description "Deploy $CI_COMMIT_SHA" --confirm
+```
+
+### List timesheet entries [READ]
+
+```bash
+# Current user's timesheets
+odoo timesheets list
+
+# By date range
+odoo timesheets list --from 2024-03-11 --to 2024-03-15
+
+# By project
+odoo timesheets list --project-id 5
+
+# By task
+odoo timesheets list --task-id 42
+
+# Export as CSV
+odoo timesheets list --from 2024-03-01 --to 2024-03-31 --format csv > march-time.csv
+```
+
+### Flags
+
+| Flag | Command | Description |
+|------|---------|-------------|
+| `--task-id <n>` | `start`, `log` | Task to log time on |
+| `--project-id <n>` | `start`, `log` | Project (required if no task) |
+| `--description <text>` | `start`, `log` | Description of work (required for `start`) |
+| `--hours <h>` | `log` | Hours: decimal (`1.5`) or H:MM (`1:30`) |
+| `--date <date>` | `log` | Date YYYY-MM-DD (default: today) |
+| `--employee-id <n>` | all | Override employee (default: current user) |
+| `--from <date>` | `list` | Start date for list |
+| `--to <date>` | `list` | End date for list |
+| `--confirm` | `start`, `stop`, `log` | Required (WRITE operation) |
+| `--dry-run` | `start`, `stop`, `log` | Simulate without executing |
+
+---
+
+## Library API
+
+Two workflows: **timer** (start→work→stop) or **manual** (log completed hours).
+
+```typescript
+const client = await createClient();
+
+// Timer
+const entry = await client.timesheets.startTimer({ description: 'Dev work', projectId: 5, taskId: 42 });
+const stopped = await client.timesheets.stopTimer(entry.id);
+
+// Manual
+await client.timesheets.logTime({ description: 'Code review', projectId: 5, hours: 1.5 });
+
+// Query
+const running = await client.timesheets.getRunningTimers();
+const entries = await client.timesheets.list({ projectId: 5 });
+```
+
+All methods accept optional `employeeId` (defaults to current user's employee).
+
+## Check Module
 
 ```typescript testable id="timesheets-check-module" needs="client" expect="result.installed === true"
-// Check if hr_timesheet module is installed via service accessor
 const installed = await client.modules.isModuleInstalled('hr_timesheet');
-
 return { installed };
 ```
 
-## Creating Timesheet Entries
+## Timer Operations
 
-### Basic Timesheet Entry
+### Start Timer
 
-```typescript testable id="timesheets-create-basic" needs="client" creates="account.analytic.line" expect="result.timesheetId > 0"
-// Find a project with timesheets enabled
+```typescript testable id="timesheets-start-timer" needs="client" creates="account.analytic.line" expect="result.success === true"
 const [project] = await client.searchRead('project.project', [
   ['allow_timesheets', '=', true]
 ], { fields: ['id', 'name'], limit: 1 });
 
-if (!project) {
-  throw new Error('No project with timesheets enabled');
-}
+if (!project) throw new Error('No project with timesheets enabled');
 
-// Get current user's employee
+const entry = await client.timesheets.startTimer({
+  description: 'Working on feature X',
+  projectId: project.id,
+});
+trackRecord('account.analytic.line', entry.id);
+
+const isRunning = entry.unit_amount === 0;  // Running = unit_amount is 0
+
+await client.timesheets.stopTimer(entry.id);
+
+return { success: true, entryId: entry.id, wasRunning: isRunning };
+```
+
+### Stop Timer
+
+```typescript testable id="timesheets-stop-timer" needs="client" creates="account.analytic.line" expect="result.success === true"
+const [project] = await client.searchRead('project.project', [
+  ['allow_timesheets', '=', true]
+], { fields: ['id'], limit: 1 });
+
+const entry = await client.timesheets.startTimer({
+  description: 'Timer to stop',
+  projectId: project.id,
+});
+trackRecord('account.analytic.line', entry.id);
+
+await new Promise(resolve => setTimeout(resolve, 500));
+
+const stopped = await client.timesheets.stopTimer(entry.id);
+
+return { success: true, hoursLogged: stopped.unit_amount, timerStopped: stopped.unit_amount > 0 };
+```
+
+### Find Running Timers
+
+```typescript testable id="timesheets-running-timers" needs="client" expect="result.success === true"
+const running = await client.timesheets.getRunningTimers();
+
+return { success: true, runningCount: running.length };
+```
+
+## Manual Logging
+
+```typescript testable id="timesheets-log-time" needs="client" creates="account.analytic.line" expect="result.success === true"
+const [project] = await client.searchRead('project.project', [
+  ['allow_timesheets', '=', true]
+], { fields: ['id'], limit: 1 });
+
+const entry = await client.timesheets.logTime({
+  description: 'Completed code review',
+  projectId: project.id,
+  hours: 1.5,
+});
+trackRecord('account.analytic.line', entry.id);
+
+return { success: true, entryId: entry.id, hours: entry.unit_amount };
+```
+
+## List Entries
+
+```typescript testable id="timesheets-list" needs="client" expect="result.success === true"
+const entries = await client.timesheets.list({ limit: 10 });
+const totalHours = entries.reduce((sum, e) => sum + (e.unit_amount || 0), 0);
+
+return { success: true, count: entries.length, totalHours };
+```
+
+## Direct CRUD
+
+```typescript testable id="timesheets-create-basic" needs="client" creates="account.analytic.line" expect="result.timesheetId > 0"
+const [project] = await client.searchRead('project.project', [
+  ['allow_timesheets', '=', true]
+], { fields: ['id', 'name'], limit: 1 });
+
 const session = client.getSession();
 const [employee] = await client.searchRead('hr.employee', [
   ['user_id', '=', session?.uid]
-], { fields: ['id', 'name'], limit: 1 });
+], { fields: ['id'], limit: 1 });
 
-// Create timesheet entry
 const timesheetId = await client.create('account.analytic.line', {
   name: 'Development work',
   project_id: project.id,
   employee_id: employee?.id || false,
-  unit_amount: 2.0,  // 2 hours
-  date: new Date().toISOString().split('T')[0]  // Today
+  unit_amount: 2.0,
+  date: new Date().toISOString().split('T')[0]
 });
 
 trackRecord('account.analytic.line', timesheetId);
 return { timesheetId, projectName: project.name };
 ```
 
-### Timesheet with Task
-
 ```typescript testable id="timesheets-create-with-task" needs="client" creates="account.analytic.line" expect="result.timesheetId > 0"
-// Find a project with timesheets
 const [project] = await client.searchRead('project.project', [
   ['allow_timesheets', '=', true]
 ], { fields: ['id'], limit: 1 });
 
-// Find a task in that project
 const [task] = await client.searchRead('project.task', [
   ['project_id', '=', project.id]
 ], { fields: ['id', 'name'], limit: 1 });
 
-// Create timesheet with task reference
 const timesheetId = await client.create('account.analytic.line', {
   name: 'Task-specific work',
   project_id: project.id,
   task_id: task?.id || false,
-  unit_amount: 1.5,  // 1.5 hours
+  unit_amount: 1.5,
   date: new Date().toISOString().split('T')[0]
 });
 
 trackRecord('account.analytic.line', timesheetId);
-return {
-  timesheetId,
-  taskName: task?.name || 'No task',
-  hasTask: !!task
-};
+return { timesheetId, taskName: task?.name || 'No task', hasTask: !!task };
 ```
 
-## Reading Timesheet Entries
-
-### Get Timesheets for a Project
-
 ```typescript testable id="timesheets-read-by-project" needs="client" expect="result.success === true"
-// Find a project with timesheets
 const [project] = await client.searchRead('project.project', [
   ['allow_timesheets', '=', true]
 ], { fields: ['id', 'name'], limit: 1 });
 
-// Get all timesheet entries for this project
 const timesheets = await client.searchRead('account.analytic.line', [
   ['project_id', '=', project.id]
 ], {
@@ -128,27 +253,12 @@ const timesheets = await client.searchRead('account.analytic.line', [
   limit: 20
 });
 
-// Calculate total hours
 const totalHours = timesheets.reduce((sum, ts) => sum + (ts.unit_amount || 0), 0);
 
-return {
-  success: true,
-  projectName: project.name,
-  entryCount: timesheets.length,
-  totalHours,
-  entries: timesheets.map(ts => ({
-    date: ts.date,
-    hours: ts.unit_amount,
-    description: ts.name,
-    employee: ts.employee_id?.[1] || 'Unknown'
-  }))
-};
+return { success: true, projectName: project.name, entryCount: timesheets.length, totalHours };
 ```
 
-### Get Timesheets for an Employee
-
 ```typescript testable id="timesheets-read-by-employee" needs="client" expect="result.success === true"
-// Get current user's employee
 const session = client.getSession();
 const [employee] = await client.searchRead('hr.employee', [
   ['user_id', '=', session?.uid]
@@ -158,7 +268,6 @@ if (!employee) {
   return { success: true, message: 'No employee record for current user' };
 }
 
-// Get timesheet entries for this week
 const today = new Date();
 const weekStart = new Date(today);
 weekStart.setDate(today.getDate() - today.getDay());
@@ -167,39 +276,16 @@ const timesheets = await client.searchRead('account.analytic.line', [
   ['employee_id', '=', employee.id],
   ['date', '>=', weekStart.toISOString().split('T')[0]]
 ], {
-  fields: ['name', 'date', 'unit_amount', 'project_id', 'task_id'],
+  fields: ['name', 'date', 'unit_amount', 'project_id'],
   order: 'date asc'
 });
 
 const totalHours = timesheets.reduce((sum, ts) => sum + (ts.unit_amount || 0), 0);
 
-return {
-  success: true,
-  employeeName: employee.name,
-  weeklyEntries: timesheets.length,
-  weeklyHours: totalHours
-};
+return { success: true, employeeName: employee.name, weeklyEntries: timesheets.length, weeklyHours: totalHours };
 ```
-
-### Get Timesheets for a Task
-
-```typescript
-// Get all time logged on a specific task
-const timesheets = await client.searchRead('account.analytic.line', [
-  ['task_id', '=', taskId]
-], {
-  fields: ['name', 'date', 'unit_amount', 'employee_id'],
-  order: 'date desc'
-});
-
-const totalHours = timesheets.reduce((sum, ts) => sum + ts.unit_amount, 0);
-console.log(`Task has ${totalHours} hours logged across ${timesheets.length} entries`);
-```
-
-## Updating Timesheet Entries
 
 ```typescript testable id="timesheets-update" needs="client" creates="account.analytic.line" expect="result.updated === true"
-// Create a test entry first
 const [project] = await client.searchRead('project.project', [
   ['allow_timesheets', '=', true]
 ], { fields: ['id'], limit: 1 });
@@ -212,28 +298,17 @@ const timesheetId = await client.create('account.analytic.line', {
 });
 trackRecord('account.analytic.line', timesheetId);
 
-// Update the entry
 await client.write('account.analytic.line', timesheetId, {
-  name: 'Updated: Added more detail about work done',
-  unit_amount: 2.5  // Changed from 1 hour to 2.5 hours
+  name: 'Updated: more detail',
+  unit_amount: 2.5
 });
 
-// Verify the update
-const [updated] = await client.read('account.analytic.line', timesheetId, [
-  'name', 'unit_amount'
-]);
+const [updated] = await client.read('account.analytic.line', timesheetId, ['name', 'unit_amount']);
 
-return {
-  updated: updated.unit_amount === 2.5,
-  newHours: updated.unit_amount,
-  newDescription: updated.name
-};
+return { updated: updated.unit_amount === 2.5 };
 ```
 
-## Deleting Timesheet Entries
-
 ```typescript testable id="timesheets-delete" needs="client" expect="result.deleted === true"
-// Create a temporary entry
 const [project] = await client.searchRead('project.project', [
   ['allow_timesheets', '=', true]
 ], { fields: ['id'], limit: 1 });
@@ -245,125 +320,39 @@ const timesheetId = await client.create('account.analytic.line', {
   date: new Date().toISOString().split('T')[0]
 });
 
-// Delete the entry
 await client.unlink('account.analytic.line', timesheetId);
-
-// Verify deletion
-const remaining = await client.search('account.analytic.line', [
-  ['id', '=', timesheetId]
-]);
+const remaining = await client.search('account.analytic.line', [['id', '=', timesheetId]]);
 
 return { deleted: remaining.length === 0 };
 ```
 
-## Project and Task Setup
-
-### Check if Project Has Timesheets Enabled
-
 ```typescript testable id="timesheets-project-check" needs="client" expect="result.success === true"
-// Get projects and their timesheet status
 const projects = await client.searchRead('project.project', [], {
   fields: ['name', 'allow_timesheets'],
   limit: 10
 });
 
 const withTimesheets = projects.filter(p => p.allow_timesheets);
-const withoutTimesheets = projects.filter(p => !p.allow_timesheets);
 
-return {
-  success: true,
-  totalProjects: projects.length,
-  withTimesheets: withTimesheets.length,
-  withoutTimesheets: withoutTimesheets.length,
-  projectList: projects.map(p => ({
-    name: p.name,
-    timesheetsEnabled: p.allow_timesheets
-  }))
-};
+return { success: true, totalProjects: projects.length, withTimesheets: withTimesheets.length };
 ```
 
-### Enable Timesheets on a Project
+## Timer Architecture
 
-```typescript
-// Enable timesheets on an existing project
-await client.write('project.project', projectId, {
-  allow_timesheets: true
-});
-```
+- **Running** = entry with `unit_amount = 0`
+- **Stopped** = `unit_amount > 0` (duration computed from `create_date`)
+- `startTimer()` creates entry with `unit_amount = 0`
+- `stopTimer()` computes elapsed, writes `unit_amount`
+- `getRunningTimers()` searches `unit_amount = 0`
 
-## Aggregating Time Data
+## Key Fields (account.analytic.line)
 
-### Sum Hours by Project
-
-```typescript
-// Using read_group for aggregation
-const totals = await client.call('account.analytic.line', 'read_group', [
-  [],  // domain (all entries)
-  ['unit_amount:sum'],  // fields to aggregate
-  ['project_id']  // group by
-], {});
-
-console.log('Hours by project:');
-for (const group of totals) {
-  console.log(`  ${group.project_id?.[1] || 'No project'}: ${group.unit_amount} hours`);
-}
-```
-
-### Sum Hours by Employee for Date Range
-
-```typescript
-// Get hours per employee for a specific month
-const startDate = '2026-02-01';
-const endDate = '2026-02-28';
-
-const totals = await client.call('account.analytic.line', 'read_group', [
-  [
-    ['date', '>=', startDate],
-    ['date', '<=', endDate]
-  ],
-  ['unit_amount:sum'],
-  ['employee_id']
-], {});
-
-console.log(`Hours by employee (${startDate} to ${endDate}):`);
-for (const group of totals) {
-  console.log(`  ${group.employee_id?.[1] || 'Unknown'}: ${group.unit_amount} hours`);
-}
-```
-
-## Important Notes
-
-### Project Requirement
-
-Timesheet entries are typically linked to a project. The project must have `allow_timesheets = true`:
-
-```typescript
-// Only projects with timesheets enabled can receive timesheet entries
-const timesheetProjects = await client.searchRead('project.project', [
-  ['allow_timesheets', '=', true]
-], { fields: ['name'] });
-```
-
-### Task Domain Filter
-
-When selecting a task, Odoo automatically filters to tasks from the selected project:
-- Domain: `[('allow_timesheets', '=', True), ('project_id', '=?', project_id)]`
-
-### Employee vs User
-
-- `employee_id` - Links to `hr.employee` record
-- `user_id` - Links to `res.users` record
-- An employee is typically linked to a user via `hr.employee.user_id`
-- Defaults use the current user's employee record
-
-### Cost Calculation
-
-The `amount` field is calculated based on:
-- `unit_amount` (hours) x employee's `hourly_cost`
-- Set hourly cost on `hr.employee.hourly_cost`
-
-## Related Documents
-
-- [crud.md](../base/crud.md) - CRUD operations
-- [search.md](../base/search.md) - Search patterns
-- [domains.md](../base/domains.md) - Domain filters
+| Field | Type | Notes |
+|-------|------|-------|
+| `name` | Char | Required — description of work |
+| `date` | Date | Required |
+| `unit_amount` | Float | Hours (0 = timer running) |
+| `project_id` | Many2one | Must have `allow_timesheets=true` |
+| `task_id` | Many2one | Filtered by project |
+| `employee_id` | Many2one | Defaults to current user's employee |
+| `amount` | Monetary | Auto-computed from `unit_amount × hourly_cost` |

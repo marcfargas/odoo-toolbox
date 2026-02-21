@@ -9,18 +9,30 @@ const pkgRoot = resolve(__dirname, '..');
 const repoRoot = resolve(pkgRoot, '..', '..');
 
 const src = resolve(repoRoot, 'skills', 'odoo');
-const dest = resolve(pkgRoot, 'skills');
+const dest = resolve(pkgRoot, 'skills', 'odoo');
+const wellKnownSrc = resolve(repoRoot, '.well-known');
+const wellKnownDest = resolve(pkgRoot, '.well-known');
 
 if (!existsSync(src)) {
   console.error(`ERROR: Source not found: ${src}`);
   process.exit(1);
 }
 
-if (existsSync(dest)) {
-  rmSync(dest, { recursive: true });
+const skillsDir = resolve(pkgRoot, 'skills');
+if (existsSync(skillsDir)) {
+  rmSync(skillsDir, { recursive: true });
+}
+if (existsSync(wellKnownDest)) {
+  rmSync(wellKnownDest, { recursive: true });
 }
 
 mkdirSync(dest, { recursive: true });
 cpSync(src, dest, { recursive: true });
 
-console.log('✓ Copied skills/odoo/ → packages/odoo-skills/skills/');
+if (existsSync(wellKnownSrc)) {
+  cpSync(wellKnownSrc, wellKnownDest, { recursive: true });
+  console.log('✓ Copied skills/odoo/ → packages/odoo-skills/skills/');
+  console.log('✓ Copied .well-known/ → packages/odoo-skills/.well-known/');
+} else {
+  console.log('✓ Copied skills/odoo/ → packages/odoo-skills/skills/');
+}
