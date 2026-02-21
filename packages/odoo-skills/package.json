@@ -3,21 +3,29 @@
   "version": "0.5.1",
   "description": "Battle-tested Odoo knowledge modules for AI agents — 5,200+ lines validated against Odoo v17 in CI",
   "files": [
-    "skills",
+    "skills/**/*.md",
     ".well-known",
     "LICENSE",
     "README.md"
   ],
+  "pi": {
+    "skills": [
+      "./skills"
+    ]
+  },
   "scripts": {
     "build": "node scripts/copy-skills.js"
   },
   "keywords": [
     "odoo",
+    "erp",
+    "rpc",
     "skills",
     "ai-agent",
     "claude",
     "knowledge",
-    "documentation"
+    "documentation",
+    "pi-package"
   ],
   "author": "Marc Fargas <marc@marcfargas.com>",
   "license": "CC0-1.0",
