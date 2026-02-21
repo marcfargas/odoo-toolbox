@@ -2,6 +2,51 @@
 
 Generate links to Odoo records that work across all Odoo versions.
 
+## CLI
+
+All URL commands are **READ** — no confirmation required.
+
+### Generate a backend record URL
+
+```bash
+# Print a version-agnostic URL to stdout
+odoo url record crm.lead 42
+# → https://mycompany.odoo.com/mail/view?model=crm.lead&res_id=42
+
+odoo url record res.partner 7
+odoo url record sale.order 88
+
+# JSON output
+odoo url record crm.lead 42 --format json
+# → {"url":"https://...","model":"crm.lead","id":42}
+```
+
+Works on all Odoo versions (14+). Uses the `/mail/view` redirect — the same mechanism
+as chatter email notifications.
+
+### Generate a portal URL
+
+```bash
+# Customer-facing URL with access token
+odoo url portal sale.order 88
+# → https://mycompany.odoo.com/my/orders/88?access_token=abc-123-...
+
+odoo url portal account.move 42
+```
+
+Only works for models with `portal.mixin` (sale.order, account.move, project.task, etc.).
+Use `odoo url record` for all other models.
+
+### Compose with mail
+
+```bash
+# Get URL and post it as a note
+URL=$(odoo url record project.task 17)
+odoo mail note project.task 17 "Deployed: $URL" --confirm
+```
+
+---
+
 ## The Problem
 
 Odoo's web client URL format has changed across versions:

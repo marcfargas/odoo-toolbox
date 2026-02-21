@@ -2,6 +2,72 @@
 
 Discover models and fields available in an Odoo instance.
 
+## CLI
+
+All introspection commands are **READ** — no confirmation required.
+
+### List all models
+
+```bash
+# List all models (model name + description)
+odoo schema models
+
+# Filter by name substring
+odoo schema models --search sale
+odoo schema models --search res.partner
+
+# Only models from installed modules
+odoo schema models --installed
+
+# JSON output — pipe to jq
+odoo schema models --format json | jq '.[].model'
+```
+
+### List fields for a model
+
+```bash
+# All fields for a model
+odoo schema fields crm.lead
+
+# Filter by field type
+odoo schema fields crm.lead --type many2one
+odoo schema fields res.partner --type selection
+
+# Show only required fields
+odoo schema fields crm.lead --required
+
+# Filter by name substring
+odoo schema fields account.move --search amount
+
+# Export as CSV
+odoo schema fields sale.order --format csv > sale-order-fields.csv
+```
+
+### Human-readable model summary
+
+```bash
+# Field count, type distribution, required/readonly counts
+odoo schema describe res.partner
+odoo schema describe crm.lead
+```
+
+### Generate TypeScript interface
+
+```bash
+# Print to stdout
+odoo schema codegen sale.order
+
+# Write to file
+odoo schema codegen sale.order --out ./types/sale-order.ts
+
+# Mark computed fields as readonly
+odoo schema codegen crm.lead --readonly --out ./types/crm-lead.ts
+```
+
+---
+
+## Library API
+
 ```typescript
 import { createClient } from '@marcfargas/odoo-client';
 import { Introspector } from '@marcfargas/odoo-introspection';

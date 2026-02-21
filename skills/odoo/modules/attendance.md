@@ -2,6 +2,73 @@
 
 Clock in/out tracking for employee presence. Requires `hr_attendance` module.
 
+## CLI
+
+Requires: `hr_attendance` Odoo module.
+
+**Safety:**
+- `status`, `list` — READ (no confirmation)
+- `clock-in`, `clock-out` — WRITE (requires `--confirm`)
+
+All commands accept `--employee-id <n>` (default: current user's employee).
+
+### Check current status [READ]
+
+```bash
+odoo attendance status
+# ● IN  since 09:02 (2h 15m elapsed)
+# — or —
+# ○ OUT  — John Doe is not clocked in
+
+# JSON output for scripting
+odoo attendance status --format json
+```
+
+### Clock in [WRITE]
+
+```bash
+# Clock in as current user
+odoo attendance clock-in --confirm
+
+# Clock in for a specific employee by ID
+odoo attendance clock-in --employee-id 42 --confirm
+
+# Dry run
+odoo attendance clock-in --confirm --dry-run
+```
+
+**Exit code 6** if already clocked in.
+
+### Clock out [WRITE]
+
+```bash
+odoo attendance clock-out --confirm
+```
+
+**Output:** `✓ Clocked out: John Doe — worked 3h 45m today`
+
+**Exit code 6** if not currently clocked in.
+
+### List attendance records [READ]
+
+```bash
+# Current week (default)
+odoo attendance list
+
+# Custom date range
+odoo attendance list --from 2024-03-11 --to 2024-03-15
+
+# Export as CSV
+odoo attendance list --from 2024-03-01 --to 2024-03-31 --format csv > march-attendance.csv
+
+# Filter by employee
+odoo attendance list --employee-id 42 --from 2024-03-01
+```
+
+---
+
+## Library API
+
 ```typescript
 const client = await createClient();
 await client.attendance.clockIn();

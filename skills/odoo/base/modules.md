@@ -2,6 +2,78 @@
 
 Check, install, and uninstall Odoo modules.
 
+## CLI
+
+### List modules
+
+```bash
+# All modules (installed + uninstalled)
+odoo modules list
+
+# Only installed modules
+odoo modules list --filter installed
+
+# Only upgradeable modules
+odoo modules list --filter upgradeable
+
+# Search by name
+odoo modules list --search sale
+odoo modules list --filter installed --search sale
+
+# JSON — pipe to jq
+odoo modules list --filter installed --format json | jq '.[].technical_name'
+```
+
+### Check a module's status [READ]
+
+```bash
+# Single-word state: installed | uninstalled | upgradeable | to_install
+odoo modules status hr_timesheet
+
+# Use in a script
+if [ "$(odoo modules status hr_timesheet)" = "installed" ]; then
+  echo "Timesheets module is ready"
+fi
+
+# Exit code 3 if module not found
+odoo modules status nonexistent_module || echo "Not found"
+```
+
+### Module info [READ]
+
+```bash
+# Show name, version, state, author, license
+odoo modules info sale_management
+odoo modules info sale_management --format json
+```
+
+### Install a module [WRITE — requires `--confirm`]
+
+```bash
+# Install (Odoo resolves dependencies automatically)
+odoo modules install hr_timesheet --confirm
+
+# Dry run
+odoo modules install hr_timesheet --confirm --dry-run
+```
+
+### Upgrade a module [WRITE — requires `--confirm`]
+
+```bash
+odoo modules upgrade sale_management --confirm
+```
+
+### Uninstall a module [DESTRUCTIVE — requires `--confirm`]
+
+```bash
+# ⚠ May delete associated data
+odoo modules uninstall hr_timesheet --confirm
+```
+
+---
+
+## Library API
+
 ```typescript
 const client = await createClient();
 

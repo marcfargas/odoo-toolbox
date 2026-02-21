@@ -1,6 +1,80 @@
 # Odoo Accounting — Patterns & Gotchas
 
-Hard-won knowledge from building accounting dashboards and cashflow tools against real Odoo instances. These patterns apply to `account.move`, `account.move.line`, `account.journal`, `account.account`, and related models.
+Hard-won knowledge from building accounting dashboards and cashflow tools against real Odoo instances.
+
+## CLI
+
+All accounting commands are **READ** — no confirmation required.
+Requires: `account` Odoo module (Invoicing/Accounting).
+
+### Discover cash and bank accounts
+
+```bash
+odoo accounting cash-accounts
+# journal_name   journal_type   account_id   account_name
+# Bank           bank           57           Bank
+# Cash           cash           571          Petty Cash
+
+odoo accounting cash-accounts --format json
+```
+
+### Cash/bank balance as-of a date
+
+```bash
+# Balance today
+odoo accounting cash-balance
+
+# Balance at end of quarter
+odoo accounting cash-balance --as-of 2024-03-31
+
+# Specific journals only
+odoo accounting cash-balance --journal-id 5,6 --as-of 2024-12-31
+
+# Get total balance in a script
+BALANCE=$(odoo accounting cash-balance --format json | jq '[.[].balance] | add')
+echo "Total cash: $BALANCE"
+```
+
+### List posted journal entries
+
+```bash
+# All posted moves in a date range
+odoo accounting posted-moves --from 2024-01-01 --to 2024-03-31
+
+# Filter by journal
+odoo accounting posted-moves --from 2024-01-01 --journal-id 5
+
+# Export as CSV
+odoo accounting posted-moves --from 2024-01-01 --to 2024-12-31 \
+  --format csv > journal-entries.csv
+```
+
+### Trace reconciliation for a journal entry
+
+```bash
+# Show the reconciliation chain for a move
+odoo accounting trace-recon 42
+odoo accounting trace-recon 42 --format json
+```
+
+### Days-to-pay analysis for an invoice
+
+```bash
+# How many days did it take to pay invoice #1042?
+odoo accounting days-to-pay 1042
+# invoice_id   1042
+# days         32
+# invoice_date 2024-01-15
+# payment_date 2024-02-16
+
+odoo accounting days-to-pay 1042 --format json
+
+# Returns null if invoice is not yet paid
+```
+
+---
+
+## Library API (Patterns & Gotchas) These patterns apply to `account.move`, `account.move.line`, `account.journal`, `account.account`, and related models.
 
 **Required modules**: `account` (Invoicing/Accounting)
 

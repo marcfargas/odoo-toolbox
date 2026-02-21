@@ -2,6 +2,66 @@
 
 Post messages and notes on any Odoo record that has a chatter (mail.thread mixin).
 
+## CLI
+
+Both mail commands are **WRITE** — require `--confirm`.
+
+| Command | Visibility | Email sent | Safety |
+|---------|-----------|-----------|--------|
+| `odoo mail note` | Staff only | None | WRITE |
+| `odoo mail post` | All followers incl. portal | ✅ To followers | WRITE |
+
+### Post an internal note (staff only, no email)
+
+```bash
+# Inline message
+odoo mail note crm.lead 42 "Called customer, will decide by Friday" --confirm
+
+# HTML message
+odoo mail note crm.lead 42 "<p>Called customer, <b>decision by Friday</b></p>" --html --confirm
+
+# Read message from file
+odoo mail note project.task 17 --message-file meeting-notes.html --html --confirm
+
+# Read message from stdin (useful in pipelines)
+git log --oneline -5 | odoo mail note project.task 17 --message-file - --confirm
+
+# With subject
+odoo mail note crm.lead 42 --subject "Contract Review" --message-file contract.html --html --confirm
+
+# Dry run — show what would be posted
+odoo mail note crm.lead 42 "Test note" --confirm --dry-run
+```
+
+### Post a public message (notifies followers)
+
+```bash
+# Basic public message
+odoo mail post sale.order 88 "Your order has been shipped" --confirm
+
+# Notify specific partners
+odoo mail post crm.lead 42 --partner-ids 7,15 "Meeting confirmed for Thursday" --confirm
+
+# HTML message from file
+odoo mail post res.partner 7 --message-file update.html --html \
+  --subject "Account Update" --confirm
+```
+
+### Flags
+
+| Flag | Description |
+|------|-------------|
+| `--confirm` | Required (WRITE operation) |
+| `--dry-run` | Show what would be posted without executing |
+| `--html` | Treat message body as HTML (default: plain text, auto-wrapped in `<p>`) |
+| `--subject <text>` | Subject line |
+| `--message-file <file>` | Read message from file (`-` for stdin) |
+| `--partner-ids <n,n,...>` | (`post` only) Notify these `res.partner` IDs |
+
+---
+
+## Library API
+
 ## Prerequisites
 
 - Authenticated OdooClient connection

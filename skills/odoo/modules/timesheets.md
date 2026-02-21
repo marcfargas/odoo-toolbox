@@ -2,6 +2,95 @@
 
 Track time on projects/tasks. Requires `hr_timesheet` module. Model: `account.analytic.line`.
 
+## CLI
+
+Requires: `hr_timesheet` Odoo module.
+
+**Safety:**
+- `running`, `list` — READ (no confirmation)
+- `start`, `stop`, `log` — WRITE (requires `--confirm`)
+
+All commands accept `--employee-id <n>` (default: current user's employee).
+
+### Timer workflow (start → work → stop)
+
+```bash
+# Start a timer on a task
+odoo timesheets start --task-id 42 --description "Fixing login bug" --confirm
+
+# Start on a project (no task)
+odoo timesheets start --project-id 5 --description "Project work" --confirm
+
+# Check what's running
+odoo timesheets running
+# ● RUNNING: Task#42 "Login Fix" — started 2024-03-15 09:02 (1h 23m elapsed)
+
+# Stop the running timer
+odoo timesheets stop --confirm
+# ✓ Stopped: Task#42 "Login Fix" — 1h 23m logged
+```
+
+**Notes:**
+- `--task-id` OR `--project-id` is required for `start`.
+- `--description` is required for `start`.
+- `timesheets running` exits with code `3` if no timer is running — useful in scripts.
+
+### Log time manually (retroactive)
+
+```bash
+# Hours as decimal
+odoo timesheets log --task-id 42 --hours 2.5 --description "Code review" --confirm
+
+# Hours as H:MM
+odoo timesheets log --task-id 42 --hours 1:30 --description "Pair programming" --confirm
+
+# Specific date (default: today)
+odoo timesheets log --task-id 42 --hours 3.0 --date 2024-03-14 \
+  --description "API integration" --confirm
+
+# From CI — log deploy time
+odoo timesheets log --task-id $ODOO_TASK --hours 0.25 \
+  --description "Deploy $CI_COMMIT_SHA" --confirm
+```
+
+### List timesheet entries [READ]
+
+```bash
+# Current user's timesheets
+odoo timesheets list
+
+# By date range
+odoo timesheets list --from 2024-03-11 --to 2024-03-15
+
+# By project
+odoo timesheets list --project-id 5
+
+# By task
+odoo timesheets list --task-id 42
+
+# Export as CSV
+odoo timesheets list --from 2024-03-01 --to 2024-03-31 --format csv > march-time.csv
+```
+
+### Flags
+
+| Flag | Command | Description |
+|------|---------|-------------|
+| `--task-id <n>` | `start`, `log` | Task to log time on |
+| `--project-id <n>` | `start`, `log` | Project (required if no task) |
+| `--description <text>` | `start`, `log` | Description of work (required for `start`) |
+| `--hours <h>` | `log` | Hours: decimal (`1.5`) or H:MM (`1:30`) |
+| `--date <date>` | `log` | Date YYYY-MM-DD (default: today) |
+| `--employee-id <n>` | all | Override employee (default: current user) |
+| `--from <date>` | `list` | Start date for list |
+| `--to <date>` | `list` | End date for list |
+| `--confirm` | `start`, `stop`, `log` | Required (WRITE operation) |
+| `--dry-run` | `start`, `stop`, `log` | Simulate without executing |
+
+---
+
+## Library API
+
 Two workflows: **timer** (start→work→stop) or **manual** (log completed hours).
 
 ```typescript
