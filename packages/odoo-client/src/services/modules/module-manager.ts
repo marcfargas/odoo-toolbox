@@ -92,9 +92,41 @@ export class ModuleManager {
     }
 
     // Install the module using button_immediate_install
-    // This method installs the module and its dependencies immediately
-    log('Calling button_immediate_install for module %s (id: %d)', moduleName, module.id);
-    await this.client.call('ir.module.module', 'button_immediate_install', [[module.id]]);
+    // This method installs the module and its dependencies immediately.
+    // Odoo's ir_cron (scheduled actions) can hold a lock during installation;
+    // retry up to 3 times with a 5 s delay when that happens.
+    // @see https://github.com/odoo/odoo/blob/17.0/odoo/addons/base/models/ir_cron.py
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY_MS = 5_000;
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        log(
+          'Calling button_immediate_install for module %s (id: %d, attempt %d/%d)',
+          moduleName,
+          module.id,
+          attempt,
+          MAX_RETRIES
+        );
+        await this.client.call('ir.module.module', 'button_immediate_install', [[module.id]]);
+        break; // success — exit retry loop
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        const isCronLock = message.includes('ir_cron') || message.includes('scheduled action');
+
+        if (!isCronLock || attempt === MAX_RETRIES) {
+          throw err;
+        }
+
+        log(
+          'Module install blocked by ir_cron lock (attempt %d/%d). Retrying in %d ms…',
+          attempt,
+          MAX_RETRIES,
+          RETRY_DELAY_MS
+        );
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+      }
+    }
 
     // Fetch updated module info
     const [updatedModule] = await this.client.searchRead<ModuleInfo>(
