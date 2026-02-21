@@ -77,3 +77,7 @@ packages/*/*.map
 *.d.mts.map
 *.mjs
 *.mjs.map
+tests/helpers/**/*.d.ts
+tests/helpers/**/*.js
+tests/helpers/**/*.map
+context.md
