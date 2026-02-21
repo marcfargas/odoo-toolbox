@@ -64,7 +64,35 @@ The skills are backed by tested TypeScript infrastructure:
 | [@marcfargas/odoo-client](./packages/odoo-client) | Lightweight RPC client for Odoo | Active |
 | [@marcfargas/odoo-introspection](./packages/odoo-introspection) | Schema introspection and type generation | Active |
 | [@marcfargas/create-odoo-skills](./packages/create-skills) | CLI to scaffold skill projects | Active |
+| [@marcfargas/odoo-cli](./packages/odoo-cli) | CLI for Odoo ERP — 10 command groups (records, mail, modules, attendance, timesheets, accounting…) | Active |
 | [@marcfargas/odoo-state-manager](./packages/odoo-state-manager) | Drift detection and plan/apply (Terraform-style) | Experimental |
+| [@marcfargas/odoo-test-harness](./packages/odoo-testcontainers) | Testcontainers-based Odoo testing infrastructure | In development |
+
+## CLI Quick Start
+
+Run Odoo operations directly from the terminal with `@marcfargas/odoo-cli`:
+
+```bash
+npx @marcfargas/odoo-cli --help
+
+# Set credentials via environment or .env
+export ODOO_URL=https://myodoo.example.com
+export ODOO_DB=mydb
+export ODOO_USERNAME=admin
+export ODOO_PASSWORD=secret
+
+# Search records
+odoo records search res.partner --domain '[["is_company","=",true]]' --limit 5
+
+# Install a module
+odoo modules install sale_management
+
+# Post a note on a record
+odoo mail note crm.lead 42 "Called — follow-up scheduled"
+```
+
+The CLI provides 10 command groups: `records`, `mail`, `modules`, `attendance`, `timesheets`,
+`accounting`, `config`, `state`, `schema`, and `run`.
 
 ## Prerequisites
 
@@ -82,6 +110,7 @@ npm test
 
 See [DEVELOPMENT.md](./DEVELOPMENT.md) for setup, testing, and contribution guidelines.
 See [AGENTS.md](./AGENTS.md) for AI assistant coding conventions.
+See [`docs/`](./docs/) for developer documentation (architecture, service patterns, API guides).
 
 ## License
 

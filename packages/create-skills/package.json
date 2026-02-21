@@ -52,5 +52,8 @@
     "@marcfargas/odoo-introspection": {
       "optional": true
     }
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
