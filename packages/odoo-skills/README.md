@@ -8,6 +8,14 @@ Ready-to-use knowledge that teaches AI agents (Claude Code, Cursor, etc.) how to
 
 ## Installation
 
+### As a pi skill (recommended for agents)
+
+```bash
+pi install npm:@marcfargas/odoo-skills
+```
+
+### As an npm package
+
 ```bash
 npm install @marcfargas/odoo-skills
 ```
