@@ -58,3 +58,22 @@ test-addons/*/
 
 # Experiments and design reviews (local)
 experiments/
+
+# Composite tsc build artifacts (emitted alongside source files)
+packages/*/tests/**/*.d.ts
+packages/*/tests/**/*.js
+packages/*/tests/**/*.d.ts.map
+packages/*/tests/**/*.js.map
+packages/*/examples/**/*.d.ts
+packages/*/examples/**/*.js
+packages/*/examples/**/*.d.ts.map
+packages/*/examples/**/*.js.map
+packages/*/*.d.ts
+packages/*/*.d.mts
+packages/*/*.js
+packages/*/*.mjs
+packages/*/*.map
+*.d.mts
+*.d.mts.map
+*.mjs
+*.mjs.map
