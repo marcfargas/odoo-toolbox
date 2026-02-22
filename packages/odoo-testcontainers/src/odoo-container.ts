@@ -84,7 +84,8 @@ export class OdooTestContainer {
       );
 
       // Start Odoo container
-      let odooContainer = new GenericContainer('odoo:17.0')
+      const odooVersion = process.env.ODOO_VERSION ? `${process.env.ODOO_VERSION}.0` : '17.0';
+      let odooContainer = new GenericContainer(`odoo:${odooVersion}`)
         .withNetwork(network)
         .withEnvironment({
           HOST: 'db',

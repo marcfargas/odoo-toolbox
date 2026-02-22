@@ -132,13 +132,16 @@ jobs:
           files: ./coverage/lcov.info
           flags: unit
 
+
   integration-tests:
-    name: Integration Tests (Odoo 17)
+    name: Integration Tests (Odoo ${{ matrix.odoo_version }})
     runs-on: ubuntu-latest
-    needs: [lint, unit-tests]
+    needs: validate-skill-spec
     permissions:
       contents: read
-
+    strategy:
+      matrix:
+        odoo_version: [17, 18, 19]
     steps:
       - uses: actions/checkout@v4
 
@@ -163,8 +166,8 @@ jobs:
 
       - name: Run integration tests
         env:
-          # Testcontainers manages containers automatically — no manual Docker needed
           TESTCONTAINERS_RYUK_DISABLED: 'false'
+          ODOO_VERSION: ${{ matrix.odoo_version }}
         run: npm run test:integration
 
       - name: Collect container logs on failure
@@ -174,7 +177,7 @@ jobs:
           docker ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" || true
           echo ""
           echo "=== Recent container logs ==="
-          for cid in $(docker ps -aq --filter "ancestor=odoo:17.0" 2>/dev/null); do
+          for cid in $(docker ps -aq --filter "ancestor=odoo:${{ matrix.odoo_version }}.0" 2>/dev/null); do
             echo "--- Odoo container $cid ---"
             docker logs --tail 100 "$cid" 2>&1 || true
           done
