@@ -35,6 +35,7 @@ import { buildAccountingCommand } from './commands/accounting';
 import { buildUrlCommand } from './commands/url';
 import { buildSchemaCommand } from './commands/schema';
 import { buildStateCommand } from './commands/state';
+import { buildCdcCommand } from './commands/cdc';
 import { handleError, setQuiet, setNoColor as setErrorsNoColor } from './output/errors';
 import {
   urlOption,
@@ -142,6 +143,7 @@ program.addCommand(buildAccountingCommand());
 program.addCommand(buildUrlCommand());
 program.addCommand(buildSchemaCommand());
 program.addCommand(buildStateCommand());
+program.addCommand(buildCdcCommand());
 
 // ── Error handling ──────────────────────────────────────────────────
 
