@@ -1,0 +1,11 @@
+{
+  "postgresImage": "postgres:15-alpine",
+  "database": "odoo",
+  "user": "admin",
+  "password": "admin",
+  "versions": {
+    "17.0": { "modules": ["base", "mail", "crm"] },
+    "18.0": { "modules": ["base", "mail", "crm"] },
+    "19.0": { "modules": ["base", "mail", "crm"] }
+  }
+}

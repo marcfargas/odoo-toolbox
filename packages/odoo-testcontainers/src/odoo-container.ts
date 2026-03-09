@@ -8,6 +8,9 @@
 import { GenericContainer, StartedTestContainer, Wait, Network } from 'testcontainers';
 import { PostgreSqlContainer, StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import { OdooClient, ModuleManager } from '@marcfargas/odoo-client';
+import { resolveSeedInfo, normaliseOdooVersion } from './seed-resolver';
+
+// ── Public types ────────────────────────────────────────────────────
 
 export interface AddonsMount {
   /** Local source directory (e.g., './oca-addons' or './my-custom-addons') */
@@ -35,7 +38,7 @@ export interface OdooTestContainerOptions {
 
 export interface StartedOdooContainer {
   odooContainer: StartedTestContainer;
-  postgresContainer: StartedPostgreSqlContainer;
+  postgresContainer: StartedPostgreSqlContainer | StartedTestContainer;
   client: OdooClient;
   moduleManager: ModuleManager;
   url: string;
@@ -62,62 +65,118 @@ export class OdooTestContainer {
 
   /**
    * Start Odoo container with PostgreSQL and install requested modules.
+   *
+   * When ODOO_SEED_IMAGE is set and the seed covers all requested modules,
+   * uses the pre-seeded Postgres image for ~15s startup instead of ~3min.
    */
   async start(): Promise<StartedOdooContainer> {
-    console.log(`🚀 Starting Odoo testcontainer with modules: ${this.options.modules.join(', ')}`);
+    const odooVer = normaliseOdooVersion(process.env.ODOO_VERSION);
+    const seedInfo = resolveSeedInfo(this.options.modules, odooVer);
+
+    if (seedInfo) {
+      console.log(
+        `🌱 Starting Odoo testcontainer with pre-seeded image: ${seedInfo.seedImage}\n` +
+          `   Modules: ${this.options.modules.join(', ') || '(all seeded)'}`
+      );
+    } else {
+      // If ODOO_SEED_IMAGE was set but we're not using it, log why
+      if (process.env.ODOO_SEED_IMAGE) {
+        console.log(
+          `⚠️  ODOO_SEED_IMAGE set but seed not usable for [${this.options.modules.join(', ')}] — cold start`
+        );
+      }
+      console.log(
+        `🚀 Starting Odoo testcontainer with modules: ${this.options.modules.join(', ')}`
+      );
+    }
 
     // Create a network for container communication
     const network = await new Network().start();
 
     try {
-      // Start PostgreSQL
-      const postgresContainer = await new PostgreSqlContainer('postgres:15-alpine')
-        .withDatabase(this.options.database)
-        .withUsername('odoo')
-        .withPassword('odoo')
-        .withNetwork(network)
-        .withNetworkAliases('db')
-        .start();
+      // ── Postgres ──────────────────────────────────────────────────────
+      let postgresContainer: StartedPostgreSqlContainer | StartedTestContainer;
+      let pgUser: string;
+      let pgPassword: string;
 
-      console.log(
-        `✅ PostgreSQL ready at ${postgresContainer.getHost()}:${postgresContainer.getMappedPort(5432)}`
-      );
+      if (seedInfo) {
+        // SEED HIT — pre-seeded image: pg_restore runs via initdb.d (~15s).
+        //
+        // IMPORTANT wait strategy: the SECOND "ready for start up." log line
+        // fires AFTER pg_restore completes. The first fires before restore.
+        // Waiting for this exact message is critical for a consistent DB state.
+        //
+        // SEED_DB_NAME tells seed-db-init.sh what database name to create,
+        // matching this container's configured database option.
+        postgresContainer = await new GenericContainer(seedInfo.seedImage)
+          .withNetwork(network)
+          .withNetworkAliases('db')
+          .withExposedPorts(5432)
+          .withEnvironment({ SEED_DB_NAME: this.options.database })
+          .withWaitStrategy(
+            Wait.forLogMessage(
+              'PostgreSQL init process complete; ready for start up.'
+            ).withStartupTimeout(90_000)
+          )
+          .start();
 
-      // Start Odoo container
+        // Seed image is built with admin/admin (see docker/Dockerfile.seed-db)
+        pgUser = 'admin';
+        pgPassword = 'admin';
+        console.log(
+          `✅ Seed PostgreSQL ready (${this.options.database} restored from dump) ` +
+            `on port ${postgresContainer.getMappedPort(5432)}`
+        );
+      } else {
+        // COLD START — fresh Postgres, Odoo will --init the database.
+        postgresContainer = await new PostgreSqlContainer('postgres:15-alpine')
+          .withDatabase(this.options.database)
+          .withUsername('odoo')
+          .withPassword('odoo')
+          .withNetwork(network)
+          .withNetworkAliases('db')
+          .start();
+
+        pgUser = 'odoo';
+        pgPassword = 'odoo';
+        console.log(
+          `✅ PostgreSQL ready at ` +
+            `${postgresContainer.getHost()}:${postgresContainer.getMappedPort(5432)}`
+        );
+      }
+
+      // ── Odoo ──────────────────────────────────────────────────────────
       //
       // --max-cron-threads 0 disables the cron scheduler:
       //   • Eliminates ir_cron advisory-lock races during DB init
       //   • Saves ~60–90 s of startup time in CI
       //   • Safe for test environments (no scheduled jobs needed)
       //
-      // Wait strategy: /web/health fires as soon as the HTTP listener
-      // binds (before the ORM is ready). waitForOdooReady() then polls
-      // /web/session/authenticate until it succeeds — same pattern as
-      // the integration-test globalSetup.
-      const odooVersion = process.env.ODOO_VERSION ? `${process.env.ODOO_VERSION}.0` : '17.0';
-      let odooContainer = new GenericContainer(`odoo:${odooVersion}`)
+      // Seed path: no --init (database already exists + modules installed)
+      // Cold-start path: --init base to create the database structure
+      const odooCommand = seedInfo
+        ? ['--database', this.options.database, '--without-demo', 'all', '--max-cron-threads', '0']
+        : [
+            '--database',
+            this.options.database,
+            '--init',
+            'base',
+            '--without-demo',
+            'all',
+            '--max-cron-threads',
+            '0',
+          ];
+
+      let odooContainer = new GenericContainer(`odoo:${odooVer}`)
         .withNetwork(network)
         .withEnvironment({
           HOST: 'db',
           PORT: '5432',
-          USER: 'odoo',
-          PASSWORD: 'odoo',
+          USER: pgUser,
+          PASSWORD: pgPassword,
           ...this.options.env,
         })
-        .withCommand([
-          // Initialise (or re-open) the test database on startup.
-          // --init base ensures the DB is created if it doesn't exist yet.
-          '--database',
-          this.options.database,
-          '--init',
-          'base',
-          '--without-demo',
-          'all',
-          // Disable the cron scheduler: eliminates ir_cron advisory-lock
-          // races during DB init and saves ~60–90 s of startup time.
-          '--max-cron-threads',
-          '0',
-        ])
+        .withCommand(odooCommand)
         .withExposedPorts(8069)
         .withWaitStrategy(
           // /web/health fires as soon as the HTTP listener binds (before
@@ -167,9 +226,19 @@ export class OdooTestContainer {
 
       const moduleManager = new ModuleManager(client);
 
-      // Install requested modules
-      if (this.options.modules.length > 0) {
-        await this.installModules(moduleManager, this.options.modules);
+      // ── Module installation ───────────────────────────────────────────
+      //
+      // Seed hit: seed already has seedInfo.seedModules installed.
+      //   Install only the EXTRA modules requested but not in the seed.
+      // Cold start: install all requested modules.
+      const modulesToInstall = seedInfo
+        ? this.options.modules.filter((m) => !seedInfo.seedModules.includes(m))
+        : this.options.modules;
+
+      if (modulesToInstall.length > 0) {
+        await this.installModules(moduleManager, modulesToInstall);
+      } else if (seedInfo) {
+        console.log('✅ All requested modules already present in seed');
       }
 
       return {
@@ -210,6 +279,8 @@ export class OdooTestContainer {
     }
   }
 
+  // ── Addon helpers ─────────────────────────────────────────────────────
+
   /**
    * Prepare addon mounts from various input formats.
    */
@@ -242,6 +313,8 @@ export class OdooTestContainer {
 
     return { bindMounts, addonsPaths };
   }
+
+  // ── Readiness helpers ─────────────────────────────────────────────────
 
   /**
    * Wait for Odoo's ORM/session layer to be ready.
@@ -286,6 +359,8 @@ export class OdooTestContainer {
 
     throw new Error('Odoo session handler did not become ready within timeout');
   }
+
+  // ── Module installation ───────────────────────────────────────────────
 
   /**
    * Install modules with dependency resolution.

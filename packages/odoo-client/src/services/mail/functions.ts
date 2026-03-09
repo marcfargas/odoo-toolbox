@@ -98,7 +98,24 @@ async function callMessagePost(
     kwargs.attachment_ids = options.attachmentIds;
   }
 
-  return client.call<number>(model, 'message_post', [[resId]], kwargs);
+  // message_post returns the message ID (integer) in Odoo 17/18.
+  // In Odoo 19 the RPC result may be a dict/record — normalise to number.
+  // @see https://github.com/odoo/odoo/blob/19.0/addons/mail/models/mail_thread.py
+  const result = await client.call<number | Record<string, unknown>>(
+    model,
+    'message_post',
+    [[resId]],
+    kwargs
+  );
+  if (typeof result === 'number') return result;
+  if (
+    result &&
+    typeof result === 'object' &&
+    typeof (result as Record<string, unknown>).id === 'number'
+  ) {
+    return (result as { id: number }).id;
+  }
+  throw new Error(`message_post returned unexpected type: ${JSON.stringify(result)}`);
 }
 
 /**

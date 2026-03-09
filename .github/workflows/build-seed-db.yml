@@ -1,0 +1,291 @@
+name: Build Seed DB
+
+on:
+  push:
+    branches: [develop, master]
+    paths:
+      - docker/seed-config.json
+      - docker/odoo-entrypoint.sh
+      - docker/seed-db-init.sh
+      - docker/Dockerfile.seed-db
+  schedule:
+    - cron: '0 4 * * 1' # Monday 04:00 UTC — picks up Odoo weekly patch releases
+  workflow_dispatch:
+    inputs:
+      odoo_version:
+        description: 'Odoo version to rebuild (e.g. 17.0). Leave blank for all.'
+        required: false
+
+permissions:
+  contents: write # create issues on failure
+  packages: write # push + delete repo-linked container packages
+  issues: write # open failure notification issues
+
+jobs:
+  build:
+    name: Seed DB — Odoo ${{ matrix.odoo-version }}
+    runs-on: ubuntu-latest
+    # Serialise per Odoo version — never cancel a build mid-push.
+    # Prevents the race where an older build finishes after a newer one
+    # and incorrectly prunes the up-to-date image.
+    # NOTE: concurrency must be at job level (matrix.* not available at workflow level)
+    concurrency:
+      group: seed-db-build-${{ matrix.odoo-version }}
+      cancel-in-progress: false
+    strategy:
+      fail-fast: false
+      matrix:
+        odoo-version:
+          - '17.0'
+          - '18.0'
+          - '19.0'
+        # See TODO-e499e4d7 Phase 3.
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute seed hash
+        id: hash
+        run: |
+          SEED_HASH=$(bash docker/compute-seed-hash.sh "${{ matrix.odoo-version }}")
+          IMAGE="ghcr.io/marcfargas/odoo-test-db:${{ matrix.odoo-version }}-${SEED_HASH}"
+          echo "seed_hash=${SEED_HASH}"  >> "$GITHUB_OUTPUT"
+          echo "image=${IMAGE}"          >> "$GITHUB_OUTPUT"
+          echo "tag=${{ matrix.odoo-version }}-${SEED_HASH}" >> "$GITHUB_OUTPUT"
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Skip if image already exists (push/dispatch only)
+        id: skip
+        if: github.event_name != 'schedule'
+        run: |
+          if docker manifest inspect "${{ steps.hash.outputs.image }}" &>/dev/null; then
+            echo "exists=true"  >> "$GITHUB_OUTPUT"
+            echo "::notice title=Seed Cache::Image already exists — ${{ steps.hash.outputs.image }}"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create Docker network
+        if: steps.skip.outputs.exists != 'true'
+        id: network
+        run: |
+          NET=$(docker network create seed-build-net)
+          echo "name=seed-build-net" >> "$GITHUB_OUTPUT"
+
+      - name: Start Postgres
+        if: steps.skip.outputs.exists != 'true'
+        id: postgres
+        run: |
+          PG_IMAGE=$(jq -r '.postgresImage' docker/seed-config.json)
+          CID=$(docker run -d \
+            --name seed-postgres \
+            --network seed-build-net \
+            -e POSTGRES_USER=admin \
+            -e POSTGRES_PASSWORD=admin \
+            -e POSTGRES_DB=postgres \
+            "$PG_IMAGE")
+          echo "cid=${CID}" >> "$GITHUB_OUTPUT"
+
+          # Wait for Postgres to be ready
+          for i in $(seq 1 30); do
+            if docker exec seed-postgres pg_isready -U admin &>/dev/null; then
+              echo "Postgres ready"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Start Odoo + run --init
+        if: steps.skip.outputs.exists != 'true'
+        id: odoo
+        run: |
+          MODULES=$(jq -r \
+            --arg v "${{ matrix.odoo-version }}" \
+            '.versions[$v].modules | sort | join(",")' \
+            docker/seed-config.json)
+
+          CID=$(docker run -d \
+            --name seed-odoo \
+            --network seed-build-net \
+            -e HOST=seed-postgres \
+            -e USER=admin \
+            -e PASSWORD=admin \
+            -v "$(pwd)/docker:/mnt/docker:ro" \
+            --entrypoint /mnt/docker/odoo-entrypoint.sh \
+            "odoo:${{ matrix.odoo-version }}" \
+            --database odoo \
+            --init "${MODULES}" \
+            --without-demo all \
+            --max-cron-threads 0)
+          echo "cid=${CID}" >> "$GITHUB_OUTPUT"
+
+          # Wait for /web/health (HTTP listener up)
+          echo "Waiting for Odoo HTTP..."
+          ODOO_PORT=8069
+          for i in $(seq 1 60); do
+            if docker exec seed-odoo curl -sf "http://localhost:${ODOO_PORT}/web/health" &>/dev/null; then
+              echo "Odoo HTTP ready"
+              break
+            fi
+            sleep 5
+          done
+
+      - name: Auth probe (wait for ORM + session handler)
+        if: steps.skip.outputs.exists != 'true'
+        run: |
+          ODOO_IP=$(docker inspect seed-odoo \
+            --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}')
+          AUTH_PAYLOAD='{"jsonrpc":"2.0","method":"call","params":{"db":"odoo","login":"admin","password":"admin"}}'
+
+          echo "Polling /web/session/authenticate (max 300s)..."
+          ORM_UID=""
+          for i in $(seq 1 60); do
+            RESP=$(curl -sf -X POST \
+              -H 'Content-Type: application/json' \
+              -d "${AUTH_PAYLOAD}" \
+              "http://${ODOO_IP}:8069/web/session/authenticate" 2>/dev/null || true)
+            ORM_UID=$(echo "$RESP" | jq -r '.result.uid // empty' 2>/dev/null || true)
+            if [ -n "$ORM_UID" ] && [ "$ORM_UID" != "null" ]; then
+              echo "ORM ready (uid=${ORM_UID})"
+              break
+            fi
+            sleep 5
+          done
+
+          if [ -z "$ORM_UID" ] || [ "$ORM_UID" = "null" ]; then
+            echo "::error::Odoo ORM did not become ready within 300s"
+            exit 1
+          fi
+
+      - name: Structural sanity check
+        if: steps.skip.outputs.exists != 'true'
+        run: |
+          echo "Checking seeded schema..."
+          IR_MODEL=$(docker exec seed-postgres \
+            psql -U admin -d odoo -t -A -c "SELECT count(*) FROM ir_model")
+          MAIL_MSG=$(docker exec seed-postgres \
+            psql -U admin -d odoo -t -A -c "SELECT count(*) FROM mail_message")
+          CRM_LEAD=$(docker exec seed-postgres \
+            psql -U admin -d odoo -t -A -c "SELECT count(*) FROM crm_lead")
+
+          echo "ir_model:     ${IR_MODEL}"
+          echo "mail_message: ${MAIL_MSG}"
+          echo "crm_lead:     ${CRM_LEAD}"
+
+          if [ "${IR_MODEL:-0}" -lt 100 ]; then
+            echo "::error::Sanity check failed: ir_model count ${IR_MODEL} < 100"
+            exit 1
+          fi
+
+      - name: Dump database (inside Postgres container)
+        if: steps.skip.outputs.exists != 'true'
+        run: |
+          # Run pg_dump inside the Postgres container — guaranteed version match.
+          docker exec seed-postgres \
+            pg_dump -U admin -d odoo -Fc \
+            > docker/01-odoo-seed.dump
+          SIZE=$(du -sh docker/01-odoo-seed.dump | cut -f1)
+          echo "Dump size: ${SIZE}"
+
+      - name: Stop containers
+        if: steps.skip.outputs.exists != 'true'
+        run: |
+          docker stop seed-odoo   seed-postgres  2>/dev/null || true
+          docker rm   seed-odoo   seed-postgres  2>/dev/null || true
+          docker network rm seed-build-net       2>/dev/null || true
+
+      - name: Set up Docker Buildx
+        if: steps.skip.outputs.exists != 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Read Postgres image from seed-config
+        if: steps.skip.outputs.exists != 'true'
+        id: pg
+        run: |
+          echo "image=$(jq -r '.postgresImage' docker/seed-config.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push seed image
+        if: steps.skip.outputs.exists != 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.seed-db
+          build-args: |
+            POSTGRES_IMAGE=${{ steps.pg.outputs.image }}
+          push: true
+          tags: ${{ steps.hash.outputs.image }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Clean up dump from workspace
+        if: steps.skip.outputs.exists != 'true' && always()
+        run: rm -f docker/01-odoo-seed.dump
+
+      - name: Prune stale seed images (N=2 retention)
+        if: steps.skip.outputs.exists != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ matrix.odoo-version }}"
+          CURRENT="${{ steps.hash.outputs.tag }}"
+
+          # Find previous tag for this version (the one we want to keep as fallback)
+          PREVIOUS=$(gh api "users/marcfargas/packages/container/odoo-test-db/versions" \
+            --paginate \
+            --jq --arg prefix "${VERSION}-" --arg current "${CURRENT}" '
+              [.[] | select(any(.metadata.container.tags[]?; startswith($prefix)))]
+              | sort_by(.created_at) | reverse
+              | map(.metadata.container.tags[] | select(startswith($prefix)))
+              | map(select(. != $current))
+              | .[0] // ""
+            ' 2>/dev/null || echo "")
+
+          echo "Current:  ${CURRENT}"
+          echo "Previous: ${PREVIOUS:-<none>}"
+
+          # Delete all versions for this version-prefix EXCEPT current and previous
+          STALE=$(gh api "users/marcfargas/packages/container/odoo-test-db/versions" \
+            --paginate \
+            --jq \
+            --arg prefix "${VERSION}-" \
+            --arg current "${CURRENT}" \
+            --arg previous "${PREVIOUS}" '
+              [.[] | select(any(.metadata.container.tags[]?; startswith($prefix)))]
+              | map(select(
+                  all(.metadata.container.tags[]?; . != $current) and
+                  ($previous == "" or all(.metadata.container.tags[]?; . != $previous))
+                ))
+              | .[].id
+            ' 2>/dev/null || echo "")
+
+          if [ -z "$STALE" ]; then
+            echo "No stale seed images to prune."
+            exit 0
+          fi
+
+          echo "Pruning stale versions: ${STALE}"
+          for id in $STALE; do
+            gh api --method DELETE \
+              "users/marcfargas/packages/container/odoo-test-db/versions/${id}" \
+              && echo "  deleted ${id}" \
+              || echo "  warning: could not delete ${id} (non-blocking)"
+          done
+
+      - name: Notify on scheduled failure
+        if: failure() && github.event_name == 'schedule'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              title: `Seed DB weekly rebuild failed (Odoo ${{ matrix.odoo-version }})`,
+              body:  `The scheduled seed DB build failed.\n\nRun: https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}\n\nSeed images may be stale — integration tests will fall back to cold-start.`,
+              labels: ['ci', 'bug'],
+            });

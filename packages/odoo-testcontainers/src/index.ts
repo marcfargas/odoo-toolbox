@@ -38,3 +38,12 @@ export {
 } from './odoo-container';
 
 export { startOdoo, OdooPresets } from './presets';
+
+export {
+  readSeedConfig,
+  resolveSeedInfo,
+  normaliseOdooVersion,
+  type SeedConfig,
+  type SeedVersionConfig,
+  type SeedInfo,
+} from './seed-resolver';

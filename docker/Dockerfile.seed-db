@@ -1,0 +1,25 @@
+# Seed database image for Odoo integration tests.
+#
+# Built by .github/workflows/build-seed-db.yml — NOT meant to be built manually.
+# The dump file (01-odoo-seed.dump) is generated at workflow runtime and is NOT
+# committed to the repository.
+#
+# At container startup, Postgres runs all /docker-entrypoint-initdb.d/ scripts
+# in alphabetical order on a fresh data directory. Testcontainers always starts
+# fresh containers, so the restore always runs (~15s vs ~3min cold init).
+#
+# The SEED_DB_NAME env var (default: "odoo") lets callers request a different
+# database name — OdooTestContainer uses this to match its configured db name.
+
+ARG POSTGRES_IMAGE=postgres:15-alpine
+FROM ${POSTGRES_IMAGE}
+
+ENV POSTGRES_USER=admin
+ENV POSTGRES_PASSWORD=admin
+# POSTGRES_DB is intentionally not set — seed-db-init.sh creates the target db.
+# If POSTGRES_DB were set, Postgres would create it via initdb before our script runs.
+
+COPY docker/seed-db-init.sh  /docker-entrypoint-initdb.d/00-seed-init.sh
+COPY 01-odoo-seed.dump        /docker-entrypoint-initdb.d/01-odoo-seed.dump
+
+RUN chmod +x /docker-entrypoint-initdb.d/00-seed-init.sh
