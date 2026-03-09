@@ -429,9 +429,10 @@ describe('Apply Module', () => {
 
       const result = await applyPlan(plan, mockClient as any);
 
-      // Use lenient threshold due to timing variability in CI
-      expect(result.duration).toBeGreaterThanOrEqual(5);
-      expect(result.operations[0].duration).toBeGreaterThanOrEqual(5);
+      // Use >=1 — we verify duration is tracked, not that it equals the mock delay
+      // (timer resolution in CI can measure 4ms for a 5ms delay)
+      expect(result.duration).toBeGreaterThanOrEqual(1);
+      expect(result.operations[0].duration).toBeGreaterThanOrEqual(1);
     });
 
     test('respects maxOperations limit', async () => {
@@ -676,7 +677,8 @@ describe('Apply Module', () => {
 
       const result = await applyPlan(plan, mockClient as any);
 
-      expect(result.operations[0].duration).toBeGreaterThanOrEqual(5);
+      // Use >=1 — timer resolution in CI can measure 4ms for a 5ms delay
+      expect(result.operations[0].duration).toBeGreaterThanOrEqual(1);
     });
 
     test('includes actual ID in result for created records', async () => {
