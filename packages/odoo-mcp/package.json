@@ -1,6 +1,6 @@
 {
   "name": "@marcfargas/odoo-mcp",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "MCP server for safe, policy-governed access to Odoo",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
