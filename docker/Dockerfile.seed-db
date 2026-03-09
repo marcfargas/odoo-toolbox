@@ -20,6 +20,6 @@ ENV POSTGRES_PASSWORD=admin
 # If POSTGRES_DB were set, Postgres would create it via initdb before our script runs.
 
 COPY docker/seed-db-init.sh  /docker-entrypoint-initdb.d/00-seed-init.sh
-COPY 01-odoo-seed.dump        /docker-entrypoint-initdb.d/01-odoo-seed.dump
+COPY docker/01-odoo-seed.dump /docker-entrypoint-initdb.d/01-odoo-seed.dump
 
 RUN chmod +x /docker-entrypoint-initdb.d/00-seed-init.sh
