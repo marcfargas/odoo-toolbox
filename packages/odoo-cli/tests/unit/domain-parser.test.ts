@@ -124,6 +124,100 @@ describe('parseDomainArg', () => {
     expect(result[0]).toBe('!');
   });
 
+  // ── Nested boolean operators (Polish notation) ───────────────────────
+  //
+  // These tests cover the keyset-cursor domain pattern used in CDC pagination:
+  //   | (create_date > X)  (& (create_date = X) (id > N))
+  // which was reported to mangle boolean operators via the CLI (TODO-bb4188d4).
+  //
+  // Polish notation rules:
+  //   | takes 2 operands   & takes 2 operands   ! takes 1 operand
+  //   The flat array ["|", leaf1, "&", leaf2, leaf3] is:
+  //     OR(leaf1, AND(leaf2, leaf3))
+
+  it('parses nested | + & with JSON-array leaf terms (exact bug repro)', () => {
+    // This is the exact domain from the CDC keyset cursor bug report.
+    // The CLI returned extra records — confirmed the parser output is correct.
+    const input =
+      '["|",["create_date",">","2026-02-27 19:05:20"],"&",["create_date","=","2026-02-27 19:05:20"],["id",">",269575]]';
+    expect(parseDomainArg(input)).toEqual([
+      '|',
+      ['create_date', '>', '2026-02-27 19:05:20'],
+      '&',
+      ['create_date', '=', '2026-02-27 19:05:20'],
+      ['id', '>', 269575],
+    ]);
+  });
+
+  it('parses nested | + & with Python-tuple leaf terms', () => {
+    const input =
+      '["|",("create_date",">","2026-02-27 19:05:20"),"&",("create_date","=","2026-02-27 19:05:20"),("id",">",269575)]';
+    expect(parseDomainArg(input)).toEqual([
+      '|',
+      ['create_date', '>', '2026-02-27 19:05:20'],
+      '&',
+      ['create_date', '=', '2026-02-27 19:05:20'],
+      ['id', '>', 269575],
+    ]);
+  });
+
+  it('parses nested & + | (outer AND, inner OR)', () => {
+    const input = '["&",["active","=",True],"|",["state","=","sale"],["state","=","done"]]';
+    expect(parseDomainArg(input)).toEqual([
+      '&',
+      ['active', '=', true],
+      '|',
+      ['state', '=', 'sale'],
+      ['state', '=', 'done'],
+    ]);
+  });
+
+  it('parses triple nesting: | + & + |', () => {
+    // | (a) (& (b) (| (c) (d)))
+    const input = '["|",["a","=",1],"&",["b","=",2],"|",["c","=",3],["d","=",4]]';
+    expect(parseDomainArg(input)).toEqual([
+      '|',
+      ['a', '=', 1],
+      '&',
+      ['b', '=', 2],
+      '|',
+      ['c', '=', 3],
+      ['d', '=', 4],
+    ]);
+  });
+
+  it('parses ! (unary NOT) wrapping a leaf', () => {
+    const input = '[!,("active","=",True)]';
+    expect(parseDomainArg(input)).toEqual(['!', ['active', '=', true]]);
+  });
+
+  it('parses ! (unary NOT) wrapping an & expression', () => {
+    const input = '[!,"&",("a","=",1),("b","=",2)]';
+    expect(parseDomainArg(input)).toEqual(['!', '&', ['a', '=', 1], ['b', '=', 2]]);
+  });
+
+  it('parseDomainArg and parseDomainJson produce identical output for JSON-format domain', () => {
+    // The CLI accepts --domain (Python literal) and --domain-json (strict JSON).
+    // For a JSON-format domain they must produce the same result.
+    const jsonDomain =
+      '["|",["create_date",">","2026-02-27 19:05:20"],"&",["create_date","=","2026-02-27 19:05:20"],["id",">",269575]]';
+    expect(parseDomainArg(jsonDomain)).toEqual(parseDomainJson(jsonDomain));
+  });
+
+  it('handles unquoted boolean operators (Python-literal style)', () => {
+    // The parser accepts | & ! as bare unquoted identifiers as well as quoted strings.
+    expect(parseDomainArg('[|,("a","=",1),("b","=",2)]')).toEqual([
+      '|',
+      ['a', '=', 1],
+      ['b', '=', 2],
+    ]);
+    expect(parseDomainArg('[&,("a","=",1),("b","=",2)]')).toEqual([
+      '&',
+      ['a', '=', 1],
+      ['b', '=', 2],
+    ]);
+  });
+
   it('handles ilike operator', () => {
     const result = parseDomainArg('[("name","ilike","acme")]');
     expect(result[0][1]).toBe('ilike');
