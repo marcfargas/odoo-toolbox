@@ -325,12 +325,14 @@ export class OdooClient {
       offset?: number;
       limit?: number;
       order?: string;
+      context?: Record<string, any>;
     } = {}
   ): Promise<number[]> {
     const kwargs: Record<string, any> = {};
     if (options.offset !== undefined) kwargs.offset = options.offset;
     if (options.limit !== undefined) kwargs.limit = options.limit;
     if (options.order !== undefined) kwargs.order = options.order;
+    if (options.context !== undefined) kwargs.context = options.context;
 
     return this.call<number[]>(model, 'search', [domain], kwargs);
   }
@@ -346,10 +348,13 @@ export class OdooClient {
   async read<T extends Record<string, any> = Record<string, any>>(
     model: string,
     ids: number | number[],
-    fields: string[] = []
+    fields: string[] = [],
+    context?: Record<string, any>
   ): Promise<T[]> {
     const idArray = Array.isArray(ids) ? ids : [ids];
-    return this.call<T[]>(model, 'read', [idArray, fields]);
+    const kwargs: Record<string, any> = {};
+    if (context !== undefined) kwargs.context = context;
+    return this.call<T[]>(model, 'read', [idArray, fields], kwargs);
   }
 
   /**
@@ -368,6 +373,7 @@ export class OdooClient {
       offset?: number;
       limit?: number;
       order?: string;
+      context?: Record<string, any>;
     } = {}
   ): Promise<T[]> {
     const kwargs: Record<string, any> = {};
@@ -377,6 +383,7 @@ export class OdooClient {
     if (options.offset !== undefined) kwargs.offset = options.offset;
     if (options.limit !== undefined) kwargs.limit = options.limit;
     if (options.order !== undefined) kwargs.order = options.order;
+    if (options.context !== undefined) kwargs.context = options.context;
 
     return this.call<T[]>(model, 'search_read', [domain], kwargs);
   }
@@ -435,8 +442,14 @@ export class OdooClient {
    * @param domain - Search domain
    * @returns Number of matching records
    */
-  async searchCount(model: string, domain: any[] = []): Promise<number> {
-    return this.call<number>(model, 'search_count', [domain]);
+  async searchCount(
+    model: string,
+    domain: any[] = [],
+    context?: Record<string, any>
+  ): Promise<number> {
+    const kwargs: Record<string, any> = {};
+    if (context !== undefined) kwargs.context = context;
+    return this.call<number>(model, 'search_count', [domain], kwargs);
   }
 
   /**

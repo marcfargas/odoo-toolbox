@@ -182,6 +182,7 @@ Load as needed by reading `base/{name}.md`:
 | modules | `odoo modules` | Module lifecycle management |
 | urls | `odoo url` | Version-agnostic record URL generation |
 | multi-company | `odoo records search --context` | Multi-company context, `allowed_company_ids`, common gotchas |
+| translations | — | Read and write field translations (Odoo 17+, `ir.translation` removed) |
 
 ## Mail & Messaging
 
@@ -219,3 +220,4 @@ Load by reading the path shown below:
 | timesheets | `modules/timesheets.md` | `odoo timesheets` | `hr_timesheet` | Timer start/stop, time logging on projects (`client.timesheets.*`) |
 | mis-builder | `oca/mis-builder.md` | — | `mis_builder`, `date_range`, `report_xlsx` | MIS Builder — reading, computing, exporting reports |
 | mis-builder-dev | `oca/mis-builder-dev.md` | — | `mis_builder`, `date_range`, `report_xlsx` | MIS Builder — creating & editing report templates |
+| product-configurator | `modules/product-configurator.md` | — | `sale_product_configurator` | Product attributes & variants on sale lines — `no_variant`, `price_extra`, custom values |
