@@ -98,18 +98,23 @@ async function callMessagePost(
     kwargs.attachment_ids = options.attachmentIds;
   }
 
-  // message_post returns the message ID (integer) in Odoo 17/18.
-  // In Odoo 19 the RPC result may be a dict/record — normalise to number.
-  // @see https://github.com/odoo/odoo/blob/19.0/addons/mail/models/mail_thread.py
-  const result = await client.call<number | Record<string, unknown>>(
+  // message_post return type varies by Odoo version:
+  //   Odoo 17/18 → integer    (the new message ID)
+  //   Odoo 19    → [integer]  (single-element array wrapping the ID)
+  // Also handle { id: number } defensively for any future variation.
+  // Observed empirically on live Odoo 19 — not documented in official sources.
+  const result = await client.call<number | number[] | Record<string, unknown>>(
     model,
     'message_post',
     [[resId]],
     kwargs
   );
   if (typeof result === 'number') return result;
+  if (Array.isArray(result) && result.length > 0 && typeof result[0] === 'number') {
+    return result[0];
+  }
   if (
-    result &&
+    result !== null &&
     typeof result === 'object' &&
     typeof (result as Record<string, unknown>).id === 'number'
   ) {
