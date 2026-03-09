@@ -111,6 +111,44 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Prune interim GHCR images
+        # Policy:
+        #   - Released images (any tag matching X.Y.Z semver) → keep forever
+        #   - Interim/floating images (latest, develop, sha-*, etc.) → keep N=2
+        #
+        # This is a no-op today (only release tags exist) but is ready for
+        # when develop-branch builds are added. packages: write includes delete
+        # for packages linked to this repository.
+        if: steps.version.outputs.version != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          STALE=$(gh api "users/marcfargas/packages/container/odoo-mcp/versions" \
+            --paginate \
+            --jq '
+              # Non-released = no X.Y.Z semver tag among its tags
+              [.[] | select(
+                all(.metadata.container.tags[]?;
+                    test("^[0-9]+\\.[0-9]+\\.[0-9]+$") | not)
+              )]
+              | sort_by(.created_at) | reverse
+              | .[2:]          # keep 2 most recent interim, delete the rest
+              | .[].id
+            ' 2>/dev/null || echo "")
+
+          if [ -z "$STALE" ]; then
+            echo "✅ No stale interim images to prune"
+            exit 0
+          fi
+
+          echo "🗑️  Pruning stale interim image versions: $STALE"
+          for id in $STALE; do
+            gh api --method DELETE \
+              "users/marcfargas/packages/container/odoo-mcp/versions/$id" \
+              && echo "  deleted $id" \
+              || echo "  ⚠️  Could not delete $id (non-blocking)"
+          done
+
   validate-published-skills:
     name: Validate Published Skills
     runs-on: ubuntu-latest
