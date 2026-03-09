@@ -1,0 +1,9 @@
+# Normalize line endings to LF in the repository and on checkout.
+# Prevents Windows core.autocrlf from converting files and breaking Prettier.
+* text=auto eol=lf
+
+# Explicitly binary — no line ending conversion
+*.png binary
+*.jpg binary
+*.ico binary
+*.zip binary

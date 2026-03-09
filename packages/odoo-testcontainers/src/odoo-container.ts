@@ -54,7 +54,7 @@ export class OdooTestContainer {
       modules: [],
       database: 'test_odoo',
       adminPassword: 'admin',
-      startupTimeout: 180_000,
+      startupTimeout: 300_000, // 5 min — DB init can take 3–4 min in CI
       env: {},
       ...options,
     };
@@ -84,6 +84,16 @@ export class OdooTestContainer {
       );
 
       // Start Odoo container
+      //
+      // --max-cron-threads 0 disables the cron scheduler:
+      //   • Eliminates ir_cron advisory-lock races during DB init
+      //   • Saves ~60–90 s of startup time in CI
+      //   • Safe for test environments (no scheduled jobs needed)
+      //
+      // Wait strategy: /web/health fires as soon as the HTTP listener
+      // binds (before the ORM is ready). waitForOdooReady() then polls
+      // /web/session/authenticate until it succeeds — same pattern as
+      // the integration-test globalSetup.
       const odooVersion = process.env.ODOO_VERSION ? `${process.env.ODOO_VERSION}.0` : '17.0';
       let odooContainer = new GenericContainer(`odoo:${odooVersion}`)
         .withNetwork(network)
@@ -94,12 +104,28 @@ export class OdooTestContainer {
           PASSWORD: 'odoo',
           ...this.options.env,
         })
+        .withCommand([
+          // Initialise (or re-open) the test database on startup.
+          // --init base ensures the DB is created if it doesn't exist yet.
+          '--database',
+          this.options.database,
+          '--init',
+          'base',
+          '--without-demo',
+          'all',
+          // Disable the cron scheduler: eliminates ir_cron advisory-lock
+          // races during DB init and saves ~60–90 s of startup time.
+          '--max-cron-threads',
+          '0',
+        ])
         .withExposedPorts(8069)
         .withWaitStrategy(
-          Wait.forAll([
-            Wait.forHttp('/web/database/selector', 8069).forStatusCode(200),
-            Wait.forLogMessage('HTTP service (werkzeug) running on'),
-          ]).withStartupTimeout(this.options.startupTimeout)
+          // /web/health fires as soon as the HTTP listener binds (before
+          // the ORM is ready). waitForOdooReady() then probes
+          // /web/session/authenticate until auth succeeds.
+          Wait.forHttp('/web/health', 8069)
+            .forStatusCode(200)
+            .withStartupTimeout(this.options.startupTimeout)
         );
 
       // Mount custom addons if specified
@@ -125,8 +151,8 @@ export class OdooTestContainer {
 
       console.log(`✅ Odoo ready at ${url}`);
 
-      // Wait for services to stabilize
-      await this.waitForOdooReady(url);
+      // Wait for ORM/session to be ready (not just HTTP listener)
+      await this.waitForOdooReady(url, this.options.database);
 
       // Create authenticated client
       const client = new OdooClient({
@@ -218,33 +244,47 @@ export class OdooTestContainer {
   }
 
   /**
-   * Wait for Odoo to be fully ready (not just responding to HTTP).
+   * Wait for Odoo's ORM/session layer to be ready.
+   *
+   * /web/health returns 200 as soon as the HTTP listener binds, but the
+   * ORM and session handler (/web/session/authenticate) may not be ready
+   * for several more seconds. Polling authenticate — the same endpoint
+   * that clients will use immediately after startup — ensures the server
+   * is truly ready before we hand it to the test.
    */
-  private async waitForOdooReady(url: string, maxAttempts = 30): Promise<void> {
+  private async waitForOdooReady(url: string, database: string, maxAttempts = 30): Promise<void> {
+    const authPayload = JSON.stringify({
+      jsonrpc: '2.0',
+      method: 'call',
+      params: { db: database, login: 'admin', password: this.options.adminPassword },
+    });
+
     for (let i = 0; i < maxAttempts; i++) {
       try {
-        const response = await fetch(`${url}/web/database/list`, {
+        const response = await fetch(`${url}/web/session/authenticate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({}),
+          body: authPayload,
         });
 
         if (response.ok) {
-          const data: any = await response.json();
-          if (data.result && Array.isArray(data.result)) {
-            console.log(`✅ Odoo database service ready (attempt ${i + 1})`);
+          // Odoo returns HTTP 200 even before the DB exists, with uid=false.
+          // Only proceed when uid is a positive integer (auth succeeded).
+          const data = (await response.json()) as { result?: { uid?: number | false } };
+          if (data.result?.uid) {
+            console.log(`✅ Odoo session handler ready (attempt ${i + 1})`);
             return;
           }
         }
-      } catch (error) {
-        // Continue waiting
+      } catch {
+        // not ready yet — swallow and retry
       }
 
-      console.log(`⏳ Waiting for Odoo database service... (attempt ${i + 1}/${maxAttempts})`);
+      console.log(`⏳ Waiting for Odoo session handler... (attempt ${i + 1}/${maxAttempts})`);
       await new Promise((resolve) => setTimeout(resolve, 2000));
     }
 
-    throw new Error('Odoo did not become ready within timeout');
+    throw new Error('Odoo session handler did not become ready within timeout');
   }
 
   /**

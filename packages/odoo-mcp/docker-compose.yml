@@ -1,0 +1,38 @@
+services:
+  odoo-mcp:
+    image: ghcr.io/marcfargas/odoo-mcp:latest
+    ports:
+      - "3100:3100"
+    environment:
+      # Required: which Odoo instances clients are allowed to connect to (SSRF guard)
+      ODOO_MCP_ALLOWED_URLS: "https://your-odoo.example.com"
+
+      # Networking
+      # ODOO_MCP_PORT: "3100"          # bind port (default: 3100)
+      # ODOO_MCP_HOST: "0.0.0.0"       # bind address (default: all interfaces)
+      # ODOO_MCP_TRUST_PROXY: "1"      # enable X-Forwarded-For (when behind a proxy)
+      # ODOO_MCP_BODY_LIMIT: "1mb"     # max request body size (default: 1mb)
+
+      # Credential pool
+      # ODOO_MCP_POOL_MAX_SIZE: "50"   # max simultaneous sessions (→ 429 when full)
+      # ODOO_MCP_POOL_IDLE_MS: "1800000"  # evict idle sessions after N ms (default: 30min)
+
+      # Policy (first-match-wins, default: read-only on all models)
+      # ODOO_MCP_POLICY_FILE: /config/policy.json
+      # ODOO_MCP_POLICY: '[{"model":"*","ops":["read","write"]}]'
+
+      # Audit log
+      # ODOO_MCP_AUDIT_LOG: /data/audit.jsonl
+
+    # volumes:
+    #   - ./policy.json:/config/policy.json:ro
+    #   - ./audit:/data
+
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3100/health', r => process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+    restart: unless-stopped
