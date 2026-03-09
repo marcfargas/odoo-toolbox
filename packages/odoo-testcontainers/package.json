@@ -1,10 +1,14 @@
 {
   "name": "@marcfargas/odoo-testcontainers",
-  "version": "0.1.0",
+  "private": true,
+  "version": "0.1.1",
   "description": "Testcontainers module for Odoo development",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
@@ -31,7 +35,7 @@
   "dependencies": {
     "testcontainers": "^10.13.2",
     "@testcontainers/postgresql": "^10.13.2",
-    "@marcfargas/odoo-client": "^0.4.0"
+    "@marcfargas/odoo-client": "^0.4.2"
   },
   "devDependencies": {
     "@types/node": "^22.10.1",
@@ -39,6 +43,6 @@
     "vitest": "^2.1.8"
   },
   "peerDependencies": {
-    "@marcfargas/odoo-client": "^0.4.0"
+    "@marcfargas/odoo-client": "^0.4.2"
   }
 }

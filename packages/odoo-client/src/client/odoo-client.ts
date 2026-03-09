@@ -33,6 +33,7 @@ import { TimesheetsService } from '../services/timesheets/timesheets-service';
 import { AccountingService } from '../services/accounting/accounting-service';
 import { UrlService } from '../services/urls/url-service';
 import { PropertiesService } from '../services/properties/properties-service';
+import { CdcService } from '../services/cdc/cdc-service';
 
 export interface OdooClientConfig {
   url: string;
@@ -212,6 +213,31 @@ export class OdooClient {
    */
   get properties(): PropertiesService {
     return (this._properties ??= new PropertiesService(this));
+  }
+
+  private _cdc?: CdcService;
+
+  /**
+   * CDC (Change Data Capture) service — stream tracked field changes.
+   *
+   * Built on Odoo's native `mail.tracking.value` audit log.
+   * Requires models with `_inherit = 'mail.thread'` and `tracking=True` fields.
+   *
+   * ```typescript
+   * // Diagnose coverage
+   * const info = await client.cdc.check('contract.contract');
+   *
+   * // Full history for one record
+   * const events = await client.cdc.getHistory('contract.contract', 42);
+   *
+   * // Stream all changes (for migration / sync)
+   * for await (const ev of client.cdc.getFeed('contract.contract', { since: '2025-01-01' })) {
+   *   console.log(ev.recordId, ev.field.name, ev.old.display, '→', ev.new.display);
+   * }
+   * ```
+   */
+  get cdc(): CdcService {
+    return (this._cdc ??= new CdcService(this));
   }
 
   // ── Auth ────────────────────────────────────────────────────────────

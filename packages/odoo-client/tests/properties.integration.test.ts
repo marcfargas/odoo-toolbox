@@ -119,7 +119,7 @@ describe('Properties Fields Integration', () => {
         task_properties_definition: propertiesDefinition,
       });
 
-      // Read back
+      // Read back (cleanup via afterAll project deletion)
       const project = await client.read('project.project', projectId, [
         'task_properties_definition',
       ]);

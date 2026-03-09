@@ -1,17 +1,26 @@
 {
   "name": "@marcfargas/odoo-test-harness",
+  "private": true,
   "version": "0.1.0",
   "description": "Declarative test setup for Odoo — spin up containers with specific data shapes",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
     "clean": "rimraf dist"
   },
-  "keywords": ["odoo", "testing", "testcontainers", "test-harness"],
+  "keywords": [
+    "odoo",
+    "testing",
+    "testcontainers",
+    "test-harness"
+  ],
   "author": "Marc Fargas <marc@marcfargas.com>",
   "license": "LGPL-3.0",
   "repository": {
@@ -19,7 +28,9 @@
     "url": "https://github.com/marcfargas/odoo-toolbox.git",
     "directory": "packages/odoo-test-harness"
   },
-  "publishConfig": { "access": "public" },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@marcfargas/odoo-testcontainers": "*",
     "@marcfargas/odoo-client": "*"

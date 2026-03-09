@@ -94,7 +94,8 @@ export class OdooTestContainer {
       // binds (before the ORM is ready). waitForOdooReady() then polls
       // /web/session/authenticate until it succeeds — same pattern as
       // the integration-test globalSetup.
-      let odooContainer = new GenericContainer('odoo:17.0')
+      const odooVersion = process.env.ODOO_VERSION ? `${process.env.ODOO_VERSION}.0` : '17.0';
+      let odooContainer = new GenericContainer(`odoo:${odooVersion}`)
         .withNetwork(network)
         .withEnvironment({
           HOST: 'db',

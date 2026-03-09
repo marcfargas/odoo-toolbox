@@ -1,8 +1,9 @@
 name: Release
 
 on:
+  workflow_dispatch:
   workflow_run:
-    workflows: ["tests"]
+    workflows: ['tests']
     types: [completed]
     branches: [master]
 
@@ -17,7 +18,7 @@ jobs:
   release:
     name: Version or Publish
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     outputs:
       published: ${{ steps.changesets.outputs.published }}
       publishedPackages: ${{ steps.changesets.outputs.publishedPackages }}
@@ -38,8 +39,8 @@ jobs:
         uses: changesets/action@v1
         with:
           publish: npx changeset publish --provenance
-          title: "chore: version packages"
-          commit: "chore: version packages"
+          title: 'chore: version packages'
+          commit: 'chore: version packages'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
@@ -180,7 +181,7 @@ jobs:
           mkdir -p "$HOME/.pi/agent"
 
           echo "Testing: skills add marcfargas/odoo-toolbox"
-          
+
           # Discovery test
           OUTPUT=$(npx -y skills add marcfargas/odoo-toolbox --list 2>&1) || {
             echo "❌ Discovery failed for marcfargas/odoo-toolbox"
@@ -188,7 +189,7 @@ jobs:
             exit 1
           }
           echo "$OUTPUT"
-          
+
           if echo "$OUTPUT" | grep -qi "odoo"; then
             echo "  ✅ odoo skill discovered from GitHub repo"
           else

@@ -40,5 +40,7 @@ describe('Actual Container Test', () => {
       name: 'Test Partner',
     });
     expect(partnerId).toBeGreaterThan(0);
+    // Cleanup
+    await odoo.client.unlink('res.partner', [partnerId]);
   });
 });

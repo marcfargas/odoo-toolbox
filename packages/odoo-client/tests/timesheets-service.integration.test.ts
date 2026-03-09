@@ -103,6 +103,9 @@ describe('Timesheets service integration', () => {
       expect(entry.unit_amount).toBe(2.5);
       expect(entry.project_id).toBeTruthy();
       expect((entry.project_id as [number, string])[0]).toBe(projectId);
+
+      // Cleanup
+      await client.unlink('account.analytic.line', [entry.id]);
     });
 
     it('should create entry with task', async () => {
@@ -117,6 +120,9 @@ describe('Timesheets service integration', () => {
 
       expect(entry.task_id).toBeTruthy();
       expect((entry.task_id as [number, string])[0]).toBe(taskId);
+
+      // Cleanup
+      await client.unlink('account.analytic.line', [entry.id]);
     });
 
     it('should use custom date', async () => {

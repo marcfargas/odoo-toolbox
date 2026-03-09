@@ -156,12 +156,14 @@ jobs:
           cache-to: type=gha,mode=max
 
   integration-tests:
-    name: Integration Tests (Odoo 17)
+    name: Integration Tests (Odoo ${{ matrix.odoo_version }})
     runs-on: ubuntu-latest
-    needs: [lint, unit-tests]
+    needs: validate-skill-spec
     permissions:
       contents: read
-
+    strategy:
+      matrix:
+        odoo_version: [17, 18, 19]
     steps:
       - uses: actions/checkout@v4
 
@@ -186,8 +188,8 @@ jobs:
 
       - name: Run integration tests
         env:
-          # Testcontainers manages containers automatically — no manual Docker needed
           TESTCONTAINERS_RYUK_DISABLED: 'false'
+          ODOO_VERSION: ${{ matrix.odoo_version }}
           DEBUG: 'odoo-mcp:*'
         run: npm run test:integration
 
@@ -198,7 +200,7 @@ jobs:
           docker ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" || true
           echo ""
           echo "=== Recent container logs ==="
-          for cid in $(docker ps -aq --filter "ancestor=odoo:17.0" 2>/dev/null); do
+          for cid in $(docker ps -aq --filter "ancestor=odoo:${{ matrix.odoo_version }}.0" 2>/dev/null); do
             echo "--- Odoo container $cid ---"
             docker logs --tail 100 "$cid" 2>&1 || true
           done
@@ -224,38 +226,6 @@ jobs:
         with:
           files: ./coverage/lcov.info
           flags: integration
-
-  testcontainers-package:
-    name: Testcontainers Package Tests
-    runs-on: ubuntu-latest
-    needs: [lint, unit-tests]
-    permissions:
-      contents: read
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-
-      - name: Restore node_modules cache
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-modules-
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-          path: packages
-
-      - name: Run odoo-testcontainers tests
-        run: npx vitest run --config packages/odoo-testcontainers/vitest.config.ts packages/odoo-testcontainers/tests/
 
   validate-skill-spec:
     name: Validate SKILL.md Files
