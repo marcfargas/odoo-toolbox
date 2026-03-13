@@ -70,7 +70,9 @@ describe('resolveSeedInfo', () => {
   const FAKE_IMAGE = 'ghcr.io/marcfargas/odoo-test-db:17.0-abc123456789';
 
   it('returns null when ODOO_SEED_IMAGE is not set', () => {
-    const result = resolveSeedInfo(['base', 'mail'], '17.0', undefined, MONOREPO_ROOT);
+    // Pass '' (not undefined) — undefined triggers JS default-parameter
+    // semantics which falls back to process.env.ODOO_SEED_IMAGE.
+    const result = resolveSeedInfo(['base', 'mail'], '17.0', '', MONOREPO_ROOT);
     expect(result).toBeNull();
   });
 
