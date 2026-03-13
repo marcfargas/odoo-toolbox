@@ -183,6 +183,7 @@ Load as needed by reading `base/{name}.md`:
 | urls | `odoo url` | Version-agnostic record URL generation |
 | multi-company | `odoo records search --context` | Multi-company context, `allowed_company_ids`, common gotchas |
 | translations | — | Read and write field translations (Odoo 17+, `ir.translation` removed) |
+| context-keys | `--context` flag | Mail/chatter context keys: `tracking_disable`, `mail_notrack`, `mail_create_nolog`, etc. |
 
 ## Mail & Messaging
 
