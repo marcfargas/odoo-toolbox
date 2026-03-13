@@ -122,25 +122,13 @@ function ensurePackInstalled(): string {
   const tgzPath = join(packDir, tgzFiles[0]!);
 
   // Step 2: npm install <tgz> in a fresh temp dir
-  //
-  // During a changeset versioning run, workspace dependency ranges may
-  // point to versions not yet published on npm (e.g. odoo-client@^0.5.0
-  // when only 0.4.2 exists). We pass --install-strategy=shallow so npm
-  // installs only the tgz itself without trying to resolve the full
-  // transitive dependency tree from the registry. The smoke tests only
-  // need the CLI entry point to be runnable — they don't exercise
-  // functionality that depends on transitive packages.
   const installDir = makeTempDir('odoo-cli-install-');
-  const installResult = spawnSync(
-    'npm',
-    ['install', tgzPath, '--no-save', '--no-package-lock', '--install-strategy=shallow'],
-    {
-      cwd: installDir,
-      encoding: 'utf8',
-      timeout: 60_000,
-      shell: true,
-    }
-  );
+  const installResult = spawnSync('npm', ['install', tgzPath, '--no-save', '--no-package-lock'], {
+    cwd: installDir,
+    encoding: 'utf8',
+    timeout: 60_000,
+    shell: true,
+  });
 
   if (installResult.status !== 0) {
     packError = `npm install failed:\n${installResult.stderr}`;

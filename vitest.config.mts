@@ -13,8 +13,8 @@ export default defineConfig({
     // Include patterns
     include: ['packages/*/tests/**/*.test.ts'],
 
-    // Exclude integration tests from default run
-    exclude: ['**/*.integration.test.ts', '**/node_modules/**'],
+    // Exclude integration and packaging tests from default run
+    exclude: ['**/*.integration.test.ts', '**/packaging/**', '**/node_modules/**'],
 
     // Coverage configuration
     coverage: {

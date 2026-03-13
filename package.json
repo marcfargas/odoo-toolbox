@@ -33,6 +33,7 @@
     "clean": "rm -rf packages/*/dist packages/*/tsconfig.tsbuildinfo dist",
     "test": "vitest run",
     "test:unit": "vitest run",
+    "test:packaging": "vitest run -c vitest.packaging.config.mts",
     "test:integration": "vitest run --config vitest.integration.config.mts",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

@@ -125,6 +125,9 @@ jobs:
       - name: Run unit tests
         run: npm run test:unit
 
+      - name: Run packaging smoke tests
+        run: npm run test:packaging
+
       - name: Upload coverage
         if: always()
         uses: codecov/codecov-action@v3
