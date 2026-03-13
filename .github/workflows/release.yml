@@ -44,7 +44,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
-          HUSKY: '0'  # Disable pre-commit hooks — versioning bumps deps that aren't published yet
 
       - name: Register skills on skills.sh
         if: steps.changesets.outputs.published == 'true'
