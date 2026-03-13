@@ -1,5 +1,14 @@
 # @marcfargas/odoo-mcp
 
+## 0.1.1
+
+### Patch Changes
+
+- Updated dependencies [5ef273b]
+- Updated dependencies [5ef273b]
+  - @marcfargas/odoo-client@0.5.0
+  - @marcfargas/odoo-introspection@0.1.4
+
 ## 0.1.0
 
 ### Minor Changes

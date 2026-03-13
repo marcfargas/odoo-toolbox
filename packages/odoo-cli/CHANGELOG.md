@@ -1,5 +1,22 @@
 # @marcfargas/odoo-cli
 
+## 0.3.0
+
+### Minor Changes
+
+- 5ef273b: Add CDC (Change Data Capture) service for tracking field-level changes on Odoo records.
+  - `client.cdc.check(model)` — verify if a model has mail.tracking enabled and which fields are tracked
+  - `client.cdc.getHistory(model, id)` — get full change history for a record with typed events
+  - `odoo cdc check <model>` / `odoo cdc history <model> <id>` — CLI commands for CDC operations
+
+### Patch Changes
+
+- 5ef273b: Add 8 nested boolean operator tests for the domain parser, improving coverage for complex `&`/`|` domain expressions.
+- Updated dependencies [5ef273b]
+- Updated dependencies [5ef273b]
+  - @marcfargas/odoo-client@0.5.0
+  - @marcfargas/odoo-introspection@0.1.4
+
 ## 0.2.0
 
 ### Minor Changes

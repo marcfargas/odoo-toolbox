@@ -35,7 +35,7 @@
   "dependencies": {
     "testcontainers": "^10.13.2",
     "@testcontainers/postgresql": "^10.13.2",
-    "@marcfargas/odoo-client": "^0.4.2"
+    "@marcfargas/odoo-client": "^0.5.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.1",
@@ -43,6 +43,6 @@
     "vitest": "^2.1.8"
   },
   "peerDependencies": {
-    "@marcfargas/odoo-client": "^0.4.2"
+    "@marcfargas/odoo-client": "^0.5.0"
   }
 }

@@ -1,5 +1,12 @@
 # @marcfargas/odoo-skills
 
+## 0.5.3
+
+### Patch Changes
+
+- 5ef273b: Add pre-seeded Postgres image support for faster integration test startup. Integration tests now run against Odoo 17, 18, and 19 in a matrix.
+- 5ef273b: Fix Dockerfile.seed-db COPY path that was missing the `docker/` prefix.
+
 ## 0.5.2
 
 ### Patch Changes
