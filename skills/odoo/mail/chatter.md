@@ -315,14 +315,18 @@ await client.call('res.partner', 'message_unsubscribe', [[recordId]], {
 
 ## Context Variables for Mail Control
 
-Suppress mail side-effects during CRUD operations:
+Suppress mail side-effects during CRUD operations. See [Context Keys Reference](../base/context-keys.md) for the full guide with Odoo source references.
 
 | Context Variable | Effect |
 |------------------|--------|
-| `tracking_disable=True` | Disable automatic field tracking messages |
-| `mail_create_nosubscribe=True` | Don't auto-subscribe record creator |
-| `mail_create_nolog=True` | Don't create creation log message |
-| `mail_notrack=True` | Disable all tracking for this operation |
+| `tracking_disable=True` | **Nuclear** — skip ALL mail.thread features (fastest) |
+| `mail_notrack=True` | Skip field-value tracking messages only |
+| `mail_create_nolog=True` | Skip the "Document created" log message |
+| `mail_create_nosubscribe=True` | Don't auto-subscribe record creator as follower |
+| `mail_auto_subscribe_no_notify=True` | Auto-subscribe works, but skip notification email |
+| `mail_post_autofollow=False` | Don't auto-subscribe partners mentioned in messages (default) |
+| `mail_notify_force_send=False` | Queue emails instead of sending inline |
+| `mail_activity_quick_update=True` | Skip notification on activity create/reassign |
 
 ```typescript testable id="chatter-context-disable" needs="client" creates="res.partner" expect="result.created === true"
 const partnerId = await client.call('res.partner', 'create', [{
