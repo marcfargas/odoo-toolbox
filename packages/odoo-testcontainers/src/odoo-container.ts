@@ -93,6 +93,9 @@ export class OdooTestContainer {
     // Create a network for container communication
     const network = await new Network().start();
 
+    // Track started containers for cleanup on error
+    const startedContainers: StartedTestContainer[] = [];
+
     try {
       // ── Postgres ──────────────────────────────────────────────────────
       let postgresContainer: StartedPostgreSqlContainer | StartedTestContainer;
@@ -123,6 +126,7 @@ export class OdooTestContainer {
         // Seed image is built with admin/admin (see docker/Dockerfile.seed-db)
         pgUser = 'admin';
         pgPassword = 'admin';
+        startedContainers.push(postgresContainer);
         console.log(
           `✅ Seed PostgreSQL ready (${this.options.database} restored from dump) ` +
             `on port ${postgresContainer.getMappedPort(5432)}`
@@ -139,6 +143,7 @@ export class OdooTestContainer {
 
         pgUser = 'odoo';
         pgPassword = 'odoo';
+        startedContainers.push(postgresContainer);
         console.log(
           `✅ PostgreSQL ready at ` +
             `${postgresContainer.getHost()}:${postgresContainer.getMappedPort(5432)}`
@@ -206,6 +211,7 @@ export class OdooTestContainer {
       }
 
       const startedOdooContainer = await odooContainer.start();
+      startedContainers.push(startedOdooContainer);
       const url = `http://${startedOdooContainer.getHost()}:${startedOdooContainer.getMappedPort(8069)}`;
 
       console.log(`✅ Odoo ready at ${url}`);
@@ -270,10 +276,18 @@ export class OdooTestContainer {
         },
       };
     } catch (error) {
+      // Stop containers before network to avoid "active endpoints" error
+      await Promise.allSettled(startedContainers.map((c) => c.stop()));
+      await new Promise((r) => setTimeout(r, 1000));
       try {
         await network.stop();
       } catch {
-        /* best-effort */
+        await new Promise((r) => setTimeout(r, 2000));
+        try {
+          await network.stop();
+        } catch {
+          /* best-effort */
+        }
       }
       throw error;
     }
