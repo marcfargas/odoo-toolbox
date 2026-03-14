@@ -5,10 +5,36 @@
  * custom addons, and proper cleanup.
  */
 
+import Dockerode from 'dockerode';
 import { GenericContainer, StartedTestContainer, Wait, Network } from 'testcontainers';
 import { PostgreSqlContainer, StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import { OdooClient, ModuleManager } from '@marcfargas/odoo-client';
 import { resolveSeedInfo, normaliseOdooVersion } from './seed-resolver';
+
+/**
+ * Force-disconnect all containers from a Docker network.
+ *
+ * When testcontainers `.stop()` is called on containers, they may not fully
+ * disconnect from networks before the promise resolves. Docker requires all
+ * endpoints to be disconnected before a network can be removed. This helper
+ * uses the Docker API directly to force-disconnect any remaining endpoints.
+ */
+async function forceDisconnectNetwork(networkId: string): Promise<void> {
+  const docker = new Dockerode();
+  const network = docker.getNetwork(networkId);
+  try {
+    const info = await network.inspect();
+    for (const containerId of Object.keys(info.Containers || {})) {
+      try {
+        await network.disconnect({ Container: containerId, Force: true });
+      } catch {
+        /* container may already be gone */
+      }
+    }
+  } catch {
+    /* network may already be gone */
+  }
+}
 
 // ── Public types ────────────────────────────────────────────────────
 
@@ -259,13 +285,13 @@ export class OdooTestContainer {
           client.logout();
           // Stop containers first (parallel, settle all)
           await Promise.allSettled([startedOdooContainer.stop(), postgresContainer.stop()]);
-          // Give Docker a moment to release network endpoints
-          await new Promise((r) => setTimeout(r, 1000));
+          // Force-disconnect any remaining endpoints (containers may not fully
+          // disconnect from the network before .stop() resolves)
+          await forceDisconnectNetwork(network.getId());
           // Network cleanup with retry
           try {
             await network.stop();
           } catch {
-            await new Promise((r) => setTimeout(r, 2000));
             try {
               await network.stop();
             } catch {
@@ -278,11 +304,12 @@ export class OdooTestContainer {
     } catch (error) {
       // Stop containers before network to avoid "active endpoints" error
       await Promise.allSettled(startedContainers.map((c) => c.stop()));
-      await new Promise((r) => setTimeout(r, 1000));
+      // Force-disconnect any remaining endpoints, including orphan containers
+      // (e.g. a half-started Odoo container not yet in startedContainers[])
+      await forceDisconnectNetwork(network.getId());
       try {
         await network.stop();
       } catch {
-        await new Promise((r) => setTimeout(r, 2000));
         try {
           await network.stop();
         } catch {
