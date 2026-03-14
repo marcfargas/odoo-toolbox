@@ -1,6 +1,5 @@
 {
   "name": "@marcfargas/odoo-testcontainers",
-  "private": true,
   "version": "0.1.1",
   "description": "Testcontainers module for Odoo development",
   "main": "dist/index.js",
