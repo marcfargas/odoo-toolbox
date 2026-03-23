@@ -17,8 +17,8 @@
     { "path": "packages/odoo-client" },
     { "path": "packages/odoo-introspection" },
     { "path": "packages/odoo-state-manager" },
-    { "path": "packages/odoo-cli" },
-    { "path": "packages/odoo-test-harness" },
-    { "path": "packages/odoo-mcp" }
+    { "path": "packages/odoo-testcontainers" },
+    { "path": "targets/odoo-cli" },
+    { "path": "targets/odoo-mcp" }
   ]
 }

@@ -29,12 +29,16 @@ Module-specific: `skills/odoo/modules/timesheets.md`, `skills/odoo/oca/mis-build
 
 ## Package Architecture
 
-| Package | Responsibility | Status |
-|---------|----------------|--------|
-| `@marcfargas/odoo-client` | RPC client, business logic, services | Active |
-| `@marcfargas/odoo-introspection` | Schema discovery, TypeScript codegen | Active |
-| `@marcfargas/create-odoo-skills` | CLI to scaffold skill projects (reads from `skills/odoo/`) | Active |
-| `@marcfargas/odoo-state-manager` | Drift detection, plan/apply workflow | Experimental |
+The monorepo splits into **packages** (libraries you import) and **targets** (things you run):
+
+| Package | Location | Responsibility | Status |
+|---------|----------|----------------|--------|
+| `@marcfargas/odoo-client` | `packages/odoo-client` | RPC client, business logic, services | Active |
+| `@marcfargas/odoo-introspection` | `packages/odoo-introspection` | Schema discovery, TypeScript codegen | Active |
+| `@marcfargas/odoo-testcontainers` | `packages/odoo-testcontainers` | Testcontainers-based Odoo test infrastructure | Active |
+| `@marcfargas/odoo-state-manager` | `packages/odoo-state-manager` | Drift detection, plan/apply workflow | Experimental |
+| `@marcfargas/odoo-cli` | `targets/odoo-cli` | CLI for Odoo ERP | Active |
+| `@marcfargas/odoo-mcp` | `targets/odoo-mcp` | MCP server for Odoo | Active |
 
 ### When Adding New Functionality
 
@@ -163,8 +167,8 @@ If you can't find the source, document it as observed behavior with a TODO.
 
 **Order**: `npm run lint` → `npm run test:unit` → `npm run test:integration`
 
-- Unit tests: `packages/*/tests/**/*.test.ts` (no Docker)
-- Integration tests: `packages/*/tests/**/*.integration.test.ts` (needs Docker Odoo)
+- Unit tests: `packages/*/tests/**/*.test.ts`, `targets/*/tests/**/*.test.ts` (no Docker)
+- Integration tests: `packages/*/tests/**/*.integration.test.ts`, `targets/*/tests/**/*.integration.test.ts` (needs Docker Odoo)
 - Knowledge module code blocks: extracted and tested via `testable` markers in CI
 
 See [DEVELOPMENT.md](./DEVELOPMENT.md) for Docker setup, introspection research howto, and OCA module setup.

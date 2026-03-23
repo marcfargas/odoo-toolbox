@@ -59,7 +59,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
-          path: packages/*/dist
+          path: |
+            packages/*/dist
+            targets/*/dist
           include-hidden-files: true
           retention-days: 1
 
@@ -89,7 +91,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-artifacts
-          path: packages
 
       - name: Run linter
         run: npm run lint
@@ -120,7 +121,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-artifacts
-          path: packages
 
       - name: Run unit tests
         run: npm run test:unit
@@ -155,7 +155,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: packages/odoo-mcp/Dockerfile
+          file: targets/odoo-mcp/Dockerfile
           platforms: linux/amd64
           push: false
           tags: ghcr.io/marcfargas/odoo-mcp:test
@@ -191,7 +191,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-artifacts
-          path: packages
 
       - name: Compute seed hash + try pull
         id: seed
@@ -283,7 +282,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-artifacts
-          path: packages
 
       - name: Compute seed hash + try pull
         id: seed

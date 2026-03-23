@@ -111,8 +111,8 @@ KEEP_CONTAINERS=false
 
 ### Test Structure
 
-- **Unit Tests**: `packages/*/tests/**/*.test.ts` - Fast, no infrastructure
-- **Integration Tests**: `packages/*/tests/**/*.integration.test.ts` - Against real Odoo
+- **Unit Tests**: `packages/*/tests/**/*.test.ts`, `targets/*/tests/**/*.test.ts` - Fast, no infrastructure
+- **Integration Tests**: `packages/*/tests/**/*.integration.test.ts`, `targets/*/tests/**/*.integration.test.ts` - Against real Odoo
 - **Test Helpers**: `tests/helpers/` - Shared utilities and setup
 
 ### Managing Modules in Tests
@@ -224,26 +224,32 @@ For detailed coding patterns, logging conventions, and Odoo-specific implementat
 
 ## Project Structure
 
+The monorepo splits into **packages** (libraries you import) and **targets** (things you run).
+
 ```
-packages/
-  odoo-client/           # RPC client
+packages/                  # Libraries you import
+  odoo-client/             # RPC client
     src/
-      client/            # OdooClient class
-      rpc/               # RPC transport
-      types/             # Type definitions
-  odoo-introspection/    # Schema introspection + codegen
+      client/              # OdooClient class
+      rpc/                 # RPC transport
+      types/               # Type definitions
+  odoo-introspection/      # Schema introspection + codegen
     src/
-      introspection/     # Schema discovery
-      codegen/           # TypeScript generation
-      cli/               # CLI tool
-  odoo-state-manager/    # Drift detection + plan/apply
+      introspection/       # Schema discovery
+      codegen/             # TypeScript generation
+      cli/                 # CLI tool
+  odoo-testcontainers/     # Testcontainers-based Odoo test infrastructure
+  odoo-state-manager/      # Drift detection + plan/apply
     src/
-      compare/           # Deep diff logic
-      plan/              # Plan generation
-      apply/             # Apply execution
+      compare/             # Deep diff logic
+      plan/                # Plan generation
+      apply/               # Apply execution
+targets/                   # Things you run
+  odoo-cli/                # CLI for Odoo ERP
+  odoo-mcp/                # MCP server for Odoo
 tests/
-  helpers/               # Shared test utilities
-examples/                # Usage examples
+  helpers/                 # Shared test utilities
+examples/                  # Usage examples
 ```
 
 ## Common Tasks

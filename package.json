@@ -24,21 +24,22 @@
   "author": "Marc Fargas <marc@marcfargas.com>",
   "license": "LGPL-3.0",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "targets/*"
   ],
   "scripts": {
     "build": "npm run build -w @marcfargas/odoo-client && npm run build -w @marcfargas/odoo-introspection -w @marcfargas/odoo-testcontainers && npm run build -w @marcfargas/odoo-cli -w @marcfargas/odoo-state-manager -w @marcfargas/odoo-mcp",
     "build:dist": "node scripts/build-dist.js",
 
-    "clean": "rm -rf packages/*/dist packages/*/tsconfig.tsbuildinfo dist",
+    "clean": "rm -rf packages/*/dist targets/*/dist packages/*/tsconfig.tsbuildinfo targets/*/tsconfig.tsbuildinfo dist dist-skills",
     "test": "vitest run",
     "test:unit": "vitest run",
     "test:packaging": "vitest run -c vitest.packaging.config.mts",
     "test:integration": "vitest run --config vitest.integration.config.mts",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "lint": "eslint . --ext .ts && prettier --check \"packages/**/*.ts\"",
-    "lint:fix": "eslint packages --ext .ts,.tsx --fix && prettier --write \"**/*.{ts,json,md}\"",
+    "lint": "eslint . --ext .ts && prettier --check \"packages/**/*.ts\" \"targets/**/*.ts\"",
+    "lint:fix": "eslint packages targets --ext .ts,.tsx --fix && prettier --write \"**/*.{ts,json,md}\"",
     "odoo:up": "docker compose -f docker-compose.test.yml up -d",
     "odoo:down": "docker compose -f docker-compose.test.yml down",
     "odoo:clean": "docker compose -f docker-compose.test.yml down -v",

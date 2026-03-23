@@ -45,28 +45,25 @@ cd odoo-skills
 cp .env.example .env  # Add your Odoo credentials
 ```
 
-### Option 2: Scaffold a Custom Skill Project
-
-```bash
-npx @marcfargas/create-odoo-skills my-odoo-skills
-cd my-odoo-skills
-cp .env.example .env  # Configure your Odoo credentials
-```
-
-Then point your AI agent to the project and ask it to connect, introspect, and work with your Odoo instance.
-
 ## TypeScript Packages
 
-The skills are backed by tested TypeScript infrastructure:
+The skills are backed by tested TypeScript infrastructure. The monorepo splits into **libraries** (`packages/`) you import and **targets** (`targets/`) you run.
+
+### Libraries
 
 | Package | Description | Status |
 |---------|-------------|--------|
 | [@marcfargas/odoo-client](./packages/odoo-client) | Lightweight RPC client for Odoo | Active |
 | [@marcfargas/odoo-introspection](./packages/odoo-introspection) | Schema introspection and type generation | Active |
-| [@marcfargas/create-odoo-skills](./packages/create-skills) | CLI to scaffold skill projects | Active |
-| [@marcfargas/odoo-cli](./packages/odoo-cli) | CLI for Odoo ERP — 10 command groups (records, mail, modules, attendance, timesheets, accounting…) | Active |
+| [@marcfargas/odoo-testcontainers](./packages/odoo-testcontainers) | Testcontainers-based Odoo testing infrastructure | Active |
 | [@marcfargas/odoo-state-manager](./packages/odoo-state-manager) | Drift detection and plan/apply (Terraform-style) | Experimental |
-| [@marcfargas/odoo-test-harness](./packages/odoo-testcontainers) | Testcontainers-based Odoo testing infrastructure | In development |
+
+### Targets
+
+| Package | Description | Status |
+|---------|-------------|--------|
+| [@marcfargas/odoo-cli](./targets/odoo-cli) | CLI for Odoo ERP — 10 command groups (records, mail, modules, attendance, timesheets, accounting…) | Active |
+| [@marcfargas/odoo-mcp](./targets/odoo-mcp) | MCP server for Odoo | Active |
 
 ## CLI Quick Start
 
@@ -114,7 +111,7 @@ See [`docs/`](./docs/) for developer documentation (architecture, service patter
 
 ## License
 
-**Code** (`packages/`): [LGPL-3.0](./LICENSE)
+**Code** (`packages/`, `targets/`): [LGPL-3.0](./LICENSE)
 
 **Skills** (`skills/`): [CC0 1.0 Universal](./skills/odoo/LICENSE) — **public domain**.
 Use the knowledge freely in any project, commercial or not, with no attribution required.

@@ -3,7 +3,7 @@ WORKDIR /build
 
 # Copy manifests for layer caching
 COPY package*.json ./
-COPY packages/odoo-mcp/package*.json packages/odoo-mcp/
+COPY targets/odoo-mcp/package*.json targets/odoo-mcp/
 COPY packages/odoo-client/package*.json packages/odoo-client/
 COPY packages/odoo-introspection/package*.json packages/odoo-introspection/
 
@@ -14,12 +14,12 @@ RUN npm ci --ignore-scripts
 COPY tsconfig.json ./
 COPY packages/odoo-introspection/ packages/odoo-introspection/
 COPY packages/odoo-client/ packages/odoo-client/
-COPY packages/odoo-mcp/ packages/odoo-mcp/
+COPY targets/odoo-mcp/ targets/odoo-mcp/
 
 # Build in dependency order: client first (introspection imports from it)
 RUN npm run build --workspace=packages/odoo-client && \
     npm run build --workspace=packages/odoo-introspection && \
-    npm run build --workspace=packages/odoo-mcp
+    npm run build --workspace=targets/odoo-mcp
 
 FROM node:24-alpine
 
@@ -31,7 +31,7 @@ ENV NODE_ENV=production
 
 # Re-create workspace structure for npm ci --omit=dev
 COPY package*.json ./
-COPY packages/odoo-mcp/package*.json packages/odoo-mcp/
+COPY targets/odoo-mcp/package*.json targets/odoo-mcp/
 COPY packages/odoo-client/package*.json packages/odoo-client/
 COPY packages/odoo-introspection/package*.json packages/odoo-introspection/
 
@@ -43,7 +43,7 @@ RUN npm ci --omit=dev --ignore-scripts
 # Node follows symlinks: packages/odoo-client → reads package.json → main: "dist/index.js"
 COPY --from=builder /build/packages/odoo-introspection/dist packages/odoo-introspection/dist
 COPY --from=builder /build/packages/odoo-client/dist packages/odoo-client/dist
-COPY --from=builder /build/packages/odoo-mcp/dist packages/odoo-mcp/dist
+COPY --from=builder /build/targets/odoo-mcp/dist targets/odoo-mcp/dist
 
 # ── Environment variables ────────────────────────────────────────────────────
 #
@@ -82,4 +82,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
 USER node
 
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "packages/odoo-mcp/dist/index.js"]
+CMD ["node", "targets/odoo-mcp/dist/index.js"]

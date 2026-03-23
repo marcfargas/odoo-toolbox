@@ -10,9 +10,9 @@ Updated: 2026-02-21.
 **Packages shipped:**
 - [`@marcfargas/odoo-client`](packages/odoo-client) — RPC client with 7 service accessors (mail, modules, accounting, timesheets, …)
 - [`@marcfargas/odoo-introspection`](packages/odoo-introspection) — schema discovery + TypeScript codegen
-- [`@marcfargas/odoo-cli`](packages/odoo-cli) — 10 command groups, safety model, domain parser, 4 output formats
-- [`@marcfargas/odoo-skills`](packages/odoo-skills) — AI agent skills for pi (5,200+ lines, CC-BY-4.0)
-- [`@marcfargas/odoo-testcontainers`](packages/odoo-testcontainers) — Docker-based Odoo test containers, all integration tests passing
+- [`@marcfargas/odoo-cli`](targets/odoo-cli) — 10 command groups, safety model, domain parser, 4 output formats
+- `@marcfargas/odoo-skills` — AI agent skills for pi (5,200+ lines, CC-BY-4.0) — now CI-generated
+- [`@marcfargas/odoo-testcontainers`](packages/odoo-testcontainers) — Docker-based Odoo test containers (includes test harness), all integration tests passing
 - [`@marcfargas/odoo-state-manager`](packages/odoo-state-manager) — declarative drift detection + experimental apply
 
 **Infrastructure & docs:**
@@ -27,7 +27,6 @@ Updated: 2026-02-21.
 
 ## 🔄 Current Focus
 
-- **`@marcfargas/odoo-test-harness`** — declarative test setup for consumer projects (in progress)
 - **npm publishing** — Trusted Publishing (OIDC) + Changesets release automation
 - **Branch merge** — `feat/odoo-cli` → `develop`
 

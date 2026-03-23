@@ -11,7 +11,7 @@ export default defineConfig({
 
     // Integration tests for all packages except odoo-testcontainers
     // (it starts its own containers — tested in a separate CI job)
-    include: ['packages/*/tests/**/*.integration.test.ts'],
+    include: ['packages/*/tests/**/*.integration.test.ts', 'targets/*/tests/**/*.integration.test.ts'],
     exclude: ['packages/odoo-testcontainers/**'],
 
     // Global setup for Docker containers.

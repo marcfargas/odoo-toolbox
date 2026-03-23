@@ -6,6 +6,6 @@ export default defineConfig({
     environment: 'node',
     testTimeout: 120_000,
     root: '.',
-    include: ['packages/*/tests/packaging/**/*.test.ts'],
+    include: ['packages/*/tests/packaging/**/*.test.ts', 'targets/*/tests/packaging/**/*.test.ts'],
   },
 });

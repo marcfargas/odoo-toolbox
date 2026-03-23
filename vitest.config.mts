@@ -11,7 +11,7 @@ export default defineConfig({
     root: '.',
 
     // Include patterns
-    include: ['packages/*/tests/**/*.test.ts'],
+    include: ['packages/*/tests/**/*.test.ts', 'targets/*/tests/**/*.test.ts'],
 
     // Exclude integration and packaging tests from default run
     exclude: ['**/*.integration.test.ts', '**/packaging/**', '**/node_modules/**'],
@@ -19,7 +19,7 @@ export default defineConfig({
     // Coverage configuration
     coverage: {
       provider: 'v8',
-      include: ['packages/*/src/**/*.ts'],
+      include: ['packages/*/src/**/*.ts', 'targets/*/src/**/*.ts'],
       exclude: ['**/*.test.ts'],
     },
   },
