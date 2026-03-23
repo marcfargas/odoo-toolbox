@@ -11,11 +11,15 @@ export {
 } from './introspect';
 export { normalizeFieldValue, diffRecord, diffResources } from './diff';
 export type { FieldDiff, DiffResult } from './diff';
+export { generatePlan } from './plan';
+export { formatPlan } from './format';
 export type {
   EvaluationResult,
   Operation,
   OperationType,
   Plan,
+  PlanSummary,
+  PlanMetadata,
   OperationStatus,
   OperationResult,
   ApplyResult,

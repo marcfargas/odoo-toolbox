@@ -41,11 +41,33 @@ export interface Operation {
   values?: Record<string, unknown>;
   /** Human-readable description for logging. */
   description?: string;
+  /** Execution level — lower levels run first. Level 0 = module installs. */
+  level?: number;
+  /** Field-level changes for update operations (for display purposes). */
+  changes?: Array<{ field: string; desired: unknown; actual: unknown }>;
+}
+
+export interface PlanSummary {
+  installs: number;
+  creates: number;
+  updates: number;
+  unlinks: number;
+  archives: number;
+  total: number;
+  isEmpty: boolean;
+}
+
+export interface PlanMetadata {
+  timestamp: string;
+  /** All unique model names referenced by the plan operations. */
+  models: string[];
 }
 
 /** A set of operations derived from the evaluation result and current Odoo state. */
 export interface Plan {
   operations: Operation[];
+  summary: PlanSummary;
+  metadata: PlanMetadata;
 }
 
 export type OperationStatus = 'ok' | 'error' | 'skipped';
