@@ -1,0 +1,13 @@
+{
+  "name": "claude-odoo-connect",
+  "version": "0.1.0",
+  "description": "Connect Claude to your Odoo instance — search, read, and write Odoo data guided by battle-tested knowledge modules",
+  "author": {
+    "name": "Marc Fargas",
+    "email": "marc@marcfargas.com",
+    "url": "https://github.com/marcfargas/odoo-toolbox"
+  },
+  "repository": "https://github.com/marcfargas/odoo-toolbox",
+  "license": "LGPL-3.0",
+  "keywords": ["odoo", "erp", "rpc", "mcp", "integration"]
+}

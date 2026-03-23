@@ -1,0 +1,13 @@
+{
+  "name": "claude-odoo-dev",
+  "version": "0.1.0",
+  "description": "Odoo developer toolkit for Claude Code — state management, test environments, CLI commands, and dev workflow agents",
+  "author": {
+    "name": "Marc Fargas",
+    "email": "marc@marcfargas.com",
+    "url": "https://github.com/marcfargas/odoo-toolbox"
+  },
+  "repository": "https://github.com/marcfargas/odoo-toolbox",
+  "license": "LGPL-3.0",
+  "keywords": ["odoo", "erp", "developer", "state-management", "testing", "infrastructure-as-code"]
+}
