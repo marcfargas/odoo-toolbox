@@ -13,6 +13,8 @@ export { normalizeFieldValue, diffRecord, diffResources } from './diff';
 export type { FieldDiff, DiffResult } from './diff';
 export { generatePlan } from './plan';
 export { formatPlan } from './format';
+export { applyPlan } from './apply';
+export type { ApplyClient, ApplyOptions } from './apply';
 export type {
   EvaluationResult,
   Operation,
