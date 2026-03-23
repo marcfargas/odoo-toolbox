@@ -15,6 +15,7 @@ export { generatePlan } from './plan';
 export { formatPlan } from './format';
 export { applyPlan } from './apply';
 export type { ApplyClient, ApplyOptions } from './apply';
+export { plan, apply, diff } from './pipeline';
 export type {
   EvaluationResult,
   Operation,

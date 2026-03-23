@@ -17,9 +17,12 @@ export type {
   Operation,
   OperationType,
   Plan,
+  PlanSummary,
+  PlanMetadata,
   OperationStatus,
   OperationResult,
   ApplyResult,
   ResolvedResource,
   ResolvedState,
 } from './engine';
+export { plan, apply, diff, formatPlan } from './engine';
