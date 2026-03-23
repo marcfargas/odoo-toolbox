@@ -85,3 +85,4 @@ context.md
 # Build outputs for distribution
 dist-skills/
 dist-plugins/
+docs/superpowers/
