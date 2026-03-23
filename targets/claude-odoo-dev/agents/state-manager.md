@@ -1,5 +1,8 @@
 ---
+name: state-manager
 description: "Autonomous Odoo state management agent that handles the full compare-plan-review-apply cycle. Use when the user wants to apply desired state to an Odoo instance, detect configuration drift, or set up interdependent records (automations, server actions, etc.)."
+model: sonnet
+color: green
 tools:
   - Read
   - Write
