@@ -10,7 +10,8 @@ export type {
   RemoveUnmanagedMap,
 } from './dsl';
 export { isLookupRef, isResourceDefinition, isModelPolicy } from './dsl';
-export { evaluate } from './engine';
+export { evaluate, domainToTuples, resolveLookups } from './engine';
+export type { ResolveClient } from './engine';
 export type {
   EvaluationResult,
   Operation,
@@ -19,4 +20,6 @@ export type {
   OperationStatus,
   OperationResult,
   ApplyResult,
+  ResolvedResource,
+  ResolvedState,
 } from './engine';

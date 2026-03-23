@@ -1,4 +1,6 @@
 export { evaluate } from './evaluate';
+export { domainToTuples, resolveLookups } from './resolve';
+export type { ResolveClient } from './resolve';
 export type {
   EvaluationResult,
   Operation,
@@ -7,4 +9,6 @@ export type {
   OperationStatus,
   OperationResult,
   ApplyResult,
+  ResolvedResource,
+  ResolvedState,
 } from './types';

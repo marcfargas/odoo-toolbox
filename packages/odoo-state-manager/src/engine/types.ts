@@ -1,5 +1,27 @@
 import type { ResourceDefinition, ModelPolicy } from '../dsl/types';
 
+// ---------------------------------------------------------------------------
+// Resolve types
+// ---------------------------------------------------------------------------
+
+export interface ResolvedResource {
+  original: ResourceDefinition;
+  model: string;
+  mode: 'create' | 'update';
+  resolvedId: number | null;
+  /** Field values with all LookupRef markers replaced by numeric IDs. */
+  resolvedValues: Record<string, unknown>;
+}
+
+export interface ResolvedState {
+  resources: ResolvedResource[];
+  policies: ModelPolicy[];
+}
+
+// ---------------------------------------------------------------------------
+// Evaluation result
+// ---------------------------------------------------------------------------
+
 /** Collected definitions from all project files. */
 export interface EvaluationResult {
   resources: ResourceDefinition[];
