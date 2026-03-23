@@ -27,7 +27,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build -w @marcfargas/odoo-client && npm run build -w @marcfargas/odoo-introspection -w @marcfargas/odoo-testcontainers && npm run build -w @marcfargas/odoo-cli -w @marcfargas/odoo-skills -w @marcfargas/odoo-state-manager -w @marcfargas/odoo-test-harness -w @marcfargas/odoo-mcp",
+    "build": "npm run build -w @marcfargas/odoo-client && npm run build -w @marcfargas/odoo-introspection -w @marcfargas/odoo-testcontainers && npm run build -w @marcfargas/odoo-cli -w @marcfargas/odoo-state-manager -w @marcfargas/odoo-test-harness -w @marcfargas/odoo-mcp",
     "build:dist": "node scripts/build-dist.js",
 
     "clean": "rm -rf packages/*/dist packages/*/tsconfig.tsbuildinfo dist",

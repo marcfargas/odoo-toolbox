@@ -215,3 +215,23 @@ jobs:
           echo ""
           echo "Command tested: skills add marcfargas/odoo-toolbox"
           echo "Installation from GitHub repo works correctly!"
+
+  publish-skills:
+    name: Publish Skills Package
+    needs: release
+    if: needs.release.outputs.published == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+      - run: node scripts/build-skills-package.js
+      - run: npm publish --provenance
+        working-directory: dist-skills
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

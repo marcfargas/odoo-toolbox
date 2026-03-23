@@ -81,3 +81,6 @@ tests/helpers/**/*.d.ts
 tests/helpers/**/*.js
 tests/helpers/**/*.map
 context.md
+
+# Skills package build output
+dist-skills/
