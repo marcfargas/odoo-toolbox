@@ -11,7 +11,7 @@
  */
 
 import debug from 'debug';
-import type { UserConfig, ProvisionerClient } from '../types';
+import type { UserConfig, ProvisionerClient } from './types';
 
 const log = debug('odoo-test-harness:users');
 

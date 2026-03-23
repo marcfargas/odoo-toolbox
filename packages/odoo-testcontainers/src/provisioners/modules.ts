@@ -6,7 +6,7 @@
  */
 
 import debug from 'debug';
-import type { ProvisionerClient } from '../types';
+import type { ProvisionerClient } from './types';
 
 const log = debug('odoo-test-harness:modules');
 

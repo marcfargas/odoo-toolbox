@@ -12,7 +12,7 @@
  */
 
 import debug from 'debug';
-import type { PropertyConfig, ProvisionerClient } from '../types';
+import type { PropertyConfig, ProvisionerClient } from './types';
 
 const log = debug('odoo-test-harness:properties');
 

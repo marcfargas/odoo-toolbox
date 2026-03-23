@@ -7,7 +7,7 @@
  */
 
 import debug from 'debug';
-import type { PartnerConfig, ProvisionerClient } from '../types';
+import type { PartnerConfig, ProvisionerClient } from './types';
 
 const log = debug('odoo-test-harness:partners');
 

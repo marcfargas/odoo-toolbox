@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { provisionProjects } from '../../src/provisioners/projects';
-import type { ProvisionerClient } from '../../src/types';
+import type { ProvisionerClient } from '../../src/provisioners/types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

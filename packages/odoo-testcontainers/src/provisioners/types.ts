@@ -1,5 +1,5 @@
 /**
- * Type definitions for @marcfargas/odoo-test-harness.
+ * Type definitions for test-harness provisioners.
  */
 
 /**

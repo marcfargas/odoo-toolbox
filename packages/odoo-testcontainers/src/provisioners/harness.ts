@@ -25,7 +25,7 @@
  */
 
 import debug from 'debug';
-import { OdooTestContainer, type StartedOdooContainer } from '@marcfargas/odoo-testcontainers';
+import { OdooTestContainer, type StartedOdooContainer } from '../odoo-container';
 import type { TestHarnessConfig, ProvisionedRefs, ProvisionerClient } from './types';
 import {
   provisionModules,
@@ -34,7 +34,7 @@ import {
   provisionProjects,
   provisionTaskProperties,
   provisionUsers,
-} from './provisioners';
+} from './index';
 
 const log = debug('odoo-test-harness:harness');
 

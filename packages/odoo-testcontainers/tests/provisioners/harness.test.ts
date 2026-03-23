@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { provisionPartnerCategories, provisionPartners } from '../src/provisioners/partners';
-import { provisionTaskProperties } from '../src/provisioners/properties';
-import { provisionUsers } from '../src/provisioners/users';
-import type { ProvisionerClient } from '../src/types';
+import { provisionPartnerCategories, provisionPartners } from '../../src/provisioners/partners';
+import { provisionTaskProperties } from '../../src/provisioners/properties';
+import { provisionUsers } from '../../src/provisioners/users';
+import type { ProvisionerClient } from '../../src/provisioners/types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

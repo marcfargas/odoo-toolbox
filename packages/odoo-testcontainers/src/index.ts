@@ -47,3 +47,6 @@ export {
   type SeedVersionConfig,
   type SeedInfo,
 } from './seed-resolver';
+
+// Provisioners — opt-in imports for test data setup
+export * from './provisioners';
