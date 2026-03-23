@@ -517,7 +517,7 @@ describe('odoo-mcp tools & resources', () => {
       });
 
       expect(result.isError).toBe(true);
-      const text = ((result.content as { text: string }[])[0]).text;
+      const text = (result.content as { text: string }[])[0].text;
       expect(text).toMatch(/^POLICY_DENIED:/);
     });
 
@@ -530,7 +530,7 @@ describe('odoo-mcp tools & resources', () => {
       });
 
       expect(result.isError).toBe(true);
-      const text = ((result.content as { text: string }[])[0]).text;
+      const text = (result.content as { text: string }[])[0].text;
       expect(text).toMatch(/^POLICY_DENIED:/);
     });
   });
