@@ -9,6 +9,8 @@ export {
   validateModuleDependencies,
   validateArchiveOrphans,
 } from './introspect';
+export { normalizeFieldValue, diffRecord, diffResources } from './diff';
+export type { FieldDiff, DiffResult } from './diff';
 export type {
   EvaluationResult,
   Operation,
