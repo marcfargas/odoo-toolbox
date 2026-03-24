@@ -131,6 +131,7 @@ Domain-specific helpers are accessed via lazy getters on the client:
 | `client.modules.*` | `odoo modules` | Install, uninstall, check modules | `base/modules.md` |
 | `client.urls.*` | `odoo url` | Generate version-agnostic record URLs | `base/urls.md` |
 | `client.properties.*` | — | Safe operations for properties fields | `base/properties.md` |
+| `client.cdc.*` | — | Change Data Capture — field change history via mail.tracking.value | `modules/cdc.md` |
 | `client.accounting.*` | `odoo accounting` | Cash discovery, reconciliation, partner resolution | `modules/accounting.md` |
 | `client.attendance.*` | `odoo attendance` | Clock in/out, presence tracking | `modules/attendance.md` |
 | `client.timesheets.*` | `odoo timesheets` | Timer start/stop, time logging | `modules/timesheets.md` |

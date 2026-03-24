@@ -110,7 +110,6 @@ For comprehensive, tested examples of Odoo patterns — CRUD, search, domains, f
 
 - [@marcfargas/odoo-introspection](../odoo-introspection) — Schema introspection and code generation
 - [@marcfargas/odoo-state-manager](../odoo-state-manager) — State management and drift detection
-- [@marcfargas/create-odoo-skills](../create-skills) — CLI for scaffolding AI agent skill projects
 
 ## Bugs & Support
 

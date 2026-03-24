@@ -231,7 +231,6 @@ For comprehensive, tested examples of introspection patterns and model discovery
 
 - [@marcfargas/odoo-client](../odoo-client) — RPC client
 - [@marcfargas/odoo-state-manager](../odoo-state-manager) — State management and drift detection
-- [@marcfargas/create-odoo-skills](../create-skills) — CLI for scaffolding AI agent skill projects
 
 ## Bugs & Support
 

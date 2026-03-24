@@ -4,8 +4,8 @@ Remote-first MCP server for Odoo with policy-based access control.
 
 ## Features
 
-- **7 tools**: `odoo_search`, `odoo_get`, `odoo_create`, `odoo_write`, `odoo_delete`, `odoo_discover`, `odoo_model_info`, `odoo_get_related`
-- **2 resources**: `odoo://models` (model catalogue), `odoo://modules` (installed modules)
+- **7 tools**: `odoo_discover`, `odoo_model_info`, `odoo_search`, `odoo_get`, `odoo_create`, `odoo_write`, `odoo_get_related`
+- **3 resources**: `odoo://models` (model catalogue), `odoo://modules` (installed modules), `odoo://schema/{model}` (field metadata)
 - HTTP transport (`POST /mcp`) — credentials per-request via `X-Odoo-*` headers
 - Policy engine: JSON file with ordered glob rules, hot reload (SIGHUP)
 - URL whitelist (SSRF protection) — `ODOO_MCP_ALLOWED_URLS` mandatory

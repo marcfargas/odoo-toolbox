@@ -13,7 +13,13 @@ Everything from claude-odoo-connect, plus:
 
 ## Setup
 
-1. Install the plugin
+1. Install the plugin:
+
+```bash
+# Local development
+claude --plugin-dir /path/to/targets/claude-odoo-dev
+```
+
 2. Set environment variables for your Odoo instance:
 
 ```bash

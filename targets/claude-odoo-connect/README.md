@@ -9,7 +9,13 @@ Connect Claude to your Odoo instance. Works with Claude Code and Claude Cowork.
 
 ## Setup
 
-1. Install the plugin
+1. Install the plugin:
+
+```bash
+# Local development
+claude --plugin-dir /path/to/targets/claude-odoo-connect
+```
+
 2. Set environment variables for your Odoo instance:
 
 ```bash

@@ -11,7 +11,6 @@
 | [`@marcfargas/odoo-client`](https://www.npmjs.com/package/@marcfargas/odoo-client) | RPC client, CRUD, services (mail, modules, timesheets, etc.) | Core library |
 | [`@marcfargas/odoo-introspection`](https://www.npmjs.com/package/@marcfargas/odoo-introspection) | Schema discovery, TypeScript type generation from live instances | Separate package |
 | [`@marcfargas/odoo-cli`](https://www.npmjs.com/package/@marcfargas/odoo-cli) | CLI tool for interacting with Odoo | CLI |
-| [`@marcfargas/create-odoo-skills`](https://www.npmjs.com/package/@marcfargas/create-odoo-skills) | Scaffold skill projects from the odoo knowledge base | Tooling |
 
 > **Package boundary**: `@marcfargas/odoo-client` and `@marcfargas/odoo-introspection` are **separate npm packages**. Install them independently based on what you need. All `client.*` examples in these docs require only `odoo-client`. Introspection examples require `odoo-introspection`.
 
@@ -47,6 +46,7 @@ Service accessors are lazy-loaded domain helpers available on the client via `cl
 | `client.timesheets.*` | Timer start/stop, log hours on projects | [timesheets.md](./services/timesheets.md) |
 | `client.accounting.*` | Cash accounts, GL queries, reconciliation | [accounting.md](./services/accounting.md) |
 | `client.properties.*` | Safe operations on dynamic (properties) fields | [properties.md](./services/properties.md) |
+| `client.cdc.*` | Change Data Capture — tracked field change history | [cdc.md](./services/cdc.md) |
 | `client.urls.*` | Version-agnostic record URL generation | [urls.md](./services/urls.md) |
 
 ### Introspection (`@marcfargas/odoo-introspection`)
