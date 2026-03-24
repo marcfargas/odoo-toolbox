@@ -57,7 +57,27 @@ function buildPlugin(name) {
     fs.copyFileSync(license, path.join(out, 'LICENSE'));
   }
 
-  console.log(`Built ${name} in dist-plugins/${name}/`);
+  // For local dev: override .mcp.json to use the local MCP binary
+  if (localDev) {
+    const mcpBin = path.join(ROOT, 'targets', 'odoo-mcp', 'dist', 'index.js');
+    const mcpConfig = {
+      mcpServers: {
+        odoo: {
+          command: 'node',
+          args: [mcpBin, '--transport', 'stdio'],
+          env: {
+            ODOO_URL: '${ODOO_URL}',
+            ODOO_DB: '${ODOO_DB}',
+            ODOO_USER: '${ODOO_USER}',
+            ODOO_PASSWORD: '${ODOO_PASSWORD}',
+          },
+        },
+      },
+    };
+    fs.writeFileSync(path.join(out, '.mcp.json'), JSON.stringify(mcpConfig, null, 2) + '\n');
+  }
+
+  console.log(`Built ${name} in dist-plugins/${name}/${localDev ? ' (local dev)' : ''}`);
 }
 
 function copySkillsAsReferences(src, dest) {
@@ -136,10 +156,12 @@ ${refs}
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
+const localDev = process.argv.includes('--local');
+
 // Clean dist
 fs.rmSync(DIST, { recursive: true, force: true });
 
 buildPlugin('claude-odoo-connect');
 buildPlugin('claude-odoo-dev');
 
-console.log('\nDone. Plugins ready in dist-plugins/');
+console.log(`\nDone. Plugins ready in dist-plugins/${localDev ? ' (local dev — MCP points to local binary)' : ''}`);

@@ -46,13 +46,10 @@ function parseAllowedUrls(): string[] {
     .filter(Boolean);
 }
 
-/** Used only for stdio mode: requires explicit Odoo credentials in env. */
-function requireStdioEnv(): void {
+/** Returns missing env vars for stdio mode (empty array = all present). */
+function getMissingStdioEnv(): string[] {
   const required = ['ODOO_URL', 'ODOO_DB', 'ODOO_USER', 'ODOO_PASSWORD'];
-  const missing = required.filter((key) => !process.env[key]);
-  if (missing.length > 0) {
-    throw new Error(`stdio transport requires Odoo credentials. Missing: ${missing.join(', ')}`);
-  }
+  return required.filter((key) => !process.env[key]);
 }
 
 function safeErrorMessage(error: unknown): string {
@@ -116,24 +113,57 @@ async function main(): Promise<void> {
     /**
      * stdio mode: single Odoo connection from env vars.
      * Intended for local dev / embedded use where custom headers aren't available.
+     *
+     * When credentials are missing, we start a degraded MCP server that registers
+     * a single "odoo_status" tool reporting the configuration error. This is better
+     * than crashing — Claude Code silently swallows stderr from failed MCP servers,
+     * so users get no feedback if we just exit(1).
      */
-    requireStdioEnv();
+    const missingEnv = getMissingStdioEnv();
 
-    const client = await createClient();
-    client.setSafetyContext(createMcpSafetyContext(getPolicy));
+    if (missingEnv.length > 0) {
+      const errorMsg =
+        `Odoo MCP server is not configured. Missing environment variables: ${missingEnv.join(', ')}. ` +
+        'Set ODOO_URL, ODOO_DB, ODOO_USER, and ODOO_PASSWORD to connect to your Odoo instance.';
 
-    const introspector = new Introspector(client);
-    const cache = new McpCache(introspector);
+      process.stderr.write(`Warning: ${errorMsg}\n`);
 
-    const mcpServer = new McpOdooServer({
-      version,
-      client,
-      getPolicy,
-      cache,
-      audit,
-      userLogin: process.env.ODOO_USER ?? 'unknown',
-    });
-    await startStdioTransport(mcpServer.server);
+      const { McpServer } = require('@modelcontextprotocol/sdk/server/mcp.js') as typeof import('@modelcontextprotocol/sdk/server/mcp.js');
+      const degraded = new McpServer({ name: 'odoo-mcp', version });
+      degraded.tool(
+        'odoo_status',
+        'Check Odoo MCP server configuration status',
+        {},
+        async () => ({
+          content: [{ type: 'text' as const, text: `ERROR: ${errorMsg}` }],
+          isError: true,
+        }),
+      );
+      // Register all normal tool names so Claude sees them and gets a helpful error
+      for (const toolName of ['odoo_discover', 'odoo_model_info', 'odoo_search', 'odoo_get', 'odoo_create', 'odoo_write', 'odoo_get_related']) {
+        degraded.tool(toolName, `Odoo tool (not configured)`, {}, async () => ({
+          content: [{ type: 'text' as const, text: `ERROR: ${errorMsg}` }],
+          isError: true,
+        }));
+      }
+      await startStdioTransport(degraded.server);
+    } else {
+      const client = await createClient();
+      client.setSafetyContext(createMcpSafetyContext(getPolicy));
+
+      const introspector = new Introspector(client);
+      const cache = new McpCache(introspector);
+
+      const mcpServer = new McpOdooServer({
+        version,
+        client,
+        getPolicy,
+        cache,
+        audit,
+        userLogin: process.env.ODOO_USER ?? 'unknown',
+      });
+      await startStdioTransport(mcpServer.server);
+    }
   } else {
     /**
      * HTTP mode: credentials supplied per-request via X-Odoo-* headers.
