@@ -1,5 +1,11 @@
 # @marcfargas/odoo-client
 
+## 0.5.1
+
+### Patch Changes
+
+- 7dc4976: Reorganize repository into `packages/` (libraries) and `targets/` (executables). Absorb `odoo-test-harness` into `odoo-testcontainers`. Remove `odoo-skills` from git (now CI-generated).
+
 ## 0.5.0
 
 ### Minor Changes
