@@ -17,7 +17,7 @@ Lightweight TypeScript client for Odoo RPC operations.
 npm install @marcfargas/odoo-client
 ```
 
-**Prerequisites**: Node.js ≥ 18, a running Odoo v17 instance.
+**Prerequisites**: Node.js ≥ 24, a running Odoo v17 instance.
 
 ## Quick Start
 

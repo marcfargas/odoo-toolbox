@@ -15,7 +15,7 @@ This project follows a batteries-included philosophy:
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 24+
 - Docker Desktop (for integration tests)
 - Git
 
@@ -101,12 +101,12 @@ Create `.env.local` from `.env.example`:
 
 ```bash
 ODOO_URL=http://localhost:8069
-ODOO_DB_NAME=odoo
-ODOO_DB_USER=admin
-ODOO_DB_PASSWORD=admin
+ODOO_DB=odoo
+ODOO_USER=admin
+ODOO_PASSWORD=admin
 TEST_TIMEOUT_MS=30000
 LOG_LEVEL=info
-KEEP_CONTAINERS=false
+SKIP_TEARDOWN=false
 ```
 
 ### Test Structure
@@ -166,9 +166,9 @@ npm run odoo:addon:uninstall project
 Environment variables (defaults shown):
 ```bash
 export ODOO_URL=http://localhost:8069
-export ODOO_DB_NAME=odoo
-export ODOO_DB_USER=admin
-export ODOO_DB_PASSWORD=admin
+export ODOO_DB=odoo
+export ODOO_USER=admin
+export ODOO_PASSWORD=admin
 ```
 
 ### Programmatic Module Management
@@ -231,7 +231,9 @@ packages/                  # Libraries you import
   odoo-client/             # RPC client
     src/
       client/              # OdooClient class
+      services/            # Domain services (mail, modules, accounting, etc.)
       rpc/                 # RPC transport
+      safety/              # Safety guards
       types/               # Type definitions
   odoo-introspection/      # Schema introspection + codegen
     src/
@@ -239,11 +241,11 @@ packages/                  # Libraries you import
       codegen/             # TypeScript generation
       cli/                 # CLI tool
   odoo-testcontainers/     # Testcontainers-based Odoo test infrastructure
-  odoo-state-manager/      # Drift detection + plan/apply
+  odoo-state-manager/      # Declarative state management (v2)
     src/
-      compare/             # Deep diff logic
-      plan/                # Plan generation
-      apply/               # Apply execution
+      dsl/                 # TypeScript DSL (resource, lookup, model)
+      engine/              # Evaluate, resolve, diff, plan, apply
+      cli/                 # CLI (plan, apply, diff, init)
 targets/                   # Things you run
   odoo-cli/                # CLI for Odoo ERP
   odoo-mcp/                # MCP server for Odoo
@@ -266,7 +268,7 @@ examples/                  # Usage examples
 
 ```bash
 # Keep Docker containers after tests
-KEEP_CONTAINERS=true npm run test:integration
+SKIP_TEARDOWN=true npm run test:integration
 
 # Docker logs in separate terminal
 npm run odoo:logs
@@ -281,8 +283,8 @@ docker-compose -f docker-compose.test.yml exec odoo /bin/bash
 # Build all packages
 npm run build
 
-# Run all checks (lint, test, type)
-npm run check
+# Run lint
+npm run lint
 ```
 
 ## Building the Skills Zip
@@ -292,47 +294,26 @@ The `odoo-skills.zip` contains a ready-to-use skill project for AI agents.
 ### Build Locally
 
 ```bash
-# Build everything (packages + skills zip)
-npm run build:dist
-
-# Or just the skills zip (requires packages to be built first)
-npm run build:skills-zip
+# Build everything
+npm run build
 ```
-
-Output: `dist/odoo-skills.zip`
-
-### CI Artifacts
-
-Every CI run builds and uploads `odoo-skills.zip` as an artifact. Download from the [Actions tab](https://github.com/marcfargas/odoo-toolbox/actions).
 
 ## Publishing a New Release
 
-> **Note**: Automated releases are not yet configured. This section documents the current manual workflow.
-
-### Manual Release (current)
-
-Until automated releases are set up:
-
-1. Update version in `package.json` files
-2. Build: `npm run build`
-3. Build skills zip: `npm run build:skills-zip`
-4. Create GitHub release manually with `dist/odoo-skills.zip`
-5. Publish to npm: `npm publish --workspace=packages/odoo-client` (etc.)
-
-### Future: Changesets
-
-We plan to use [Changesets](https://github.com/changesets/changesets) for version management:
+Releases are managed with [Changesets](https://github.com/changesets/changesets):
 
 ```bash
 # Create a changeset describing your changes
 npm run changeset
 
 # Bump versions and update changelogs
-npm run version
+npm run version-packages
 
-# Build and publish to npm
+# Build and publish to npm (automated via CI)
 npm run release
 ```
+
+CI automatically publishes to npm on merge to master via Trusted Publishing (OIDC). Skills are published as a separate CI-generated artifact from root `skills/`.
 
 ## Researching Odoo Behavior
 
@@ -428,7 +409,7 @@ return { count: models.length };
 1. Create `skills/odoo/<category>/<name>.md`
 2. Add `testable` code blocks for CI validation
 3. Register in `skills/odoo/SKILL.md`
-4. Run: `npm run test:create-skills` (needs Docker Odoo for integration tests)
+4. Run: `npm run test:unit` to verify skill validation tests pass
 
 ## Contributing
 
@@ -453,4 +434,4 @@ Code should be well-typed, tested, and documented (especially Odoo source refere
 
 ---
 
-**Node.js**: 18+ | **TypeScript**: 5.0+ | **Odoo**: v17 (v14+ planned)
+**Node.js**: 24+ | **TypeScript**: 5.0+ | **Odoo**: v17 (v14+ planned)

@@ -12,7 +12,7 @@ npx ts-node packages/odoo-client/examples/1-basic-connection.ts
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 24+
 - Odoo instance running (e.g., `docker-compose up` for test instance)
 - Valid credentials (default: admin/admin on localhost:8069)
 

@@ -8,7 +8,7 @@ Guidelines for AI coding assistants working on the odoo-toolbox project.
 
 ## Odoo Knowledge Base
 
-The `skills/odoo/` directory contains **5,200+ lines of tested Odoo reference documentation** (CC-BY-4.0). Code examples are validated against real Odoo v17 in CI.
+The `skills/odoo/` directory contains **5,200+ lines of tested Odoo reference documentation** (CC0-1.0). Code examples are validated against real Odoo v17 in CI.
 
 **Before implementing any Odoo-specific code, read the relevant skill module:**
 
@@ -111,7 +111,7 @@ packages/odoo-client/src/
 - **Type Safety**: Leverage TypeScript fully — generate types from live schemas
 - **Minimize Complexity**: Colocate related code, avoid directory explosion
 - **Pragmatic Choices**: Practical solutions over theoretical perfection
-- **FOSS First**: Standalone open-source project (LGPL-3.0 code, CC-BY-4.0 skills)
+- **FOSS First**: Standalone open-source project (LGPL-3.0 code, CC0-1.0 skills)
 
 ## Coding Conventions
 

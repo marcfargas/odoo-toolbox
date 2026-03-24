@@ -16,7 +16,7 @@ TypeScript introspection and code generation for Odoo models.
 npm install @marcfargas/odoo-introspection @marcfargas/odoo-client
 ```
 
-**Prerequisites**: Node.js ≥ 18, a running Odoo v17 instance.
+**Prerequisites**: Node.js ≥ 24, a running Odoo v17 instance.
 
 ## Quick Start
 

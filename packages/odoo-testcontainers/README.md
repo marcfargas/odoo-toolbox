@@ -229,7 +229,7 @@ describe('OCA Timesheet Extensions', () => {
 ## Requirements
 
 - Docker Desktop or Docker Engine
-- Node.js 18+
+- Node.js 24+
 - Testcontainers-compatible environment
 
 ## License
