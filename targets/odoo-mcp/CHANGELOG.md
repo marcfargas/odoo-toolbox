@@ -1,5 +1,15 @@
 # @marcfargas/odoo-mcp
 
+## 0.1.2
+
+### Patch Changes
+
+- 7dc4976: Add Claude plugin targets (`claude-odoo-connect` and `claude-odoo-dev`) and integration tests for odoo-mcp against real Odoo via testcontainers. Fix agent frontmatter and build script cleanup for plugins.
+- 7dc4976: Reorganize repository into `packages/` (libraries) and `targets/` (executables). Absorb `odoo-test-harness` into `odoo-testcontainers`. Remove `odoo-skills` from git (now CI-generated).
+- Updated dependencies [7dc4976]
+  - @marcfargas/odoo-client@0.5.1
+  - @marcfargas/odoo-introspection@0.1.5
+
 ## 0.1.1
 
 ### Patch Changes
