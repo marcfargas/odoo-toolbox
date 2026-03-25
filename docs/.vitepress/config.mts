@@ -106,7 +106,7 @@ export default defineConfig({
     },
 
     footer: {
-      message: 'Released under the MIT License.',
+      message: 'Released under the LGPL-3.0 License.',
     },
   },
 });
