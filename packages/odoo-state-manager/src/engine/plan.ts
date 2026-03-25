@@ -19,18 +19,20 @@ const MODULE_MODEL = 'ir.module.module';
 /** Sort order for operation types within a level. */
 function operationOrder(type: Operation['type']): number {
   switch (type) {
-    case 'create':
+    case 'adopt':
       return 0;
-    case 'update':
+    case 'create':
       return 1;
-    case 'unlink':
+    case 'update':
       return 2;
-    case 'archive':
+    case 'unlink':
       return 3;
-    case 'delete':
+    case 'archive':
       return 4;
-    default:
+    case 'delete':
       return 5;
+    default:
+      return 6;
   }
 }
 
@@ -83,8 +85,10 @@ export function generatePlan(
   // Level 1+: Record operations by topological order
   // -------------------------------------------------------------------------
 
-  // Filter out module diffs and skipped resources
-  const recordDiffs = diffs.filter((d) => d.resource.model !== MODULE_MODEL && d.hasChanges);
+  // Filter out module diffs and resources with neither changes nor adoption needed
+  const recordDiffs = diffs.filter(
+    (d) => d.resource.model !== MODULE_MODEL && (d.hasChanges || d.resource.needsAdoption)
+  );
 
   // Build an ordering for models using topological sort
   const sortedModels = topologicalSort(depGraph);
@@ -132,6 +136,19 @@ export function generatePlan(
     for (const diff of sorted) {
       const res = diff.resource;
       const description = deriveDescription(res.resolvedValues, res.original.values);
+      const externalId = res.externalId;
+
+      // Adoption: resource found via _ref but external ID not yet in ir.model.data
+      if (res.needsAdoption && externalId) {
+        operations.push({
+          type: 'adopt',
+          model,
+          id: res.resolvedId ?? undefined,
+          description,
+          level,
+          externalId,
+        });
+      }
 
       if (diff.mode === 'create') {
         operations.push({
@@ -140,18 +157,22 @@ export function generatePlan(
           values: res.resolvedValues,
           description,
           level,
+          ...(externalId ? { externalId } : {}),
         });
       } else {
         // update mode — include field changes for display
-        operations.push({
-          type: 'update',
-          model,
-          id: res.resolvedId ?? undefined,
-          values: res.resolvedValues,
-          description,
-          level,
-          changes: diff.changes,
-        });
+        if (diff.hasChanges) {
+          operations.push({
+            type: 'update',
+            model,
+            id: res.resolvedId ?? undefined,
+            values: res.resolvedValues,
+            description,
+            level,
+            changes: diff.changes,
+            ...(externalId ? { externalId } : {}),
+          });
+        }
       }
     }
   }
@@ -195,6 +216,7 @@ export function generatePlan(
   const updates = operations.filter((op) => op.type === 'update').length;
   const unlinks = operations.filter((op) => op.type === 'unlink').length;
   const archives = operations.filter((op) => op.type === 'archive').length;
+  const adopts = operations.filter((op) => op.type === 'adopt').length;
   const total = operations.length;
 
   const summary: PlanSummary = {
@@ -203,6 +225,7 @@ export function generatePlan(
     updates,
     unlinks,
     archives,
+    adopts,
     total,
     isEmpty: total === 0,
   };
@@ -213,12 +236,13 @@ export function generatePlan(
   };
 
   debug(
-    'plan: %d installs, %d creates, %d updates, %d unlinks, %d archives',
+    'plan: %d installs, %d creates, %d updates, %d unlinks, %d archives, %d adopts',
     installs,
     creates,
     updates,
     unlinks,
-    archives
+    archives,
+    adopts
   );
 
   return { operations, summary, metadata };

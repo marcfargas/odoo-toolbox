@@ -47,8 +47,15 @@ function formatOperation(op: Operation, color: boolean): string {
   const symbol = opSymbol(op);
   const symbolColored = colorizeSymbol(symbol, op, color);
   const desc = op.description ? ` "${op.description}"` : '';
-  const header = `${symbolColored} ${op.model}${desc}`;
+  const extId = op.externalId ? ` [${op.externalId}]` : '';
+  const header = `${symbolColored} ${op.model}${desc}${extId}`;
   lines.push(header);
+
+  // For adopts: show binding info
+  if (op.type === 'adopt') {
+    const line = `    Binding external ID to existing record #${op.id}`;
+    lines.push(color ? colorize(line, 'green', true) : line);
+  }
 
   // For creates: list all field values
   if (op.type === 'create' && op.values) {
@@ -80,6 +87,8 @@ function opSymbol(op: Operation): string {
       return '-';
     case 'archive':
       return '!';
+    case 'adopt':
+      return '*';
     default:
       return '?';
   }
@@ -97,6 +106,8 @@ function colorizeSymbol(symbol: string, op: Operation, color: boolean): string {
       return colorize(symbol, 'red', true);
     case 'archive':
       return colorize(symbol, 'yellow', true);
+    case 'adopt':
+      return colorize(symbol, 'green', true);
     default:
       return symbol;
   }
@@ -129,6 +140,9 @@ function formatSummary(plan: Plan, color: boolean): string {
   }
   if (plan.summary.archives > 0) {
     parts.push(`${plan.summary.archives} to archive`);
+  }
+  if (plan.summary.adopts > 0) {
+    parts.push(`${plan.summary.adopts} to adopt`);
   }
 
   const line = `Plan: ${parts.join(', ')}.`;

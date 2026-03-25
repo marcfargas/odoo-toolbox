@@ -1,5 +1,6 @@
 import createDebug from 'debug';
 import type { Plan, Operation, OperationResult, ApplyResult } from './types';
+import { parseExternalId } from './resolve';
 
 const debug = createDebug('odoo-state-manager:apply');
 
@@ -252,7 +253,7 @@ async function executeBatched(
       continue;
     }
 
-    // Create or update: per-record
+    // Create, update, or adopt: per-record
     onProgress?.(current, total, op);
 
     let r: OperationResult;
@@ -260,6 +261,8 @@ async function executeBatched(
       r = await executeCreate(op, client);
     } else if (op.type === 'update') {
       r = await executeUpdate(op, client);
+    } else if (op.type === 'adopt') {
+      r = await executeAdopt(op, client);
     } else {
       // Fallback for unknown types — treat as error
       r = { operation: op, status: 'error', error: `Unknown operation type: ${op.type}` };
@@ -281,12 +284,50 @@ async function executeCreate(op: Operation, client: ApplyClient): Promise<Operat
   try {
     const id = await client.create(op.model, op.values ?? {});
     debug('create %s → id=%d', op.model, id);
+
+    // Write external ID to ir.model.data if present
+    if (op.externalId) {
+      await writeExternalId(client, op.externalId, op.model, id);
+    }
+
     return { operation: op, status: 'ok', id };
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
     debug('create %s failed: %s', op.model, error);
     return { operation: op, status: 'error', error };
   }
+}
+
+async function executeAdopt(op: Operation, client: ApplyClient): Promise<OperationResult> {
+  if (!op.externalId || !op.id) {
+    return { operation: op, status: 'error', error: 'adopt requires externalId and id' };
+  }
+  debug('adopt %s id=%d externalId=%s', op.model, op.id, op.externalId);
+  try {
+    await writeExternalId(client, op.externalId, op.model, op.id);
+    return { operation: op, status: 'ok' };
+  } catch (err) {
+    const error = err instanceof Error ? err.message : String(err);
+    debug('adopt %s id=%d failed: %s', op.model, op.id, error);
+    return { operation: op, status: 'error', error };
+  }
+}
+
+async function writeExternalId(
+  client: ApplyClient,
+  externalId: string,
+  model: string,
+  resId: number
+): Promise<void> {
+  const { module, name } = parseExternalId(externalId);
+  debug('writing ir.model.data: %s.%s → %s#%d', module, name, model, resId);
+  await client.create('ir.model.data', {
+    module,
+    name,
+    model,
+    res_id: resId,
+    noupdate: true,
+  });
 }
 
 async function executeUpdate(op: Operation, client: ApplyClient): Promise<OperationResult> {

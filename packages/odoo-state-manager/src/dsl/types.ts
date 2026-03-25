@@ -16,6 +16,8 @@ export interface ResourceDefinition {
   readonly __type: 'resource';
   readonly model: string;
   readonly ref?: LookupRef;
+  /** Stable external ID for this resource (stored in ir.model.data). */
+  readonly externalId?: string;
   readonly values: Record<string, unknown>;
   readonly removeUnmanaged?: RemoveUnmanagedMap;
 }

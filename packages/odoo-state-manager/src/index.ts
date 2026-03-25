@@ -1,4 +1,4 @@
-export { resource, lookup, model } from './dsl';
+export { resource, lookup, model, children } from './dsl';
 export type {
   LookupRef,
   ResourceDefinition,
@@ -8,9 +8,10 @@ export type {
   DomainShorthand,
   RawDomain,
   RemoveUnmanagedMap,
+  ChildrenRef,
 } from './dsl';
-export { isLookupRef, isResourceDefinition, isModelPolicy } from './dsl';
-export { evaluate, domainToTuples, resolveLookups } from './engine';
+export { isLookupRef, isResourceDefinition, isModelPolicy, isChildrenRef } from './dsl';
+export { evaluate, domainToTuples, resolveLookups, parseExternalId } from './engine';
 export type { ResolveClient } from './engine';
 export type {
   EvaluationResult,

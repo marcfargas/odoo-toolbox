@@ -11,6 +11,14 @@ export interface ResolvedResource {
   resolvedId: number | null;
   /** Field values with all LookupRef markers replaced by numeric IDs. */
   resolvedValues: Record<string, unknown>;
+  /** External ID for this resource (from DSL definition). */
+  externalId?: string;
+  /**
+   * True when the resource was found via _ref lookup but doesn't yet
+   * have an external ID in ir.model.data. The apply step will write
+   * the external ID (adoption).
+   */
+  needsAdoption?: boolean;
 }
 
 export interface ResolvedState {
@@ -30,7 +38,7 @@ export interface EvaluationResult {
 }
 
 /** A single operation to perform against Odoo. */
-export type OperationType = 'create' | 'update' | 'delete' | 'archive' | 'unlink';
+export type OperationType = 'create' | 'update' | 'delete' | 'archive' | 'unlink' | 'adopt';
 
 export interface Operation {
   type: OperationType;
@@ -45,6 +53,8 @@ export interface Operation {
   level?: number;
   /** Field-level changes for update operations (for display purposes). */
   changes?: Array<{ field: string; desired: unknown; actual: unknown }>;
+  /** External ID for this resource (module.name format). */
+  externalId?: string;
 }
 
 export interface PlanSummary {
@@ -53,6 +63,7 @@ export interface PlanSummary {
   updates: number;
   unlinks: number;
   archives: number;
+  adopts: number;
   total: number;
   isEmpty: boolean;
 }

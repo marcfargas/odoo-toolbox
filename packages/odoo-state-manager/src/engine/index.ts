@@ -1,5 +1,5 @@
 export { evaluate } from './evaluate';
-export { domainToTuples, resolveLookups } from './resolve';
+export { domainToTuples, resolveLookups, parseExternalId } from './resolve';
 export type { ResolveClient } from './resolve';
 export {
   classifyRelationalField,

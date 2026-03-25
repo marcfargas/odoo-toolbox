@@ -26,6 +26,30 @@ export interface ResolveClient {
 }
 
 // ---------------------------------------------------------------------------
+// External ID helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Split an external ID string into module and name.
+ * Convention: "module.name" where module is everything before the first dot.
+ *
+ * Example: "bgbl.fiscal_project" → { module: "bgbl", name: "fiscal_project" }
+ * Example: "bgbl.fiscal_project.nuevo" → { module: "bgbl", name: "fiscal_project.nuevo" }
+ */
+export function parseExternalId(externalId: string): { module: string; name: string } {
+  const dotIndex = externalId.indexOf('.');
+  if (dotIndex === -1) {
+    throw new Error(
+      `Invalid external ID '${externalId}': must contain a dot (e.g., 'module.name')`
+    );
+  }
+  return {
+    module: externalId.substring(0, dotIndex),
+    name: externalId.substring(dotIndex + 1),
+  };
+}
+
+// ---------------------------------------------------------------------------
 // domainToTuples
 // ---------------------------------------------------------------------------
 
@@ -61,8 +85,16 @@ function fmtLookup(ref: LookupRef): string {
 // ---------------------------------------------------------------------------
 
 /**
- * Walk all resources, collect every LookupRef, batch-fetch via searchRead,
- * then return a ResolvedState with resolved IDs and field values.
+ * Walk all resources, resolve external IDs and LookupRefs, then return
+ * a ResolvedState with resolved IDs and field values.
+ *
+ * Resolution order for each resource (3-step fallback):
+ * 1. External ID lookup via ir.model.data (if externalId is set)
+ * 2. _ref lookup via searchRead (if _ref is set and step 1 didn't match)
+ * 3. Create mode (if neither step found a match)
+ *
+ * When step 2 finds a record but step 1 didn't, the resource is marked
+ * for "adoption" — the apply step will write the external ID to ir.model.data.
  */
 export async function resolveLookups(
   resources: ResourceDefinition[],
@@ -70,14 +102,80 @@ export async function resolveLookups(
   client: ResolveClient
 ): Promise<ResolvedState> {
   // -------------------------------------------------------------------------
-  // Step 1: Collect all unique (model, domain) lookup pairs
+  // Step 0: Validate — no duplicate external IDs
   // -------------------------------------------------------------------------
 
-  // Map from key → { model, rawDomain }
+  const seenExternalIds = new Map<string, string>(); // externalId → model
+  for (const res of resources) {
+    if (res.externalId) {
+      if (seenExternalIds.has(res.externalId)) {
+        throw new Error(
+          `Duplicate external ID '${res.externalId}' — already used by ${seenExternalIds.get(res.externalId)}`
+        );
+      }
+      seenExternalIds.set(res.externalId, res.model);
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Step 1: Batch-fetch all external ID records from ir.model.data
+  // -------------------------------------------------------------------------
+
+  // Group external IDs by module prefix for efficient batch fetching
+  const moduleGroups = new Map<string, string[]>(); // module → [name, ...]
+  for (const res of resources) {
+    if (!res.externalId) continue;
+    const { module, name } = parseExternalId(res.externalId);
+    if (!moduleGroups.has(module)) moduleGroups.set(module, []);
+    moduleGroups.get(module)!.push(name);
+  }
+
+  // Fetch all ir.model.data records for each module prefix
+  // Result: externalId string → { res_id, model }
+  const externalIdMap = new Map<string, { res_id: number; model: string }>();
+
+  for (const [module, names] of moduleGroups) {
+    debug('fetching ir.model.data for module=%s (%d names)', module, names.length);
+    const records = await client.searchRead<{
+      id: number;
+      module: string;
+      name: string;
+      model: string;
+      res_id: number;
+    }>(
+      'ir.model.data',
+      [
+        ['module', '=', module],
+        ['name', 'in', names],
+      ],
+      {
+        fields: ['module', 'name', 'model', 'res_id'],
+      }
+    );
+
+    for (const rec of records) {
+      const fullId = `${rec.module}.${rec.name}`;
+      externalIdMap.set(fullId, { res_id: rec.res_id, model: rec.model });
+    }
+  }
+
+  debug('external ID cache: %d entries', externalIdMap.size);
+
+  // -------------------------------------------------------------------------
+  // Step 2: Collect all _ref lookup pairs (for resources not resolved by external ID)
+  // -------------------------------------------------------------------------
+
   const lookupMap = new Map<string, { model: string; domain: RawDomain }>();
 
+  // We need to know which resources need _ref resolution
+  // (those with externalId that wasn't found, or those without externalId)
   for (const res of resources) {
-    // Check _ref
+    // If external ID resolved, skip _ref collection
+    if (res.externalId && externalIdMap.has(res.externalId)) {
+      continue;
+    }
+
+    // Collect _ref lookup
     if (res.ref) {
       const raw = domainToTuples(res.ref.domain);
       const key = lookupKey(res.ref.model, raw);
@@ -86,7 +184,22 @@ export async function resolveLookups(
       }
     }
 
-    // Check field values
+    // Collect field-level lookups
+    for (const value of Object.values(res.values)) {
+      if (isLookupRef(value)) {
+        const raw = domainToTuples(value.domain);
+        const key = lookupKey(value.model, raw);
+        if (!lookupMap.has(key)) {
+          lookupMap.set(key, { model: value.model, domain: raw });
+        }
+      }
+    }
+  }
+
+  // Also collect field-level lookups from externally-resolved resources
+  // (they still need field lookups resolved)
+  for (const res of resources) {
+    if (!(res.externalId && externalIdMap.has(res.externalId))) continue;
     for (const value of Object.values(res.values)) {
       if (isLookupRef(value)) {
         const raw = domainToTuples(value.domain);
@@ -99,10 +212,9 @@ export async function resolveLookups(
   }
 
   // -------------------------------------------------------------------------
-  // Step 2: Batch-fetch all unique lookups
+  // Step 3: Batch-fetch all _ref lookups
   // -------------------------------------------------------------------------
 
-  // Map from key → fetched records[]
   const resultMap = new Map<string, Array<{ id: number; [k: string]: unknown }>>();
 
   for (const [key, { model, domain }] of lookupMap) {
@@ -112,17 +224,35 @@ export async function resolveLookups(
   }
 
   // -------------------------------------------------------------------------
-  // Step 3: Build resolved resources
+  // Step 4: Build resolved resources (3-step fallback per resource)
   // -------------------------------------------------------------------------
 
   const resolvedResources: ResolvedResource[] = [];
 
   for (const res of resources) {
-    // -- Resolve _ref → mode & resolvedId
     let mode: 'create' | 'update' = 'create';
     let resolvedId: number | null = null;
+    let needsAdoption = false;
 
-    if (res.ref) {
+    // --- Step 1: External ID resolution ---
+    if (res.externalId) {
+      const entry = externalIdMap.get(res.externalId);
+      if (entry) {
+        // Validate model matches
+        if (entry.model !== res.model) {
+          throw new Error(
+            `External ID '${res.externalId}' points to ${entry.model} #${entry.res_id}, ` +
+              `but resource declares model ${res.model}`
+          );
+        }
+        mode = 'update';
+        resolvedId = entry.res_id;
+        debug('external ID %s → update id=%d', res.externalId, resolvedId);
+      }
+    }
+
+    // --- Step 2: _ref fallback (only if external ID didn't resolve) ---
+    if (resolvedId === null && res.ref) {
       const raw = domainToTuples(res.ref.domain);
       const key = lookupKey(res.ref.model, raw);
       const records = resultMap.get(key) ?? [];
@@ -130,13 +260,23 @@ export async function resolveLookups(
         mode = 'update';
         resolvedId = records[0].id;
         debug('_ref %s → update id=%d', fmtLookup(res.ref), resolvedId);
+
+        // If the resource has an externalId but it wasn't found in ir.model.data,
+        // this record needs adoption (external ID will be written on apply)
+        if (res.externalId) {
+          needsAdoption = true;
+          debug('will adopt external ID %s for id=%d', res.externalId, resolvedId);
+        }
       } else {
         mode = 'create';
         debug('_ref %s → create (not found)', fmtLookup(res.ref));
       }
     }
 
-    // -- Resolve field-level lookups
+    // --- Step 3: Create mode (no match found) ---
+    // mode defaults to 'create' if neither step found anything
+
+    // --- Resolve field-level lookups ---
     const resolvedValues: Record<string, unknown> = {};
 
     for (const [field, value] of Object.entries(res.values)) {
@@ -169,6 +309,8 @@ export async function resolveLookups(
       mode,
       resolvedId,
       resolvedValues,
+      ...(res.externalId ? { externalId: res.externalId } : {}),
+      ...(needsAdoption ? { needsAdoption: true } : {}),
     });
   }
 
