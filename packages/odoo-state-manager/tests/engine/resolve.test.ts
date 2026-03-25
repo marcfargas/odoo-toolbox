@@ -305,4 +305,60 @@ describe('resolveLookups()', () => {
     expect(state.resources[1].mode).toBe('create');
     expect(state.resources[1].resolvedId).toBeNull();
   });
+
+  describe('ResourceRef resolution', () => {
+    it('resolves ResourceRef to numeric ID when external ID exists', async () => {
+      const child = resource('ir.actions.server', 'bgbl.my_cron.action', {
+        name: 'My Action',
+      });
+      const parent = resource('ir.cron', 'bgbl.my_cron', {
+        name: 'My Cron',
+        ir_actions_server_id: { __type: 'resourceRef' as const, externalId: 'bgbl.my_cron.action' },
+      });
+
+      const searchRead = vi.fn(async (model: string, domain: any[]) => {
+        if (model === 'ir.model.data') {
+          const names = domain.find((t: any) => t[0] === 'name')?.[2] ?? [];
+          const results: any[] = [];
+          if (names.includes('my_cron.action')) {
+            results.push({
+              id: 1,
+              module: 'bgbl',
+              name: 'my_cron.action',
+              model: 'ir.actions.server',
+              res_id: 77,
+            });
+          }
+          if (names.includes('my_cron')) {
+            results.push({ id: 2, module: 'bgbl', name: 'my_cron', model: 'ir.cron', res_id: 88 });
+          }
+          return results;
+        }
+        return [];
+      });
+      const client: ResolveClient = { searchRead };
+
+      const state = await resolveLookups([child, parent], noPolicies, client);
+
+      expect(state.resources[1].resolvedValues.ir_actions_server_id).toBe(77);
+    });
+
+    it('leaves ResourceRef unresolved when external ID is new (create mode)', async () => {
+      const child = resource('ir.actions.server', 'bgbl.my_cron.action', {
+        name: 'My Action',
+      });
+      const parent = resource('ir.cron', 'bgbl.my_cron', {
+        name: 'My Cron',
+        ir_actions_server_id: { __type: 'resourceRef' as const, externalId: 'bgbl.my_cron.action' },
+      });
+
+      const searchRead = vi.fn(async () => []);
+      const client: ResolveClient = { searchRead };
+
+      const state = await resolveLookups([child, parent], noPolicies, client);
+
+      const fieldValue = state.resources[1].resolvedValues.ir_actions_server_id;
+      expect(fieldValue).toEqual({ __type: 'resourceRef', externalId: 'bgbl.my_cron.action' });
+    });
+  });
 });

@@ -1,5 +1,5 @@
 import createDebug from 'debug';
-import { isLookupRef } from '../dsl/types';
+import { isLookupRef, isResourceRef } from '../dsl/types';
 import type {
   LookupDomain,
   LookupRef,
@@ -338,6 +338,40 @@ export async function resolveLookups(
 
         resolvedValues[field] = records[0].id;
         debug('field %s.%s → id=%d', res.model, field, records[0].id);
+      } else if (isResourceRef(value)) {
+        // Try to resolve from external ID cache or current-pass cache
+        const entry = externalIdMap.get(value.externalId);
+        if (entry) {
+          resolvedValues[field] = entry.res_id;
+          debug(
+            'field %s.%s → resourceRef %s → id=%d',
+            res.model,
+            field,
+            value.externalId,
+            entry.res_id
+          );
+        } else {
+          const resolved = resolvedByExternalId.get(value.externalId);
+          if (resolved !== undefined) {
+            resolvedValues[field] = resolved;
+            debug(
+              'field %s.%s → resourceRef %s → id=%d (current pass)',
+              res.model,
+              field,
+              value.externalId,
+              resolved
+            );
+          } else {
+            // Leave unresolved — will be backfilled at apply time
+            resolvedValues[field] = value;
+            debug(
+              'field %s.%s → resourceRef %s unresolved (create mode)',
+              res.model,
+              field,
+              value.externalId
+            );
+          }
+        }
       } else {
         resolvedValues[field] = value;
       }
