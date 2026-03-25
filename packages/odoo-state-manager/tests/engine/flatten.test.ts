@@ -3,6 +3,7 @@ import { resource } from '../../src/dsl/resource';
 import { lookup } from '../../src/dsl/lookup';
 import { children } from '../../src/dsl/children';
 import { flattenChildren } from '../../src/engine/flatten';
+import { isResourceRef } from '../../src/dsl/types';
 
 describe('flattenChildren()', () => {
   it('promotes child resources to top-level', () => {
@@ -161,5 +162,126 @@ describe('flattenChildren()', () => {
     const result = flattenChildren([parent]);
 
     expect(result[1].parentScope).toBeUndefined();
+  });
+
+  describe('inline many2one resource', () => {
+    it('extracts inline resource to top-level and replaces with ResourceRef', () => {
+      const parent = resource('ir.cron', 'bgbl.my_cron', {
+        name: 'My Cron',
+        ir_actions_server_id: resource('ir.actions.server', 'action', {
+          name: 'My Action',
+          state: 'code',
+        }),
+      });
+
+      const result = flattenChildren([parent]);
+
+      expect(result).toHaveLength(2);
+      // Inline resource comes BEFORE parent
+      expect(result[0].model).toBe('ir.actions.server');
+      expect(result[1].model).toBe('ir.cron');
+
+      const ref = result[1].values.ir_actions_server_id;
+      expect(isResourceRef(ref)).toBe(true);
+      if (isResourceRef(ref)) {
+        expect(ref.externalId).toBe('bgbl.my_cron.action');
+      }
+    });
+
+    it('auto-prefixes inline resource externalId with parent', () => {
+      const parent = resource('ir.cron', 'bgbl.my_cron', {
+        name: 'My Cron',
+        ir_actions_server_id: resource('ir.actions.server', 'action', {
+          name: 'My Action',
+        }),
+      });
+
+      const result = flattenChildren([parent]);
+      expect(result[0].externalId).toBe('bgbl.my_cron.action');
+    });
+
+    it('leaves fully qualified inline resource externalId unchanged', () => {
+      const parent = resource('ir.cron', 'bgbl.my_cron', {
+        name: 'My Cron',
+        ir_actions_server_id: resource('ir.actions.server', 'other.my_action', {
+          name: 'My Action',
+        }),
+      });
+
+      const result = flattenChildren([parent]);
+      expect(result[0].externalId).toBe('other.my_action');
+    });
+
+    it('attaches parentScope with no inverseField', () => {
+      const parent = resource('ir.cron', 'bgbl.my_cron', {
+        name: 'My Cron',
+        ir_actions_server_id: resource('ir.actions.server', 'action', {
+          name: 'My Action',
+        }),
+      });
+
+      const result = flattenChildren([parent]);
+      expect(result[0].parentScope).toEqual({
+        parentExternalId: 'bgbl.my_cron',
+      });
+      expect(result[0].parentScope?.inverseField).toBeUndefined();
+    });
+
+    it('throws when inline resource has no externalId and parent has no externalId', () => {
+      const parent = resource('ir.cron', {
+        name: 'My Cron',
+        ir_actions_server_id: resource('ir.actions.server', {
+          name: 'My Action',
+        }),
+      });
+
+      expect(() => flattenChildren([parent])).toThrow(/external ID/i);
+    });
+
+    it('throws when inline resource has unqualified externalId and parent has no externalId', () => {
+      const parent = resource('ir.cron', {
+        name: 'My Cron',
+        ir_actions_server_id: resource('ir.actions.server', 'action', {
+          name: 'My Action',
+        }),
+      });
+
+      expect(() => flattenChildren([parent])).toThrow(/external ID/i);
+    });
+
+    it('works when parent has no externalId but inline resource has qualified externalId', () => {
+      const parent = resource('ir.cron', {
+        name: 'My Cron',
+        ir_actions_server_id: resource('ir.actions.server', 'bgbl.standalone_action', {
+          name: 'My Action',
+        }),
+      });
+
+      const result = flattenChildren([parent]);
+      expect(result).toHaveLength(2);
+      expect(result[0].externalId).toBe('bgbl.standalone_action');
+    });
+
+    it('coexists with children() and lookup() in the same parent', () => {
+      const parent = resource('ir.cron', 'bgbl.my_cron', {
+        name: 'My Cron',
+        ir_actions_server_id: resource('ir.actions.server', 'action', {
+          name: 'My Action',
+        }),
+        partner_id: lookup('res.partner', { name: 'ACME' }),
+      });
+
+      const result = flattenChildren([parent]);
+
+      expect(result).toHaveLength(2);
+
+      const parentRes = result[1];
+      expect(parentRes.values.partner_id).toEqual({
+        __type: 'lookup',
+        model: 'res.partner',
+        domain: { name: 'ACME' },
+      });
+      expect(isResourceRef(parentRes.values.ir_actions_server_id)).toBe(true);
+    });
   });
 });

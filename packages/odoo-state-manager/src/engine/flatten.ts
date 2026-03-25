@@ -12,7 +12,8 @@
 
 import createDebug from 'debug';
 import { isChildrenRef } from '../dsl/children';
-import type { ParentScope, ResourceDefinition } from '../dsl/types';
+import { isResourceDefinition } from '../dsl/types';
+import type { ParentScope, ResourceDefinition, ResourceRef } from '../dsl/types';
 
 const debug = createDebug('odoo-state-manager:flatten');
 
@@ -28,6 +29,7 @@ export function flattenChildren(resources: ResourceDefinition[]): ResourceDefini
     // Check if any field value is a ChildrenRef
     const cleanedValues: Record<string, unknown> = {};
     const childResources: ResourceDefinition[] = [];
+    const inlineResources: ResourceDefinition[] = [];
 
     for (const [field, value] of Object.entries(res.values)) {
       if (isChildrenRef(value)) {
@@ -49,13 +51,45 @@ export function flattenChildren(resources: ResourceDefinition[]): ResourceDefini
         }
 
         // Don't include the ChildrenRef in the parent's values
+      } else if (isResourceDefinition(value)) {
+        debug('found inline resource() in %s.%s → %s', res.model, field, value.model);
+
+        // Build parentScope (no inverseField for inline many2one)
+        const parentScope = {
+          ...(res.externalId !== undefined ? { parentExternalId: res.externalId } : {}),
+          ...(res.ref !== undefined ? { parentRef: res.ref } : {}),
+        };
+
+        // Auto-prefix and attach parentScope
+        const extracted = prefixChildExternalId(
+          value,
+          res.externalId,
+          Object.keys(parentScope).length > 0 ? parentScope : undefined
+        );
+
+        // Validate: extracted resource must have a fully qualified externalId
+        if (!extracted.externalId || !extracted.externalId.includes('.')) {
+          throw new Error(
+            `Inline resource() in ${res.model}.${field} must have a fully qualified external ID ` +
+              `(contains a dot). Got: '${extracted.externalId ?? '(none)'}'. ` +
+              `Either give the inline resource a qualified externalId or ensure the parent has an externalId for auto-prefixing.`
+          );
+        }
+
+        // Replace field value with ResourceRef marker
+        const ref: ResourceRef = Object.freeze({
+          __type: 'resourceRef' as const,
+          externalId: extracted.externalId,
+        });
+        cleanedValues[field] = ref;
+        inlineResources.push(extracted);
       } else {
         cleanedValues[field] = value;
       }
     }
 
     // Rebuild parent without ChildrenRef values (if any were found)
-    if (childResources.length > 0) {
+    if (childResources.length > 0 || inlineResources.length > 0) {
       const cleaned: ResourceDefinition = Object.freeze({
         __type: 'resource' as const,
         model: res.model,
@@ -64,7 +98,10 @@ export function flattenChildren(resources: ResourceDefinition[]): ResourceDefini
         values: Object.freeze(cleanedValues),
         ...(res.removeUnmanaged !== undefined ? { removeUnmanaged: res.removeUnmanaged } : {}),
       });
+      // Inline many2one resources go BEFORE parent (parent references them)
+      result.push(...inlineResources);
       result.push(cleaned);
+      // children go AFTER parent (they reference parent via inverse field)
       result.push(...childResources);
     } else {
       result.push(res);
