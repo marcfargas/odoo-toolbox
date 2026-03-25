@@ -23,7 +23,10 @@ export default defineConfig({
       '/': [
         {
           text: 'Getting Started',
-          items: [{ text: 'Introduction', link: '/getting-started' }],
+          items: [
+            { text: 'Introduction', link: '/getting-started' },
+            { text: 'Safety Model', link: '/safety' },
+          ],
         },
         {
           text: 'Client',
