@@ -26,3 +26,13 @@ export type {
   ResolvedState,
 } from './engine';
 export { plan, apply, diff, formatPlan } from './engine';
+export { exportData, importData } from './clone';
+export type {
+  DataDomain,
+  ExportOptions,
+  ImportOptions,
+  Snapshot,
+  SnapshotMetadata,
+  ExportedRecord,
+  ImportResult,
+} from './clone';

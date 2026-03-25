@@ -10,8 +10,10 @@ import { OdooClientPool } from './client-pool';
 import { loadPolicy, type PolicyRule } from './policy';
 import { McpOdooServer } from './server';
 import { createMcpSafetyContext } from './safety';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { startHttpTransport, type HttpTransportHandle } from './transport/http';
 import { startStdioTransport } from './transport/stdio';
+import pkg from '../package.json';
 
 const log = debug('odoo-mcp:index');
 
@@ -58,13 +60,7 @@ function safeErrorMessage(error: unknown): string {
 }
 
 function loadVersion(): string {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const pkg = require('../package.json') as { version?: string };
-    return pkg.version ?? '0.1.0';
-  } catch {
-    return '0.1.0';
-  }
+  return pkg.version ?? '0.1.0';
 }
 
 async function main(): Promise<void> {
@@ -128,19 +124,21 @@ async function main(): Promise<void> {
 
       process.stderr.write(`Warning: ${errorMsg}\n`);
 
-      const { McpServer } = require('@modelcontextprotocol/sdk/server/mcp.js') as typeof import('@modelcontextprotocol/sdk/server/mcp.js');
       const degraded = new McpServer({ name: 'odoo-mcp', version });
-      degraded.tool(
-        'odoo_status',
-        'Check Odoo MCP server configuration status',
-        {},
-        async () => ({
-          content: [{ type: 'text' as const, text: `ERROR: ${errorMsg}` }],
-          isError: true,
-        }),
-      );
+      degraded.tool('odoo_status', 'Check Odoo MCP server configuration status', {}, async () => ({
+        content: [{ type: 'text' as const, text: `ERROR: ${errorMsg}` }],
+        isError: true,
+      }));
       // Register all normal tool names so Claude sees them and gets a helpful error
-      for (const toolName of ['odoo_discover', 'odoo_model_info', 'odoo_search', 'odoo_get', 'odoo_create', 'odoo_write', 'odoo_get_related']) {
+      for (const toolName of [
+        'odoo_discover',
+        'odoo_model_info',
+        'odoo_search',
+        'odoo_get',
+        'odoo_create',
+        'odoo_write',
+        'odoo_get_related',
+      ]) {
         degraded.tool(toolName, `Odoo tool (not configured)`, {}, async () => ({
           content: [{ type: 'text' as const, text: `ERROR: ${errorMsg}` }],
           isError: true,
