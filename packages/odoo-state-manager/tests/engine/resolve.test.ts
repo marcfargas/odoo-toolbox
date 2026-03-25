@@ -243,6 +243,44 @@ describe('resolveLookups()', () => {
     expect(state.resources[1].needsAdoption).toBe(true);
   });
 
+  it('parentScope without inverseField skips _ref scoping', async () => {
+    // Inline many2one child: parentScope has no inverseField
+    const parent = resource('project.project', 'bgbl.fiscal', { name: 'Fiscal' });
+    const child: import('../../src/dsl/types').ResourceDefinition = Object.freeze({
+      __type: 'resource' as const,
+      model: 'ir.actions.server',
+      externalId: 'bgbl.fiscal.action',
+      ref: { __type: 'lookup' as const, model: 'ir.actions.server', domain: { name: 'My Action' } },
+      values: Object.freeze({ name: 'My Action' }),
+      parentScope: {
+        // No inverseField — inline many2one resource
+        parentExternalId: 'bgbl.fiscal',
+      },
+    });
+
+    const searchRead = vi.fn(async (model: string, domain: any[]) => {
+      if (model === 'ir.model.data') {
+        // Neither external ID exists in ir.model.data
+        return [];
+      }
+      if (model === 'ir.actions.server') {
+        // _ref should NOT be scoped — no inverseField constraint in domain
+        const hasInverseScope = domain.some((t: any) => t[0] !== 'name');
+        if (hasInverseScope) return []; // fail if scoping was applied
+        return [{ id: 50 }];
+      }
+      return [];
+    });
+    const client: ResolveClient = { searchRead };
+
+    const state = await resolveLookups([parent, child], noPolicies, client);
+
+    // Child found via unscoped _ref
+    expect(state.resources[1].mode).toBe('update');
+    expect(state.resources[1].resolvedId).toBe(50);
+    expect(state.resources[1].needsAdoption).toBe(true);
+  });
+
   it('child _ref falls through to create when parent is not found', async () => {
     const parent = resource('project.project', 'bgbl.fiscal', { name: 'Fiscal' });
     const child: import('../../src/dsl/types').ResourceDefinition = Object.freeze({

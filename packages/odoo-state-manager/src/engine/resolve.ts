@@ -258,7 +258,7 @@ export async function resolveLookups(
     if (resolvedId === null && res.ref) {
       // If child has parentScope, resolve the parent ID and augment the domain
       let scopedRef = res.ref;
-      if (res.parentScope) {
+      if (res.parentScope && res.parentScope.inverseField !== undefined) {
         const parentId = resolveParentId(
           res.parentScope,
           externalIdMap,
