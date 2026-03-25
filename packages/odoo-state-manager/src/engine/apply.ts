@@ -395,6 +395,12 @@ async function executeUpdate(
   try {
     const ids = op.id !== undefined ? [op.id] : [];
     await client.write(op.model, ids, values);
+
+    // Track ID for ResourceRef backfill (inline resource in update mode)
+    if (op.externalId && op.id !== undefined) {
+      createdIds.set(op.externalId, op.id);
+    }
+
     return { operation: op, status: 'ok' };
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);

@@ -205,7 +205,7 @@ describe('diffRecord()', () => {
     expect(diffs[0].field).toBe('tag_ids');
   });
 
-  it('skips ResourceRef fields (unresolved inline many2one)', () => {
+  it('includes ResourceRef fields in diff (unresolved inline many2one)', () => {
     const ref = { __type: 'resourceRef' as const, externalId: 'bgbl.my_cron.action' };
     const desired = { name: 'My Cron', ir_actions_server_id: ref };
     const actual = { name: 'My Cron', ir_actions_server_id: false };
@@ -215,8 +215,9 @@ describe('diffRecord()', () => {
     ]);
     const diffs = diffRecord(desired, actual, fields);
 
-    // ResourceRef field should be skipped — no spurious diff
-    expect(diffs).toHaveLength(0);
+    // ResourceRef field should produce a diff (it will be resolved at apply time)
+    expect(diffs).toHaveLength(1);
+    expect(diffs[0].field).toBe('ir_actions_server_id');
   });
 });
 

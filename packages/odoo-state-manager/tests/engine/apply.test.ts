@@ -326,6 +326,35 @@ describe('applyPlan', () => {
       expect(parentWriteCall[2]).toEqual({ name: 'My Cron', ir_actions_server_id: 77 });
     });
 
+    it('backfills ResourceRef from update operations (inline resource already exists)', async () => {
+      // Child exists (update mode, id=50), parent is new (create mode)
+      vi.mocked(client.create).mockResolvedValueOnce(88); // parent create
+
+      const ref: ResourceRef = { __type: 'resourceRef', externalId: 'bgbl.my_cron.action' };
+
+      const plan = makePlan([
+        {
+          type: 'update',
+          model: 'ir.actions.server',
+          id: 50,
+          values: { name: 'My Action' },
+          level: 1,
+          externalId: 'bgbl.my_cron.action',
+        },
+        {
+          type: 'create',
+          model: 'ir.cron',
+          values: { name: 'My Cron', ir_actions_server_id: ref as unknown as number },
+          level: 2,
+        },
+      ]);
+      const result = await applyPlan(plan, client);
+
+      expect(result.succeeded).toBe(2);
+      const parentCreateCall = vi.mocked(client.create).mock.calls[0];
+      expect(parentCreateCall[1]).toEqual({ name: 'My Cron', ir_actions_server_id: 50 });
+    });
+
     it('backfills ResourceRef from adopt operations', async () => {
       const ref: ResourceRef = { __type: 'resourceRef', externalId: 'bgbl.my_cron.action' };
 
