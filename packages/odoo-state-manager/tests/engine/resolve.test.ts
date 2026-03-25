@@ -200,4 +200,71 @@ describe('resolveLookups()', () => {
     const state = await resolveLookups([], [policy], client);
     expect(state.policies).toStrictEqual([policy]);
   });
+
+  it('scopes child _ref to parent when parentScope is set', async () => {
+    // Simulate a flattened parent + child with parentScope
+    const parent = resource('project.project', 'bgbl.fiscal', { name: 'Fiscal' });
+    const child: import('../../src/dsl/types').ResourceDefinition = Object.freeze({
+      __type: 'resource' as const,
+      model: 'project.task.type',
+      externalId: 'bgbl.fiscal.nuevo',
+      ref: { __type: 'lookup' as const, model: 'project.task.type', domain: { name: 'Nuevo' } },
+      values: Object.freeze({ name: 'Nuevo' }),
+      parentScope: {
+        inverseField: 'project_id',
+        parentExternalId: 'bgbl.fiscal',
+      },
+    });
+
+    const searchRead = vi.fn(async (model: string, domain: any[]) => {
+      // ir.model.data: parent exists with res_id=100
+      if (model === 'ir.model.data') {
+        return [{ id: 1, module: 'bgbl', name: 'fiscal', model: 'project.project', res_id: 100 }];
+      }
+      // Scoped child _ref: should include project_id=100
+      if (model === 'project.task.type') {
+        const hasScope = domain.some((t: any) => t[0] === 'project_id' && t[2] === 100);
+        if (hasScope) return [{ id: 200 }];
+        return []; // unscoped would return nothing
+      }
+      return [];
+    });
+    const client: ResolveClient = { searchRead };
+
+    const state = await resolveLookups([parent, child], noPolicies, client);
+
+    // Parent resolved via external ID
+    expect(state.resources[0].mode).toBe('update');
+    expect(state.resources[0].resolvedId).toBe(100);
+
+    // Child resolved via scoped _ref (adopted)
+    expect(state.resources[1].mode).toBe('update');
+    expect(state.resources[1].resolvedId).toBe(200);
+    expect(state.resources[1].needsAdoption).toBe(true);
+  });
+
+  it('child _ref falls through to create when parent is not found', async () => {
+    const parent = resource('project.project', 'bgbl.fiscal', { name: 'Fiscal' });
+    const child: import('../../src/dsl/types').ResourceDefinition = Object.freeze({
+      __type: 'resource' as const,
+      model: 'project.task.type',
+      externalId: 'bgbl.fiscal.nuevo',
+      ref: { __type: 'lookup' as const, model: 'project.task.type', domain: { name: 'Nuevo' } },
+      values: Object.freeze({ name: 'Nuevo' }),
+      parentScope: {
+        inverseField: 'project_id',
+        parentExternalId: 'bgbl.fiscal',
+      },
+    });
+
+    const searchRead = vi.fn(async () => []);
+    const client: ResolveClient = { searchRead };
+
+    const state = await resolveLookups([parent, child], noPolicies, client);
+
+    // Both parent and child are new
+    expect(state.resources[0].mode).toBe('create');
+    expect(state.resources[1].mode).toBe('create');
+    expect(state.resources[1].resolvedId).toBeNull();
+  });
 });

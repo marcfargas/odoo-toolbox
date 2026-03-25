@@ -12,6 +12,16 @@ export interface LookupRef {
 
 export type RemoveUnmanagedMap = Record<string, boolean>;
 
+/** Tracks a child resource's relationship to its parent for scoping _ref lookups. */
+export interface ParentScope {
+  /** The inverse many2one field on the child model (e.g., 'project_id'). */
+  readonly inverseField: string;
+  /** Parent's external ID (if available). Used to resolve parent's record ID. */
+  readonly parentExternalId?: string;
+  /** Parent's _ref lookup (if available). Fallback when no externalId. */
+  readonly parentRef?: LookupRef;
+}
+
 export interface ResourceDefinition {
   readonly __type: 'resource';
   readonly model: string;
@@ -20,6 +30,8 @@ export interface ResourceDefinition {
   readonly externalId?: string;
   readonly values: Record<string, unknown>;
   readonly removeUnmanaged?: RemoveUnmanagedMap;
+  /** Set by flattenChildren when the resource was a child with an inverseField. */
+  readonly parentScope?: ParentScope;
 }
 
 export interface ModelPolicy {

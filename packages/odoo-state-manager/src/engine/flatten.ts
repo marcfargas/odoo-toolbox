@@ -12,7 +12,7 @@
 
 import createDebug from 'debug';
 import { isChildrenRef } from '../dsl/children';
-import type { ResourceDefinition } from '../dsl/types';
+import type { ParentScope, ResourceDefinition } from '../dsl/types';
 
 const debug = createDebug('odoo-state-manager:flatten');
 
@@ -33,9 +33,18 @@ export function flattenChildren(resources: ResourceDefinition[]): ResourceDefini
       if (isChildrenRef(value)) {
         debug('found children() in %s.%s (%d children)', res.model, field, value.resources.length);
 
+        // Build parent scope for _ref scoping (if inverseField is provided)
+        const parentScope: ParentScope | undefined = value.inverseField
+          ? {
+              inverseField: value.inverseField,
+              ...(res.externalId !== undefined ? { parentExternalId: res.externalId } : {}),
+              ...(res.ref !== undefined ? { parentRef: res.ref } : {}),
+            }
+          : undefined;
+
         for (const child of value.resources) {
           // Auto-prefix child externalId with parent's externalId
-          const prefixedChild = prefixChildExternalId(child, res.externalId);
+          const prefixedChild = prefixChildExternalId(child, res.externalId, parentScope);
           childResources.push(prefixedChild);
         }
 
@@ -66,7 +75,8 @@ export function flattenChildren(resources: ResourceDefinition[]): ResourceDefini
 }
 
 /**
- * Auto-prefix a child resource's externalId with the parent's externalId.
+ * Auto-prefix a child resource's externalId with the parent's externalId,
+ * and attach parentScope for _ref scoping.
  *
  * If the child has externalId "nuevo" and the parent has "bgbl.fiscal_project",
  * the child's externalId becomes "bgbl.fiscal_project.nuevo".
@@ -78,28 +88,31 @@ export function flattenChildren(resources: ResourceDefinition[]): ResourceDefini
  */
 function prefixChildExternalId(
   child: ResourceDefinition,
-  parentExternalId: string | undefined
+  parentExternalId: string | undefined,
+  parentScope: ParentScope | undefined
 ): ResourceDefinition {
-  if (!child.externalId || !parentExternalId) {
+  const needsPrefix = child.externalId && parentExternalId && !child.externalId.includes('.');
+  const needsScope = parentScope !== undefined;
+
+  if (!needsPrefix && !needsScope) {
     return child;
   }
 
-  // If the child's externalId already contains a dot, treat it as fully qualified
-  if (child.externalId.includes('.')) {
+  let prefixed = child.externalId;
+  if (needsPrefix) {
+    prefixed = `${parentExternalId}.${child.externalId}`;
+    debug('prefixed child externalId: %s → %s', child.externalId, prefixed);
+  } else if (child.externalId?.includes('.')) {
     debug('child externalId %s is already qualified, skipping prefix', child.externalId);
-    return child;
   }
-
-  // Prefix: "bgbl.fiscal_project" + "nuevo" → "bgbl.fiscal_project.nuevo"
-  const prefixed = `${parentExternalId}.${child.externalId}`;
-  debug('prefixed child externalId: %s → %s', child.externalId, prefixed);
 
   return Object.freeze({
     __type: 'resource' as const,
     model: child.model,
-    externalId: prefixed,
+    ...(prefixed !== undefined ? { externalId: prefixed } : {}),
     ...(child.ref !== undefined ? { ref: child.ref } : {}),
     values: child.values,
     ...(child.removeUnmanaged !== undefined ? { removeUnmanaged: child.removeUnmanaged } : {}),
+    ...(needsScope ? { parentScope } : {}),
   });
 }

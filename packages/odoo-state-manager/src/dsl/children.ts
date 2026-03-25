@@ -17,6 +17,8 @@ import type { ResourceDefinition } from './types';
 export interface ChildrenRef {
   readonly __type: 'children';
   readonly model: string;
+  /** Inverse many2one field on the child model (e.g., 'project_id'). Scopes _ref lookups to the parent. */
+  readonly inverseField?: string;
   readonly resources: ResourceDefinition[];
 }
 
@@ -24,6 +26,24 @@ export function isChildrenRef(v: unknown): v is ChildrenRef {
   return typeof v === 'object' && v !== null && (v as any).__type === 'children';
 }
 
-export function children(model: string, resources: ResourceDefinition[]): ChildrenRef {
-  return Object.freeze({ __type: 'children' as const, model, resources });
+export function children(model: string, resources: ResourceDefinition[]): ChildrenRef;
+export function children(
+  model: string,
+  inverseField: string,
+  resources: ResourceDefinition[]
+): ChildrenRef;
+export function children(
+  model: string,
+  inverseFieldOrResources: string | ResourceDefinition[],
+  maybeResources?: ResourceDefinition[]
+): ChildrenRef {
+  if (typeof inverseFieldOrResources === 'string') {
+    return Object.freeze({
+      __type: 'children' as const,
+      model,
+      inverseField: inverseFieldOrResources,
+      resources: maybeResources!,
+    });
+  }
+  return Object.freeze({ __type: 'children' as const, model, resources: inverseFieldOrResources });
 }

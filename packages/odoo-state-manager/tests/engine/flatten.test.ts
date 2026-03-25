@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { resource } from '../../src/dsl/resource';
+import { lookup } from '../../src/dsl/lookup';
 import { children } from '../../src/dsl/children';
 import { flattenChildren } from '../../src/engine/flatten';
 
@@ -110,5 +111,55 @@ describe('flattenChildren()', () => {
 
     // Child keeps its original short externalId (no prefix available)
     expect(result[1].externalId).toBe('nuevo');
+  });
+
+  it('attaches parentScope when inverseField is provided', () => {
+    const parent = resource('project.project', 'bgbl.fiscal', {
+      name: 'Fiscal',
+      type_ids: children('project.task.type', 'project_id', [
+        resource('project.task.type', 'nuevo', {
+          _ref: lookup('project.task.type', { name: 'Nuevo' }),
+          name: 'Nuevo',
+        }),
+      ]),
+    });
+
+    const result = flattenChildren([parent]);
+
+    expect(result[1].parentScope).toEqual({
+      inverseField: 'project_id',
+      parentExternalId: 'bgbl.fiscal',
+    });
+  });
+
+  it('attaches parentScope with parentRef when parent has _ref', () => {
+    const parent = resource('project.project', 'bgbl.fiscal', {
+      _ref: lookup('project.project', { name: 'Fiscal' }),
+      name: 'Fiscal',
+      type_ids: children('project.task.type', 'project_id', [
+        resource('project.task.type', 'nuevo', { name: 'Nuevo' }),
+      ]),
+    });
+
+    const result = flattenChildren([parent]);
+
+    expect(result[1].parentScope).toEqual({
+      inverseField: 'project_id',
+      parentExternalId: 'bgbl.fiscal',
+      parentRef: { __type: 'lookup', model: 'project.project', domain: { name: 'Fiscal' } },
+    });
+  });
+
+  it('does not attach parentScope when no inverseField', () => {
+    const parent = resource('project.project', 'bgbl.fiscal', {
+      name: 'Fiscal',
+      type_ids: children('project.task.type', [
+        resource('project.task.type', 'nuevo', { name: 'Nuevo' }),
+      ]),
+    });
+
+    const result = flattenChildren([parent]);
+
+    expect(result[1].parentScope).toBeUndefined();
   });
 });

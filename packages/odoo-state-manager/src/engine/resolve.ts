@@ -227,6 +227,9 @@ export async function resolveLookups(
   // Step 4: Build resolved resources (3-step fallback per resource)
   // -------------------------------------------------------------------------
 
+  // Track resolved IDs by externalId so children can look up their parent's ID
+  const resolvedByExternalId = new Map<string, number>();
+
   const resolvedResources: ResolvedResource[] = [];
 
   for (const res of resources) {
@@ -253,23 +256,60 @@ export async function resolveLookups(
 
     // --- Step 2: _ref fallback (only if external ID didn't resolve) ---
     if (resolvedId === null && res.ref) {
-      const raw = domainToTuples(res.ref.domain);
-      const key = lookupKey(res.ref.model, raw);
-      const records = resultMap.get(key) ?? [];
-      if (records.length > 0) {
-        mode = 'update';
-        resolvedId = records[0].id;
-        debug('_ref %s → update id=%d', fmtLookup(res.ref), resolvedId);
-
-        // If the resource has an externalId but it wasn't found in ir.model.data,
-        // this record needs adoption (external ID will be written on apply)
-        if (res.externalId) {
-          needsAdoption = true;
-          debug('will adopt external ID %s for id=%d', res.externalId, resolvedId);
+      // If child has parentScope, resolve the parent ID and augment the domain
+      let scopedRef = res.ref;
+      if (res.parentScope) {
+        const parentId = resolveParentId(
+          res.parentScope,
+          externalIdMap,
+          resolvedByExternalId,
+          resultMap
+        );
+        if (parentId !== null) {
+          const baseDomain = domainToTuples(res.ref.domain);
+          const scopedDomain: RawDomain = [
+            ...baseDomain,
+            [res.parentScope.inverseField, '=', parentId],
+          ];
+          scopedRef = { __type: 'lookup' as const, model: res.ref.model, domain: scopedDomain };
+          debug('scoped _ref to parent via %s=%d', res.parentScope.inverseField, parentId);
+        } else {
+          // Parent not found — child _ref can't be scoped, skip lookup entirely
+          debug('parent not resolved — child _ref will fall through to create');
+          scopedRef = null as any; // skip _ref resolution
         }
-      } else {
-        mode = 'create';
-        debug('_ref %s → create (not found)', fmtLookup(res.ref));
+      }
+
+      if (scopedRef) {
+        const raw = domainToTuples(scopedRef.domain);
+        const key = lookupKey(scopedRef.model, raw);
+
+        // Scoped refs need fresh queries (not from the batch cache)
+        let records: Array<{ id: number }>;
+        if (res.parentScope) {
+          debug('searchRead (scoped) %s %o', scopedRef.model, raw);
+          records = await client.searchRead<{ id: number }>(scopedRef.model, raw, {
+            fields: ['id'],
+          });
+        } else {
+          records = (resultMap.get(key) ?? []) as Array<{ id: number }>;
+        }
+
+        if (records.length > 0) {
+          mode = 'update';
+          resolvedId = records[0].id;
+          debug('_ref %s → update id=%d', fmtLookup(scopedRef), resolvedId);
+
+          // If the resource has an externalId but it wasn't found in ir.model.data,
+          // this record needs adoption (external ID will be written on apply)
+          if (res.externalId) {
+            needsAdoption = true;
+            debug('will adopt external ID %s for id=%d', res.externalId, resolvedId);
+          }
+        } else {
+          mode = 'create';
+          debug('_ref %s → create (not found)', fmtLookup(scopedRef));
+        }
       }
     }
 
@@ -303,6 +343,11 @@ export async function resolveLookups(
       }
     }
 
+    // Track resolved ID by externalId so children can scope to this parent
+    if (res.externalId && resolvedId !== null) {
+      resolvedByExternalId.set(res.externalId, resolvedId);
+    }
+
     resolvedResources.push({
       original: res,
       model: res.model,
@@ -315,4 +360,42 @@ export async function resolveLookups(
   }
 
   return { resources: resolvedResources, policies };
+}
+
+// ---------------------------------------------------------------------------
+// Parent scope resolution
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolve a parent's record ID from available sources.
+ *
+ * Tries in order:
+ * 1. Parent's externalId in ir.model.data (from batch fetch)
+ * 2. Parent's externalId from already-resolved resources (current pass)
+ * 3. Parent's _ref from batch lookup cache
+ */
+function resolveParentId(
+  scope: { parentExternalId?: string; parentRef?: LookupRef },
+  externalIdMap: Map<string, { res_id: number; model: string }>,
+  resolvedByExternalId: Map<string, number>,
+  resultMap: Map<string, Array<{ id: number; [k: string]: unknown }>>
+): number | null {
+  // Try externalId first
+  if (scope.parentExternalId) {
+    const entry = externalIdMap.get(scope.parentExternalId);
+    if (entry) return entry.res_id;
+
+    const resolved = resolvedByExternalId.get(scope.parentExternalId);
+    if (resolved !== undefined) return resolved;
+  }
+
+  // Try parent _ref from batch cache
+  if (scope.parentRef) {
+    const raw = domainToTuples(scope.parentRef.domain);
+    const key = lookupKey(scope.parentRef.model, raw);
+    const records = resultMap.get(key);
+    if (records && records.length > 0) return records[0].id;
+  }
+
+  return null;
 }
