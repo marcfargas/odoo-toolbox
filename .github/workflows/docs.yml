@@ -1,0 +1,33 @@
+name: Docs
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "docs/**"
+      - "packages/*/README.md"
+      - "packages/*/docs/**"
+      - "docs/.vitepress/**"
+
+concurrency:
+  group: docs
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run docs:build
+      - uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/.vitepress/dist
