@@ -1,4 +1,5 @@
 export { evaluate } from './evaluate';
+export { flattenChildren } from './flatten';
 export { domainToTuples, resolveLookups, parseExternalId } from './resolve';
 export type { ResolveClient } from './resolve';
 export {

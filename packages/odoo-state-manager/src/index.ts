@@ -11,7 +11,13 @@ export type {
   ChildrenRef,
 } from './dsl';
 export { isLookupRef, isResourceDefinition, isModelPolicy, isChildrenRef } from './dsl';
-export { evaluate, domainToTuples, resolveLookups, parseExternalId } from './engine';
+export {
+  evaluate,
+  flattenChildren,
+  domainToTuples,
+  resolveLookups,
+  parseExternalId,
+} from './engine';
 export type { ResolveClient } from './engine';
 export type {
   EvaluationResult,

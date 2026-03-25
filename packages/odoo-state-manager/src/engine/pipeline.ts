@@ -1,6 +1,7 @@
 import { Introspector } from '@marcfargas/odoo-introspection';
 import type { OdooClient } from '@marcfargas/odoo-client';
 import { evaluate } from './evaluate';
+import { flattenChildren } from './flatten';
 import { resolveLookups } from './resolve';
 import type { ResolveClient } from './resolve';
 import {
@@ -29,9 +30,12 @@ export async function plan(options: { dir: string; client: OdooClient }): Promis
   // 1. Evaluate — collect definitions from .ts files
   const definitions = await evaluate(dir);
 
-  // 2. Resolve lookups — replace LookupRef markers with real IDs
+  // 2. Flatten children — promote children() declarations to top-level resources
+  const flatResources = flattenChildren(definitions.resources);
+
+  // 3. Resolve lookups — replace LookupRef markers with real IDs
   const resolved = await resolveLookups(
-    definitions.resources,
+    flatResources,
     definitions.policies,
     client as unknown as ResolveClient
   );

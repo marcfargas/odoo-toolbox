@@ -163,9 +163,11 @@ If an external ID already exists in `ir.model.data` pointing to a different mode
 
 If a record found via `_ref` already has a *different* external ID in `ir.model.data` (assigned by another module or a previous state definition), the current implementation does not detect this. The new external ID will be written alongside the existing one.
 
-### children() is a declaration, not automatic prefixing
+### children() auto-prefixing rules
 
-`children()` currently serves as a type-safe wrapper for declaring child resources. External ID prefixing must be done manually in the child resource definitions (e.g., `bgbl.fiscal.nuevo`). Automatic prefixing from the parent's external ID is a planned enhancement.
+Child resources with short external IDs (no dot) are automatically prefixed with the parent's external ID. For example, a child with `'nuevo'` under a parent with `'bgbl.fiscal'` becomes `'bgbl.fiscal.nuevo'`.
+
+Children with fully qualified external IDs (containing a dot) are left unchanged. Children without external IDs are not affected. If the parent has no external ID, children keep their IDs as-is.
 
 ### External ID format validation
 
