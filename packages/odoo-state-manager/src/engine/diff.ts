@@ -1,6 +1,7 @@
 import createDebug from 'debug';
 import type { OdooField } from '@marcfargas/odoo-introspection';
 import type { ResolvedState, ResolvedResource } from './types';
+import { isResourceRef } from '../dsl/types';
 
 const debug = createDebug('odoo-state-manager:diff');
 
@@ -110,6 +111,13 @@ export function diffRecord(
           continue;
         }
       }
+    }
+
+    // Skip unresolved ResourceRef markers — these are inline many2one references
+    // that will be backfilled at apply time. Comparing them is meaningless.
+    if (isResourceRef(desiredValue)) {
+      debug('skip ResourceRef field %s (unresolved)', fieldName);
+      continue;
     }
 
     // Determine field type for normalization
