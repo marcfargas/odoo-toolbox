@@ -52,7 +52,8 @@
     "version-packages": "changeset version",
     "release": "changeset publish",
     "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
+    "docs:prebuild": "npx tsx docs/.vitepress/scripts/copy-readmes.mts",
+    "docs:build": "npx tsx docs/.vitepress/scripts/copy-readmes.mts && vitepress build docs",
     "docs:preview": "vitepress preview docs"
   },
   "devDependencies": {
