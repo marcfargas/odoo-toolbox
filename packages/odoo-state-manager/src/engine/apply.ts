@@ -1,6 +1,7 @@
 import createDebug from 'debug';
 import type { Plan, Operation, OperationResult, ApplyResult } from './types';
 import { parseExternalId } from './resolve';
+import { isResourceRef } from '../dsl/types';
 
 const debug = createDebug('odoo-state-manager:apply');
 
@@ -63,6 +64,9 @@ export async function applyPlan(
   let failed = 0;
   let halted = false;
 
+  // Track created/adopted IDs by externalId for ResourceRef backfill
+  const createdIds = new Map<string, number>();
+
   if (total === 0) {
     return { results, succeeded, failed };
   }
@@ -112,6 +116,7 @@ export async function applyPlan(
       const batchedResults = await executeBatched(
         recordOps,
         client,
+        createdIds,
         operationIndex,
         total,
         halted,
@@ -184,6 +189,7 @@ async function executeInstall(op: Operation, client: ApplyClient): Promise<Opera
 async function executeBatched(
   ops: Operation[],
   client: ApplyClient,
+  createdIds: Map<string, number>,
   baseIndex: number,
   total: number,
   initialHalted: boolean,
@@ -258,11 +264,11 @@ async function executeBatched(
 
     let r: OperationResult;
     if (op.type === 'create') {
-      r = await executeCreate(op, client);
+      r = await executeCreate(op, client, createdIds);
     } else if (op.type === 'update') {
-      r = await executeUpdate(op, client);
+      r = await executeUpdate(op, client, createdIds);
     } else if (op.type === 'adopt') {
-      r = await executeAdopt(op, client);
+      r = await executeAdopt(op, client, createdIds);
     } else {
       // Fallback for unknown types — treat as error
       r = { operation: op, status: 'error', error: `Unknown operation type: ${op.type}` };
@@ -279,11 +285,52 @@ async function executeBatched(
   return results;
 }
 
-async function executeCreate(op: Operation, client: ApplyClient): Promise<OperationResult> {
-  debug('create %s values=%j', op.model, op.values);
+/**
+ * Replace any ResourceRef markers in operation values with resolved numeric IDs.
+ * Returns a new values object if any replacements were made, otherwise the original.
+ */
+function resolveResourceRefs(
+  values: Record<string, unknown>,
+  createdIds: Map<string, number>
+): Record<string, unknown> {
+  let replaced = false;
+  const resolved: Record<string, unknown> = {};
+
+  for (const [key, val] of Object.entries(values)) {
+    if (isResourceRef(val)) {
+      const id = createdIds.get(val.externalId);
+      if (id === undefined) {
+        throw new Error(
+          `ResourceRef '${val.externalId}' could not be resolved — ` +
+            `the referenced resource was not created or adopted in a prior level`
+        );
+      }
+      resolved[key] = id;
+      replaced = true;
+      debug('backfill %s → id=%d', val.externalId, id);
+    } else {
+      resolved[key] = val;
+    }
+  }
+
+  return replaced ? resolved : values;
+}
+
+async function executeCreate(
+  op: Operation,
+  client: ApplyClient,
+  createdIds: Map<string, number>
+): Promise<OperationResult> {
+  const values = op.values ? resolveResourceRefs(op.values, createdIds) : {};
+  debug('create %s values=%j', op.model, values);
   try {
-    const id = await client.create(op.model, op.values ?? {});
+    const id = await client.create(op.model, values);
     debug('create %s → id=%d', op.model, id);
+
+    // Track created ID for ResourceRef backfill
+    if (op.externalId) {
+      createdIds.set(op.externalId, id);
+    }
 
     // Write external ID to ir.model.data if present
     if (op.externalId) {
@@ -298,13 +345,21 @@ async function executeCreate(op: Operation, client: ApplyClient): Promise<Operat
   }
 }
 
-async function executeAdopt(op: Operation, client: ApplyClient): Promise<OperationResult> {
+async function executeAdopt(
+  op: Operation,
+  client: ApplyClient,
+  createdIds: Map<string, number>
+): Promise<OperationResult> {
   if (!op.externalId || !op.id) {
     return { operation: op, status: 'error', error: 'adopt requires externalId and id' };
   }
   debug('adopt %s id=%d externalId=%s', op.model, op.id, op.externalId);
   try {
     await writeExternalId(client, op.externalId, op.model, op.id);
+
+    // Track adopted ID for ResourceRef backfill
+    createdIds.set(op.externalId, op.id);
+
     return { operation: op, status: 'ok' };
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
@@ -330,11 +385,16 @@ async function writeExternalId(
   });
 }
 
-async function executeUpdate(op: Operation, client: ApplyClient): Promise<OperationResult> {
-  debug('update %s id=%d values=%j', op.model, op.id, op.values);
+async function executeUpdate(
+  op: Operation,
+  client: ApplyClient,
+  createdIds: Map<string, number>
+): Promise<OperationResult> {
+  const values = op.values ? resolveResourceRefs(op.values, createdIds) : {};
+  debug('update %s id=%d values=%j', op.model, op.id, values);
   try {
     const ids = op.id !== undefined ? [op.id] : [];
-    await client.write(op.model, ids, op.values ?? {});
+    await client.write(op.model, ids, values);
     return { operation: op, status: 'ok' };
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);

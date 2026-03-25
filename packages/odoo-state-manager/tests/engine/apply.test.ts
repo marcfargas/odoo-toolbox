@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { applyPlan } from '../../src/engine/apply';
 import type { ApplyClient } from '../../src/engine/apply';
 import type { Plan, Operation } from '../../src/engine/types';
+import type { ResourceRef } from '../../src/dsl/types';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -263,5 +264,96 @@ describe('applyPlan', () => {
 
     expect(client.write).toHaveBeenCalledOnce();
     expect(client.write).toHaveBeenCalledWith('res.partner', [4, 5], { active: false });
+  });
+
+  describe('ResourceRef backfill', () => {
+    it('backfills ResourceRef with created ID from earlier level', async () => {
+      vi.mocked(client.create)
+        .mockResolvedValueOnce(77) // child create (ir.actions.server)
+        .mockResolvedValueOnce(1) // ir.model.data create (writeExternalId for child)
+        .mockResolvedValueOnce(88); // parent create (ir.cron)
+
+      const ref: ResourceRef = { __type: 'resourceRef', externalId: 'bgbl.my_cron.action' };
+
+      const plan = makePlan([
+        {
+          type: 'create',
+          model: 'ir.actions.server',
+          values: { name: 'My Action' },
+          level: 1,
+          externalId: 'bgbl.my_cron.action',
+        },
+        {
+          type: 'create',
+          model: 'ir.cron',
+          values: { name: 'My Cron', ir_actions_server_id: ref as unknown as number },
+          level: 2,
+        },
+      ]);
+      const result = await applyPlan(plan, client);
+
+      expect(result.succeeded).toBe(2);
+      // calls[0] = ir.actions.server create, calls[1] = ir.model.data (writeExternalId), calls[2] = ir.cron create
+      const parentCreateCall = vi.mocked(client.create).mock.calls[2];
+      expect(parentCreateCall[1]).toEqual({ name: 'My Cron', ir_actions_server_id: 77 });
+    });
+
+    it('backfills ResourceRef in update operations', async () => {
+      vi.mocked(client.create).mockResolvedValueOnce(77);
+
+      const ref: ResourceRef = { __type: 'resourceRef', externalId: 'bgbl.my_cron.action' };
+
+      const plan = makePlan([
+        {
+          type: 'create',
+          model: 'ir.actions.server',
+          values: { name: 'My Action' },
+          level: 1,
+          externalId: 'bgbl.my_cron.action',
+        },
+        {
+          type: 'update',
+          model: 'ir.cron',
+          id: 99,
+          values: { name: 'My Cron', ir_actions_server_id: ref as unknown as number },
+          level: 2,
+        },
+      ]);
+      const result = await applyPlan(plan, client);
+
+      expect(result.succeeded).toBe(2);
+      const parentWriteCall = vi.mocked(client.write).mock.calls[0];
+      expect(parentWriteCall[2]).toEqual({ name: 'My Cron', ir_actions_server_id: 77 });
+    });
+
+    it('backfills ResourceRef from adopt operations', async () => {
+      const ref: ResourceRef = { __type: 'resourceRef', externalId: 'bgbl.my_cron.action' };
+
+      vi.mocked(client.create)
+        .mockResolvedValueOnce(1) // ir.model.data write for adopt
+        .mockResolvedValueOnce(88); // parent create
+
+      const plan = makePlan([
+        {
+          type: 'adopt',
+          model: 'ir.actions.server',
+          id: 50,
+          level: 1,
+          externalId: 'bgbl.my_cron.action',
+        },
+        {
+          type: 'create',
+          model: 'ir.cron',
+          values: { name: 'My Cron', ir_actions_server_id: ref as unknown as number },
+          level: 2,
+          externalId: 'bgbl.my_cron',
+        },
+      ]);
+      const result = await applyPlan(plan, client);
+
+      expect(result.succeeded).toBe(2);
+      const parentCreateCall = vi.mocked(client.create).mock.calls[1];
+      expect(parentCreateCall[1]).toEqual({ name: 'My Cron', ir_actions_server_id: 50 });
+    });
   });
 });
