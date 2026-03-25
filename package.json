@@ -30,7 +30,6 @@
   "scripts": {
     "build": "npm run build -w @marcfargas/odoo-client && npm run build -w @marcfargas/odoo-introspection -w @marcfargas/odoo-testcontainers && npm run build -w @marcfargas/odoo-cli -w @marcfargas/odoo-state-manager -w @marcfargas/odoo-mcp",
     "build:dist": "node scripts/build-dist.js",
-
     "clean": "rm -rf packages/*/dist targets/*/dist packages/*/tsconfig.tsbuildinfo targets/*/tsconfig.tsbuildinfo dist dist-skills",
     "test": "vitest run",
     "test:unit": "vitest run",
@@ -51,7 +50,10 @@
     "prepare": "husky",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "changeset publish"
+    "release": "changeset publish",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.2",
@@ -71,6 +73,7 @@
     "prettier": "^3.8.0",
     "testcontainers": "^11.12.0",
     "typescript": "^5.0.0",
+    "vitepress": "^1.6.4",
     "vitest": "^4.0.18"
   },
   "engines": {

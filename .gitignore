@@ -86,3 +86,7 @@ context.md
 dist-skills/
 dist-plugins/
 docs/superpowers/
+
+# VitePress
+docs/.vitepress/dist
+docs/.vitepress/cache
