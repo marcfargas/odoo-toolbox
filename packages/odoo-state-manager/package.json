@@ -35,7 +35,9 @@
     "@marcfargas/odoo-client": "^0.5.1",
     "@marcfargas/odoo-introspection": "^0.1.5",
     "commander": "^12.0.0",
-    "debug": "^4.3.4"
+    "debug": "^4.3.4",
+    "juice": "^11.1.1",
+    "marked": "^17.0.5"
   },
   "devDependencies": {
     "@types/debug": "^4.1.12",
