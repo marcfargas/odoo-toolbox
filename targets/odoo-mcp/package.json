@@ -1,6 +1,6 @@
 {
   "name": "@marcfargas/odoo-mcp",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "MCP server for safe, policy-governed access to Odoo",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "@marcfargas/odoo-client": "^0.5.1",
-    "@marcfargas/odoo-introspection": "^0.1.5",
+    "@marcfargas/odoo-introspection": "^0.2.0",
     "@modelcontextprotocol/sdk": "1.27.1",
     "debug": "^4.3.4",
     "express": "^4.18.0"

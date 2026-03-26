@@ -1,6 +1,6 @@
 {
   "name": "@marcfargas/odoo-introspection",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "TypeScript introspection and code generation for Odoo models",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

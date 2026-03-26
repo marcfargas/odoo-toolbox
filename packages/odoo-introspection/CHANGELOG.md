@@ -1,5 +1,11 @@
 # @marcfargas/odoo-introspection
 
+## 0.2.0
+
+### Minor Changes
+
+- 0b6a34b: Add `getFieldAttributes()` method to Introspector that calls `fields_get()` RPC and returns per-field sanitize/translate metadata. Extend the `OdooField` interface with `sanitize` and `translate` boolean attributes. Results are cached alongside existing field-cache entries.
+
 ## 0.1.5
 
 ### Patch Changes
