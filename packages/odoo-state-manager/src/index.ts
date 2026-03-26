@@ -11,6 +11,23 @@ export type {
   ChildrenRef,
 } from './dsl';
 export { isLookupRef, isResourceDefinition, isModelPolicy, isChildrenRef } from './dsl';
+export { md, mdFile, translated, withCss, html } from './dsl';
+export type {
+  MdMarker,
+  MdFileMarker,
+  TranslatedMarker,
+  CssMarker,
+  HtmlMarker,
+  ContentMarker,
+} from './dsl';
+export {
+  isMdMarker,
+  isMdFileMarker,
+  isTranslatedMarker,
+  isCssMarker,
+  isHtmlMarker,
+  isContentMarker,
+} from './dsl';
 export {
   evaluate,
   flattenChildren,

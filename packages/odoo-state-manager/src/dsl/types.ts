@@ -61,3 +61,13 @@ export function isModelPolicy(v: unknown): v is ModelPolicy {
 export function isResourceRef(v: unknown): v is ResourceRef {
   return typeof v === 'object' && v !== null && (v as any).__type === 'resourceRef';
 }
+
+// Re-export marker type guards for convenience
+export {
+  isMdMarker,
+  isMdFileMarker,
+  isTranslatedMarker,
+  isCssMarker,
+  isHtmlMarker,
+  isContentMarker,
+} from './markers';
