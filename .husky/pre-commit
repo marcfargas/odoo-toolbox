@@ -1,2 +1,2 @@
-NODE_OPTIONS="--max-old-space-size=8192" npm run lint
-NODE_OPTIONS="--max-old-space-size=8192" npm run test:unit
+npm run lint
+npm run test:unit
