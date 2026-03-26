@@ -50,6 +50,8 @@ export type {
   ResolvedState,
 } from './engine';
 export { plan, apply, diff, formatPlan } from './engine';
+export type { PlanWarning, TranslationMeta, TranslationEntry } from './engine';
+export type { TranslationFieldDiff } from './engine';
 export { exportData, importData } from './clone';
 export type {
   DataDomain,

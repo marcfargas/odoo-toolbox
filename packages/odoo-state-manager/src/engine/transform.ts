@@ -1,5 +1,6 @@
 import { marked } from 'marked';
 import { resolve as resolvePath } from 'path';
+import { readFile as fsReadFile } from 'fs/promises';
 import createDebug from 'debug';
 import juice from 'juice';
 import {
@@ -9,12 +10,17 @@ import {
   isCssMarker,
   isTranslatedMarker,
 } from '../dsl/markers';
-import type { TranslationMeta, TranslationEntry } from './types';
+import type { ResolvedState, TranslationMeta, TranslationEntry, PlanWarning } from './types';
 
 const debug = createDebug('odoo-state-manager:transform');
 
 /** File reader function signature — injected for testability. */
 export type FileReader = (absolutePath: string) => Promise<string>;
+
+/**
+ * Default file reader using fs.
+ */
+export const defaultReadFile: FileReader = (path) => fsReadFile(path, 'utf-8');
 
 // ---------------------------------------------------------------------------
 // Markdown rendering
@@ -266,4 +272,61 @@ export async function detectInstanceLanguage(client: LanguageDetectionClient): P
 
   debug('no language detected, defaulting to en_US');
   return 'en_US';
+}
+
+// ---------------------------------------------------------------------------
+// transformResources — orchestrate transform phase over all resolved resources
+// ---------------------------------------------------------------------------
+
+/**
+ * Transform all resolved resources: process content markers and extract translations.
+ *
+ * @returns Updated resolved state with markers replaced by final values,
+ *          plus any sanitization warnings.
+ */
+export async function transformResources(
+  resolved: ResolvedState,
+  projectDir: string,
+  fieldAttributesGetter: (model: string) => Promise<Map<string, Record<string, unknown>>>,
+  readFile: FileReader = defaultReadFile
+): Promise<{ resolved: ResolvedState; warnings: PlanWarning[] }> {
+  const warnings: PlanWarning[] = [];
+  const transformedResources = [];
+
+  for (const resource of resolved.resources) {
+    const { resolvedValues, translations } = await extractTranslations(
+      resource.resolvedValues,
+      projectDir,
+      readFile
+    );
+
+    // Sanitization heuristic checks for HTML fields
+    const fieldAttrs = await fieldAttributesGetter(resource.model);
+    for (const [field, value] of Object.entries(resolvedValues)) {
+      if (typeof value !== 'string') continue;
+      const attrs = fieldAttrs.get(field);
+      if (!attrs || !attrs.sanitize) continue;
+
+      const fieldWarnings = checkSanitization(value, attrs);
+      for (const w of fieldWarnings) {
+        warnings.push({
+          model: resource.model,
+          externalId: resource.externalId,
+          field,
+          message: w.message,
+        });
+      }
+    }
+
+    transformedResources.push({
+      ...resource,
+      resolvedValues,
+      ...(translations.entries.length > 0 ? { translations } : {}),
+    });
+  }
+
+  return {
+    resolved: { resources: transformedResources, policies: resolved.policies },
+    warnings,
+  };
 }

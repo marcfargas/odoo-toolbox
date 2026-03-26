@@ -10,8 +10,16 @@ export {
   validateModuleDependencies,
   validateArchiveOrphans,
 } from './introspect';
+export {
+  transformResources,
+  renderMarkerValue,
+  applyCss,
+  checkSanitization,
+  detectInstanceLanguage,
+} from './transform';
+export type { FileReader, SanitizationWarning } from './transform';
 export { normalizeFieldValue, diffRecord, diffResources } from './diff';
-export type { FieldDiff, DiffResult } from './diff';
+export type { FieldDiff, DiffResult, TranslationFieldDiff } from './diff';
 export { generatePlan } from './plan';
 export { formatPlan } from './format';
 export { applyPlan } from './apply';
@@ -29,4 +37,7 @@ export type {
   ApplyResult,
   ResolvedResource,
   ResolvedState,
+  TranslationMeta,
+  TranslationEntry,
+  PlanWarning,
 } from './types';

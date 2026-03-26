@@ -13,6 +13,7 @@ import { diffResources } from './diff';
 import { generatePlan } from './plan';
 import { applyPlan } from './apply';
 import type { ApplyClient, ApplyOptions } from './apply';
+import { transformResources, defaultReadFile } from './transform';
 import type { Plan, ApplyResult } from './types';
 
 // ---------------------------------------------------------------------------
@@ -40,35 +41,43 @@ export async function plan(options: { dir: string; client: OdooClient }): Promis
     client as unknown as ResolveClient
   );
 
-  // 3. Introspector — wraps client for model metadata
+  // 4. Introspector — wraps client for model metadata
   const introspector = new Introspector(client);
 
-  // 4. Get unique models from resolved resources
-  const models = [...new Set(resolved.resources.map((r) => r.model))];
+  // 5. Transform — process content markers (Markdown, CSS, translations)
+  const { resolved: transformedState, warnings } = await transformResources(
+    resolved,
+    dir,
+    async (model) => introspector.getFieldAttributes(model),
+    defaultReadFile
+  );
 
-  // 5. Build dependency graph
+  // 6. Get unique models from transformed resources
+  const models = [...new Set(transformedState.resources.map((r) => r.model))];
+
+  // 7. Build dependency graph
   const depGraph = await buildDependencyGraph(models, introspector);
 
-  // 6. Validate module dependencies — throw on any error
-  const moduleErrors = await validateModuleDependencies(resolved, client, introspector);
+  // 8. Validate module dependencies — throw on any error
+  const moduleErrors = await validateModuleDependencies(transformedState, client, introspector);
   if (moduleErrors.length > 0) {
     throw new Error(`Module dependency errors:\n${moduleErrors.map((e) => `  - ${e}`).join('\n')}`);
   }
 
-  // 7. Validate archive orphans — throw on any error
+  // 9. Validate archive orphans — throw on any error
   const archiveErrors = await validateArchiveOrphans(definitions.policies, introspector);
   if (archiveErrors.length > 0) {
     throw new Error(`Archive orphan errors:\n${archiveErrors.map((e) => `  - ${e}`).join('\n')}`);
   }
 
-  // 8. Diff — compare desired vs actual state
+  // 10. Diff — compare desired vs actual state
   // Cast to the minimal DiffClient interface — OdooClient is structurally compatible
-  const diffs = await diffResources(resolved, client as any, introspector);
+  const diffs = await diffResources(transformedState, client as any, introspector);
 
-  // 9. Generate plan — ordered set of operations
-  const result = generatePlan(diffs, depGraph, resolved, definitions.policies);
+  // 11. Generate plan — ordered set of operations
+  const result = generatePlan(diffs, depGraph, transformedState, definitions.policies);
 
-  return result;
+  return { ...result, warnings };
 }
 
 // ---------------------------------------------------------------------------
