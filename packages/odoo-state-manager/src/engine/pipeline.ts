@@ -92,11 +92,21 @@ export async function apply(options: {
   const executionPlan = await plan({ dir, client });
 
   // Cast to ApplyClient — OdooClient is structurally compatible (extra return type on installModule is ok)
-  return applyPlan(executionPlan, client as unknown as ApplyClient, {
+  const result = await applyPlan(executionPlan, client as unknown as ApplyClient, {
     stopOnError,
     onProgress,
     onOperationComplete,
   });
+
+  // Post-apply verification: re-run plan to detect drift
+  if (result.failed === 0 && result.succeeded > 0) {
+    const drift = await plan({ dir, client });
+    if (!drift.summary.isEmpty) {
+      result.drift = drift;
+    }
+  }
+
+  return result;
 }
 
 // ---------------------------------------------------------------------------

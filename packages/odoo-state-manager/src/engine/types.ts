@@ -75,6 +75,15 @@ export interface Operation {
   externalId?: string;
   /** Translation writes to perform after the primary create/update. */
   translations?: Array<{ field: string; lang: string; value: unknown }>;
+  /** Translation-level changes for update operations (for display purposes). */
+  translationChanges?: Array<{ field: string; lang: string; desired: unknown; actual: unknown }>;
+}
+
+export interface PlanWarning {
+  model: string;
+  externalId?: string;
+  field: string;
+  message: string;
 }
 
 export interface PlanSummary {
@@ -99,6 +108,8 @@ export interface Plan {
   operations: Operation[];
   summary: PlanSummary;
   metadata: PlanMetadata;
+  /** Sanitization and other warnings detected during planning. */
+  warnings?: PlanWarning[];
 }
 
 export type OperationStatus = 'ok' | 'error' | 'skipped';
@@ -117,4 +128,6 @@ export interface ApplyResult {
   succeeded: number;
   /** Number of failed operations. */
   failed: number;
+  /** Post-apply verification plan. Empty plan = state matches. Non-empty = drift detected. */
+  drift?: Plan;
 }

@@ -73,6 +73,14 @@ function formatOperation(op: Operation, color: boolean): string {
     }
   }
 
+  // For updates with translation changes
+  if (op.type === 'update' && op.translationChanges && op.translationChanges.length > 0) {
+    for (const tc of op.translationChanges) {
+      const changeLine = `    ~ ${tc.field} [${tc.lang}]: ${formatValue(tc.actual)} → ${formatValue(tc.desired)}`;
+      lines.push(color ? colorize(changeLine, 'yellow', true) : changeLine);
+    }
+  }
+
   return lines.join('\n');
 }
 
@@ -171,6 +179,16 @@ export function formatPlan(plan: Plan, colorize?: boolean): string {
 
   for (const op of plan.operations) {
     sections.push(formatOperation(op, color));
+  }
+
+  // Warnings
+  if (plan.warnings && plan.warnings.length > 0) {
+    sections.push('');
+    for (const w of plan.warnings) {
+      const extId = w.externalId ? ` (${w.externalId})` : '';
+      const line = `! ${w.model}${extId} ${w.field}: ${w.message}`;
+      sections.push(color ? colorize(line, 'yellow', true) : line);
+    }
   }
 
   sections.push('');
