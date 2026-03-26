@@ -95,6 +95,25 @@ export interface OdooField {
 
   /** The model this field belongs to */
   model: string;
+
+  /** Whether HTML content is sanitized on write. Only meaningful for ttype='html'. */
+  sanitize?: boolean;
+  /** Whether HTML tags are stripped during sanitization. */
+  sanitize_tags?: boolean;
+  /** Whether HTML attributes are stripped during sanitization. */
+  sanitize_attributes?: boolean;
+  /** Whether inline styles are stripped during sanitization. */
+  sanitize_style?: boolean;
+  /** Whether form elements are stripped during sanitization. */
+  sanitize_form?: boolean;
+  /** Whether sanitization can be overridden by user groups. */
+  sanitize_overridable?: boolean;
+  /** Whether all inline style attributes are removed. */
+  strip_style?: boolean;
+  /** Whether all class attributes are removed. */
+  strip_classes?: boolean;
+  /** Whether this field is translatable. */
+  translate?: boolean;
 }
 
 /**
