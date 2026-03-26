@@ -1,5 +1,12 @@
 # @marcfargas/odoo-cli
 
+## 0.3.2
+
+### Patch Changes
+
+- Updated dependencies [0b6a34b]
+  - @marcfargas/odoo-introspection@0.2.0
+
 ## 0.3.1
 
 ### Patch Changes
