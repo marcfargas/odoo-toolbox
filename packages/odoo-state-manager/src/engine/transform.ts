@@ -2,7 +2,14 @@ import { marked } from 'marked';
 import { resolve as resolvePath } from 'path';
 import createDebug from 'debug';
 import juice from 'juice';
-import { isMdMarker, isMdFileMarker, isHtmlMarker, isCssMarker } from '../dsl/markers';
+import {
+  isMdMarker,
+  isMdFileMarker,
+  isHtmlMarker,
+  isCssMarker,
+  isTranslatedMarker,
+} from '../dsl/markers';
+import type { TranslationMeta, TranslationEntry } from './types';
 
 const debug = createDebug('odoo-state-manager:transform');
 
@@ -93,4 +100,39 @@ export async function renderMarkerValue(
 
   // Non-marker values pass through
   return value;
+}
+
+// ---------------------------------------------------------------------------
+// extractTranslations — walk field values, extract translated() markers
+// ---------------------------------------------------------------------------
+
+/**
+ * Process all field values, extracting translated() markers into separate
+ * translation metadata and resolving the default value into resolvedValues.
+ */
+export async function extractTranslations(
+  values: Record<string, unknown>,
+  projectDir: string,
+  readFile: FileReader
+): Promise<{ resolvedValues: Record<string, unknown>; translations: TranslationMeta }> {
+  const resolvedValues: Record<string, unknown> = {};
+  const entries: TranslationEntry[] = [];
+
+  for (const [field, value] of Object.entries(values)) {
+    if (isTranslatedMarker(value)) {
+      // Resolve the default value (may be md/mdFile/string)
+      resolvedValues[field] = await renderMarkerValue(value.defaultValue, projectDir, readFile);
+
+      // Resolve each translation
+      for (const [lang, transValue] of Object.entries(value.translations)) {
+        const resolved = await renderMarkerValue(transValue, projectDir, readFile);
+        entries.push({ field, lang, value: resolved });
+      }
+    } else {
+      // Process non-translated markers (md, mdFile, withCss, html, or plain values)
+      resolvedValues[field] = await renderMarkerValue(value, projectDir, readFile);
+    }
+  }
+
+  return { resolvedValues, translations: { entries } };
 }

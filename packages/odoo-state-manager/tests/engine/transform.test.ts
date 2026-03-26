@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { resolve as resolvePath } from 'path';
-import { renderMarkerValue, applyCss } from '../../src/engine/transform';
-import { md, mdFile, withCss } from '../../src/dsl/markers';
+import { renderMarkerValue, applyCss, extractTranslations } from '../../src/engine/transform';
+import { md, mdFile, withCss, translated } from '../../src/dsl/markers';
 
 describe('renderMarkerValue', () => {
   const readFile = vi.fn();
@@ -95,5 +95,82 @@ describe('renderMarkerValue with CSS markers', () => {
     const result = await renderMarkerValue(marker, '/project', readFile);
     expect(typeof result).toBe('string');
     expect(result as string).toContain('color');
+  });
+});
+
+describe('extractTranslations', () => {
+  const readFile = vi.fn();
+
+  beforeEach(() => {
+    readFile.mockReset();
+  });
+
+  it('extracts default value and translations from translated() marker', async () => {
+    const values = {
+      name: translated('Hola', { en_UK: 'Hello', ca_CA: 'Hola (cat)' }),
+      active: true,
+    };
+
+    const { resolvedValues, translations } = await extractTranslations(
+      values,
+      '/project',
+      readFile
+    );
+
+    expect(resolvedValues.name).toBe('Hola');
+    expect(resolvedValues.active).toBe(true);
+
+    expect(translations.entries).toEqual([
+      { field: 'name', lang: 'en_UK', value: 'Hello' },
+      { field: 'name', lang: 'ca_CA', value: 'Hola (cat)' },
+    ]);
+  });
+
+  it('renders markdown inside translated() markers', async () => {
+    const values = {
+      body: translated(md('# Hola'), { en_UK: md('# Hello') }),
+    };
+
+    const { resolvedValues, translations } = await extractTranslations(
+      values,
+      '/project',
+      readFile
+    );
+
+    expect(resolvedValues.body as string).toContain('<h1>');
+    expect(translations.entries[0].value as string).toContain('<h1>');
+    expect(translations.entries[0].value as string).toContain('Hello');
+  });
+
+  it('returns empty translations when no translated() markers', async () => {
+    const values = { name: 'plain', active: true };
+    const { resolvedValues, translations } = await extractTranslations(
+      values,
+      '/project',
+      readFile
+    );
+    expect(resolvedValues).toEqual({ name: 'plain', active: true });
+    expect(translations.entries).toEqual([]);
+  });
+
+  it('processes mdFile with CSS inside translated() markers', async () => {
+    readFile.mockImplementation(async (path: string) => {
+      if (path.endsWith('.md')) return '**bold**';
+      if (path.endsWith('.css')) return 'strong { color: red; }';
+      throw new Error(`unexpected: ${path}`);
+    });
+
+    const values = {
+      body: translated(mdFile('./es.md', { css: './s.css' }), { en_UK: mdFile('./en.md') }),
+    };
+
+    const { resolvedValues, translations } = await extractTranslations(
+      values,
+      '/project',
+      readFile
+    );
+
+    expect(resolvedValues.body as string).toContain('color');
+    expect(translations.entries[0].value as string).toContain('<strong>');
   });
 });

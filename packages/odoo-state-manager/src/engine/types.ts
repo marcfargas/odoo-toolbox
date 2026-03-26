@@ -1,6 +1,22 @@
 import type { ResourceDefinition, ModelPolicy } from '../dsl/types';
 
 // ---------------------------------------------------------------------------
+// Translation types
+// ---------------------------------------------------------------------------
+
+/** Per-field translation data extracted during transform. */
+export interface TranslationEntry {
+  field: string;
+  lang: string;
+  value: unknown;
+}
+
+/** Translation metadata stashed on a resolved resource. */
+export interface TranslationMeta {
+  entries: TranslationEntry[];
+}
+
+// ---------------------------------------------------------------------------
 // Resolve types
 // ---------------------------------------------------------------------------
 
@@ -13,6 +29,8 @@ export interface ResolvedResource {
   resolvedValues: Record<string, unknown>;
   /** External ID for this resource (from DSL definition). */
   externalId?: string;
+  /** Translation data extracted from translated() markers during transform. */
+  translations?: TranslationMeta;
   /**
    * True when the resource was found via _ref lookup but doesn't yet
    * have an external ID in ir.model.data. The apply step will write
