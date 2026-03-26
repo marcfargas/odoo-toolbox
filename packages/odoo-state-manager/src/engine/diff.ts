@@ -27,17 +27,31 @@ export interface FieldDiff {
   actual: unknown;
 }
 
+export interface TranslationFieldDiff {
+  field: string;
+  lang: string;
+  desired: unknown;
+  actual: unknown;
+}
+
 export interface DiffResult {
   resource: ResolvedResource;
   mode: 'create' | 'update';
   /** Empty for create mode — all fields are new. */
   changes: FieldDiff[];
+  /** Diffs for translated field values in non-default languages. */
+  translationChanges: TranslationFieldDiff[];
   /** true for creates, or updates with at least one diff. */
   hasChanges: boolean;
 }
 
 interface DiffClient {
-  read<T = any>(model: string, ids: number[], fields?: string[]): Promise<T[]>;
+  read<T = any>(
+    model: string,
+    ids: number[],
+    fields?: string[],
+    context?: Record<string, unknown>
+  ): Promise<T[]>;
 }
 
 // ---------------------------------------------------------------------------
@@ -169,6 +183,7 @@ export async function diffResources(
         resource,
         mode: 'create',
         changes: [],
+        translationChanges: [],
         hasChanges: true,
       });
       continue;
@@ -187,11 +202,49 @@ export async function diffResources(
 
     const changes = diffRecord(resource.resolvedValues, actual, fieldMap);
 
+    // Diff translations if present
+    const translationChanges: TranslationFieldDiff[] = [];
+    if (resource.translations && resource.translations.entries.length > 0) {
+      // Group translations by language
+      const byLang = new Map<string, Array<{ field: string; value: unknown }>>();
+      for (const entry of resource.translations.entries) {
+        if (!byLang.has(entry.lang)) byLang.set(entry.lang, []);
+        byLang.get(entry.lang)!.push({ field: entry.field, value: entry.value });
+      }
+
+      for (const [lang, langFields] of byLang) {
+        const fieldNamesForLang = langFields.map((f) => f.field);
+        const actualLangRecords = await client.read(
+          resource.model,
+          [resource.resolvedId!],
+          fieldNamesForLang,
+          { lang }
+        );
+        const actualLang = (actualLangRecords[0] ?? {}) as Record<string, unknown>;
+
+        for (const { field, value } of langFields) {
+          const fieldType = fieldMap.get(field)?.ttype ?? 'char';
+          const normalizedDesired = normalizeFieldValue(value, fieldType);
+          const normalizedActual = normalizeFieldValue(actualLang[field], fieldType);
+
+          if (!valuesEqual(normalizedDesired, normalizedActual)) {
+            translationChanges.push({
+              field,
+              lang,
+              desired: normalizedDesired,
+              actual: normalizedActual,
+            });
+          }
+        }
+      }
+    }
+
     results.push({
       resource,
       mode: 'update',
       changes,
-      hasChanges: changes.length > 0,
+      translationChanges,
+      hasChanges: changes.length > 0 || translationChanges.length > 0,
     });
   }
 
