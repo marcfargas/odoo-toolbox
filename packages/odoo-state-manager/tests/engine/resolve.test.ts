@@ -306,6 +306,122 @@ describe('resolveLookups()', () => {
     expect(state.resources[1].resolvedId).toBeNull();
   });
 
+  describe('many2many field resolution', () => {
+    it('resolves lookup() refs inside M2M arrays', async () => {
+      const r = resource('document.page', {
+        tag_ids: [lookup('document.page.tag', { name: 'Public' })],
+      });
+
+      const domain = [['name', '=', 'Public']];
+      const responses = new Map([
+        [JSON.stringify({ model: 'document.page.tag', domain }), [{ id: 42 }]],
+      ]);
+      const client = makeClient(responses);
+
+      const state = await resolveLookups([r], noPolicies, client);
+
+      expect(state.resources[0].resolvedValues['tag_ids']).toEqual([42]);
+    });
+
+    it('resolves resourceRef inside M2M arrays', async () => {
+      const tag = resource('document.page.tag', 'bgbl.tag_public', { name: 'Public' });
+      const page = resource('document.page', {
+        tag_ids: [{ __type: 'resourceRef' as const, externalId: 'bgbl.tag_public' }],
+      });
+
+      const searchRead = vi.fn(async (model: string, domain: any[]) => {
+        if (model === 'ir.model.data') {
+          const names = domain.find((t: any) => t[0] === 'name')?.[2] ?? [];
+          if (names.includes('tag_public')) {
+            return [
+              { id: 1, module: 'bgbl', name: 'tag_public', model: 'document.page.tag', res_id: 55 },
+            ];
+          }
+        }
+        return [];
+      });
+      const client: ResolveClient = { searchRead };
+
+      const state = await resolveLookups([tag, page], noPolicies, client);
+
+      expect(state.resources[1].resolvedValues['tag_ids']).toEqual([55]);
+    });
+
+    it('handles mixed arrays (lookup, plain id, resourceRef)', async () => {
+      const tag = resource('document.page.tag', 'bgbl.tag_internal', { name: 'Internal' });
+      const page = resource('document.page', {
+        tag_ids: [
+          lookup('document.page.tag', { name: 'Public' }),
+          99,
+          { __type: 'resourceRef' as const, externalId: 'bgbl.tag_internal' },
+        ],
+      });
+
+      const searchRead = vi.fn(async (model: string, domain: any[]) => {
+        if (model === 'ir.model.data') {
+          const names = domain.find((t: any) => t[0] === 'name')?.[2] ?? [];
+          if (names.includes('tag_internal')) {
+            return [
+              {
+                id: 1,
+                module: 'bgbl',
+                name: 'tag_internal',
+                model: 'document.page.tag',
+                res_id: 66,
+              },
+            ];
+          }
+        }
+        if (model === 'document.page.tag') {
+          const nameFilter = domain.find((t: any) => t[0] === 'name');
+          if (nameFilter?.[2] === 'Public') return [{ id: 42 }];
+        }
+        return [];
+      });
+      const client: ResolveClient = { searchRead };
+
+      const state = await resolveLookups([tag, page], noPolicies, client);
+
+      expect(state.resources[1].resolvedValues['tag_ids']).toEqual([42, 99, 66]);
+    });
+
+    it('throws when lookup in array finds nothing', async () => {
+      const r = resource('document.page', {
+        tag_ids: [lookup('document.page.tag', { name: 'Ghost' })],
+      });
+
+      const client = makeClient(new Map());
+
+      await expect(resolveLookups([r], noPolicies, client)).rejects.toThrow(/array field/);
+    });
+
+    it('throws when lookup in array finds multiple records', async () => {
+      const r = resource('document.page', {
+        tag_ids: [lookup('document.page.tag', { name: 'Dup' })],
+      });
+
+      const domain = [['name', '=', 'Dup']];
+      const responses = new Map([
+        [JSON.stringify({ model: 'document.page.tag', domain }), [{ id: 1 }, { id: 2 }]],
+      ]);
+      const client = makeClient(responses);
+
+      await expect(resolveLookups([r], noPolicies, client)).rejects.toThrow(/array field/);
+    });
+
+    it('passes through plain numeric arrays unchanged', async () => {
+      const r = resource('document.page', {
+        tag_ids: [1, 2, 3],
+      });
+
+      const client = makeClient(new Map());
+
+      const state = await resolveLookups([r], noPolicies, client);
+
+      expect(state.resources[0].resolvedValues['tag_ids']).toEqual([1, 2, 3]);
+    });
+  });
+
   describe('ResourceRef resolution', () => {
     it('resolves ResourceRef to numeric ID when external ID exists', async () => {
       const child = resource('ir.actions.server', 'bgbl.my_cron.action', {

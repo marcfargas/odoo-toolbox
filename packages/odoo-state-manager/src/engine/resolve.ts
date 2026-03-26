@@ -192,6 +192,16 @@ export async function resolveLookups(
         if (!lookupMap.has(key)) {
           lookupMap.set(key, { model: value.model, domain: raw });
         }
+      } else if (Array.isArray(value)) {
+        for (const elem of value) {
+          if (isLookupRef(elem)) {
+            const raw = domainToTuples(elem.domain);
+            const key = lookupKey(elem.model, raw);
+            if (!lookupMap.has(key)) {
+              lookupMap.set(key, { model: elem.model, domain: raw });
+            }
+          }
+        }
       }
     }
   }
@@ -206,6 +216,16 @@ export async function resolveLookups(
         const key = lookupKey(value.model, raw);
         if (!lookupMap.has(key)) {
           lookupMap.set(key, { model: value.model, domain: raw });
+        }
+      } else if (Array.isArray(value)) {
+        for (const elem of value) {
+          if (isLookupRef(elem)) {
+            const raw = domainToTuples(elem.domain);
+            const key = lookupKey(elem.model, raw);
+            if (!lookupMap.has(key)) {
+              lookupMap.set(key, { model: elem.model, domain: raw });
+            }
+          }
         }
       }
     }
@@ -372,6 +392,42 @@ export async function resolveLookups(
             );
           }
         }
+      } else if (Array.isArray(value)) {
+        const resolvedArr: unknown[] = [];
+        for (const elem of value) {
+          if (isLookupRef(elem)) {
+            const raw = domainToTuples(elem.domain);
+            const key = lookupKey(elem.model, raw);
+            const records = resultMap.get(key) ?? [];
+            if (records.length === 0) {
+              throw new Error(
+                `${fmtLookup(elem)} found nothing — cannot resolve element in array field '${field}' on ${res.model}`
+              );
+            }
+            if (records.length > 1) {
+              throw new Error(
+                `${fmtLookup(elem)} matched ${records.length} records, expected exactly 1 — array field '${field}' on ${res.model}`
+              );
+            }
+            resolvedArr.push(records[0].id);
+            debug('field %s.%s[] → lookup id=%d', res.model, field, records[0].id);
+          } else if (isResourceRef(elem)) {
+            const entry = externalIdMap.get(elem.externalId);
+            if (entry) {
+              resolvedArr.push(entry.res_id);
+            } else {
+              const resolvedFromPass = resolvedByExternalId.get(elem.externalId);
+              if (resolvedFromPass !== undefined) {
+                resolvedArr.push(resolvedFromPass);
+              } else {
+                resolvedArr.push(elem); // unresolved — backfill at apply time
+              }
+            }
+          } else {
+            resolvedArr.push(elem); // plain numeric ID or other scalar
+          }
+        }
+        resolvedValues[field] = resolvedArr;
       } else {
         resolvedValues[field] = value;
       }
