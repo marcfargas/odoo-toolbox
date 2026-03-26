@@ -86,6 +86,28 @@ const partner = lookup('res.partner', [['name', 'ilike', 'Acme%']]);
 - Must resolve to exactly one record (multi-match is an error)
 - As `_ref`: not found → create mode. As field value: not found → error.
 
+### Content Markers
+
+For HTML fields, Markdown authoring, translations, and CSS injection:
+
+```typescript
+import { md, mdFile, translated, withCss, html } from '@marcfargas/odoo-state-manager';
+
+export const template = resource('mail.template', 'mymod.welcome_email', {
+  subject: translated('Bienvenido!', { en_UK: 'Welcome!' }),
+  body_html: translated(
+    mdFile('./templates/welcome_es.md', { css: './email.css' }),
+    { en_UK: mdFile('./templates/welcome_en.md') }
+  ),
+});
+```
+
+- **`md(source)`** — inline Markdown, rendered to HTML at plan time
+- **`mdFile(path, opts?)`** — file-based Markdown. `{ css }` inlines styles via juice. `{ inlineCss: false }` injects a `<style>` block instead.
+- **`translated(default, translations?)`** — first arg is always the instance default language. Translations map: `{ lang_CODE: value }`.
+- **`withCss(html, cssFile, opts?)`** — CSS injection on raw HTML
+- **`html(value, opts?)`** — optional wrapper; `{ verify: false }` suppresses sanitization warnings
+
 ### `model(model, policy)`
 
 Model-level cleanup policy. Runs after all resources are applied.
@@ -138,10 +160,12 @@ Lower-level functions are also exported: `evaluate()`, `resolveLookups()`, `doma
 
 1. **Evaluate** — load `.ts` files, collect exported `resource()` and `model()` definitions
 2. **Resolve** — batch-resolve all `lookup()` markers via `searchRead`
-3. **Introspect** — build dependency graph, validate module requirements
-4. **Diff** — compare desired vs actual with Odoo field normalization (many2one tuples, relational arrays)
-5. **Plan** — generate ordered operations (modules first, then by dependency level, batched per model)
-6. **Apply** — execute level by level with progress reporting
+3. **Introspect** — build dependency graph, validate module requirements, fetch field metadata
+4. **Transform** — render Markdown to HTML, inline CSS, extract translations, run sanitization checks
+5. **Diff** — compare desired vs actual (including per-language translation diffs)
+6. **Plan** — generate ordered operations with sanitization warnings
+7. **Apply** — execute level by level, write translations per-language
+8. **Verify** — re-run plan after apply, report any drift
 
 ## Related Packages
 

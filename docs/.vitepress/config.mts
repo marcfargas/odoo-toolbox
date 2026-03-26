@@ -65,6 +65,7 @@ export default defineConfig({
           collapsed: false,
           items: [
             { text: 'External IDs', link: '/state-manager/external-ids' },
+            { text: 'HTML & Translations', link: '/state-manager/html-translations' },
             { text: 'Data Clone', link: '/state-manager/data-clone' },
           ],
         },
