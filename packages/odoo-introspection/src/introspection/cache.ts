@@ -15,6 +15,7 @@ export class IntrospectionCache {
   private models: OdooModel[] | null = null;
   private fields: Map<string, OdooField[]> = new Map();
   private metadata: Map<string, ModelMetadata> = new Map();
+  private fieldAttributes: Map<string, Map<string, Record<string, unknown>>> = new Map();
 
   /**
    * Get cached models list.
@@ -75,6 +76,26 @@ export class IntrospectionCache {
   }
 
   /**
+   * Get cached field attributes for a specific model.
+   *
+   * @param modelName - Technical model name (e.g., 'mail.template')
+   * @returns Cached field attributes map or undefined if not cached
+   */
+  getFieldAttributes(modelName: string): Map<string, Record<string, unknown>> | undefined {
+    return this.fieldAttributes.get(modelName);
+  }
+
+  /**
+   * Cache field attributes for a specific model.
+   *
+   * @param modelName - Technical model name
+   * @param attrs - Map of field name to extracted attributes
+   */
+  setFieldAttributes(modelName: string, attrs: Map<string, Record<string, unknown>>): void {
+    this.fieldAttributes.set(modelName, attrs);
+  }
+
+  /**
    * Clear all cached introspection data.
    *
    * Use this if the Odoo schema changes (e.g., after module install/upgrade).
@@ -83,6 +104,7 @@ export class IntrospectionCache {
     this.models = null;
     this.fields.clear();
     this.metadata.clear();
+    this.fieldAttributes.clear();
   }
 
   /**
@@ -93,5 +115,6 @@ export class IntrospectionCache {
   clearModel(modelName: string): void {
     this.fields.delete(modelName);
     this.metadata.delete(modelName);
+    this.fieldAttributes.delete(modelName);
   }
 }

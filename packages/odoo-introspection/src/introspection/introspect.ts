@@ -266,6 +266,110 @@ export class Introspector {
   }
 
   /**
+   * Attributes to extract from fields_get() for HTML sanitization and translation.
+   * @private
+   */
+  private static readonly FIELD_ATTR_KEYS = [
+    'type',
+    'sanitize',
+    'sanitize_tags',
+    'sanitize_attributes',
+    'sanitize_style',
+    'sanitize_form',
+    'sanitize_overridable',
+    'strip_style',
+    'strip_classes',
+    'translate',
+  ] as const;
+
+  /**
+   * Sanitize/translate attribute keys (without 'type').
+   * @private
+   */
+  private static readonly SANITIZE_KEYS = [
+    'sanitize',
+    'sanitize_tags',
+    'sanitize_attributes',
+    'sanitize_style',
+    'sanitize_form',
+    'sanitize_overridable',
+    'strip_style',
+    'strip_classes',
+  ] as const;
+
+  /**
+   * Get field-level attributes from fields_get() RPC.
+   *
+   * This provides metadata not available from ir.model.fields, such as
+   * sanitize settings for HTML fields and translate flags.
+   *
+   * @param modelName - Technical model name (e.g., 'mail.template')
+   * @returns Map of field name to extracted attributes (sanitize*, strip_*, translate)
+   */
+  async getFieldAttributes(
+    modelName: string
+  ): Promise<
+    Map<
+      string,
+      Partial<
+        Pick<
+          OdooField,
+          | 'sanitize'
+          | 'sanitize_tags'
+          | 'sanitize_attributes'
+          | 'sanitize_style'
+          | 'sanitize_form'
+          | 'sanitize_overridable'
+          | 'strip_style'
+          | 'strip_classes'
+          | 'translate'
+        >
+      >
+    >
+  > {
+    // Check cache
+    const cached = this.cache.getFieldAttributes(modelName);
+    if (cached) return cached as any;
+
+    // Call fields_get() which returns Python field definition metadata
+    const raw = await this.client.call<Record<string, Record<string, unknown>>>(
+      modelName,
+      'fields_get',
+      [],
+      { attributes: [...Introspector.FIELD_ATTR_KEYS] }
+    );
+
+    const result = new Map<string, Record<string, unknown>>();
+
+    for (const [fieldName, fieldData] of Object.entries(raw)) {
+      const attrs: Record<string, unknown> = {};
+
+      // Only include sanitize attrs for html fields
+      if (fieldData.type === 'html') {
+        for (const key of Introspector.SANITIZE_KEYS) {
+          if (key in fieldData) {
+            attrs[key] = fieldData[key];
+          }
+        }
+      }
+
+      // translate applies to any field type
+      if ('translate' in fieldData) {
+        attrs.translate = fieldData.translate;
+      }
+
+      if (Object.keys(attrs).length > 0) {
+        result.set(fieldName, attrs);
+      }
+    }
+
+    // Cache the result
+    this.cache.setFieldAttributes(modelName, result);
+
+    return result as any;
+  }
+
+  /**
    * Clear the introspection cache.
    *
    * Use this after installing or upgrading Odoo modules, which can
