@@ -11,7 +11,12 @@ const debug = createDebug('odoo-state-manager:apply');
 
 export interface ApplyClient {
   create(model: string, values: Record<string, unknown>): Promise<number>;
-  write(model: string, ids: number | number[], values: Record<string, unknown>): Promise<boolean>;
+  write(
+    model: string,
+    ids: number | number[],
+    values: Record<string, unknown>,
+    context?: Record<string, unknown>
+  ): Promise<boolean>;
   unlink(model: string, ids: number | number[]): Promise<boolean>;
   modules: {
     installModule(name: string): Promise<void>;
@@ -337,6 +342,9 @@ async function executeCreate(
       await writeExternalId(client, op.externalId, op.model, id);
     }
 
+    // Write translations if present
+    await writeTranslations(op, id, client);
+
     return { operation: op, status: 'ok', id };
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
@@ -385,6 +393,19 @@ async function writeExternalId(
   });
 }
 
+async function writeTranslations(
+  op: Operation,
+  recordId: number,
+  client: ApplyClient
+): Promise<void> {
+  if (!op.translations || op.translations.length === 0) return;
+
+  for (const { field, lang, value } of op.translations) {
+    debug('write translation %s.%s [%s] = %o', op.model, field, lang, value);
+    await client.write(op.model, [recordId], { [field]: value }, { lang });
+  }
+}
+
 async function executeUpdate(
   op: Operation,
   client: ApplyClient,
@@ -399,6 +420,11 @@ async function executeUpdate(
     // Track ID for ResourceRef backfill (inline resource in update mode)
     if (op.externalId && op.id !== undefined) {
       createdIds.set(op.externalId, op.id);
+    }
+
+    // Write translations if present
+    if (op.id !== undefined) {
+      await writeTranslations(op, op.id, client);
     }
 
     return { operation: op, status: 'ok' };

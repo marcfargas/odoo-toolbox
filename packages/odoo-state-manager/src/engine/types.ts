@@ -73,6 +73,8 @@ export interface Operation {
   changes?: Array<{ field: string; desired: unknown; actual: unknown }>;
   /** External ID for this resource (module.name format). */
   externalId?: string;
+  /** Translation writes to perform after the primary create/update. */
+  translations?: Array<{ field: string; lang: string; value: unknown }>;
 }
 
 export interface PlanSummary {

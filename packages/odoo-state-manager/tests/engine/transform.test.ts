@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { resolve as resolvePath } from 'path';
-import { renderMarkerValue, applyCss, extractTranslations } from '../../src/engine/transform';
+import {
+  renderMarkerValue,
+  applyCss,
+  extractTranslations,
+  detectInstanceLanguage,
+} from '../../src/engine/transform';
 import { md, mdFile, withCss, translated } from '../../src/dsl/markers';
 
 describe('renderMarkerValue', () => {
@@ -172,5 +177,42 @@ describe('extractTranslations', () => {
 
     expect(resolvedValues.body as string).toContain('color');
     expect(translations.entries[0].value as string).toContain('<strong>');
+  });
+});
+
+describe('detectInstanceLanguage', () => {
+  it('returns the default language from ir.config_parameter', async () => {
+    const client = {
+      searchRead: vi.fn().mockResolvedValue([{ value: 'es_ES' }]),
+    };
+
+    const lang = await detectInstanceLanguage(client as any);
+    expect(lang).toBe('es_ES');
+    expect(client.searchRead).toHaveBeenCalledWith(
+      'ir.config_parameter',
+      [['key', '=', 'web.base.lang']],
+      { fields: ['value'], limit: 1 }
+    );
+  });
+
+  it('falls back to res.lang active languages when config param not found', async () => {
+    const client = {
+      searchRead: vi
+        .fn()
+        .mockResolvedValueOnce([]) // ir.config_parameter empty
+        .mockResolvedValueOnce([{ code: 'es_ES' }, { code: 'en_US' }]), // res.lang
+    };
+
+    const lang = await detectInstanceLanguage(client as any);
+    expect(lang).toBe('es_ES');
+  });
+
+  it('defaults to en_US when no language info available', async () => {
+    const client = {
+      searchRead: vi.fn().mockResolvedValue([]),
+    };
+
+    const lang = await detectInstanceLanguage(client as any);
+    expect(lang).toBe('en_US');
   });
 });

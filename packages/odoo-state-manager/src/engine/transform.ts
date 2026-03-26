@@ -224,3 +224,46 @@ export async function extractTranslations(
 
   return { resolvedValues, translations: { entries } };
 }
+
+// ---------------------------------------------------------------------------
+// Instance language detection
+// ---------------------------------------------------------------------------
+
+interface LanguageDetectionClient {
+  searchRead<T = any>(model: string, domain: any[], options?: any): Promise<T[]>;
+}
+
+/**
+ * Detect the Odoo instance's default language.
+ *
+ * Strategy:
+ * 1. Check ir.config_parameter for 'web.base.lang'
+ * 2. Fall back to first active res.lang
+ * 3. Default to 'en_US'
+ */
+export async function detectInstanceLanguage(client: LanguageDetectionClient): Promise<string> {
+  // Try ir.config_parameter
+  const params = await client.searchRead<{ value: string }>(
+    'ir.config_parameter',
+    [['key', '=', 'web.base.lang']],
+    { fields: ['value'], limit: 1 }
+  );
+  if (params.length > 0 && params[0].value) {
+    debug('detected instance language from ir.config_parameter: %s', params[0].value);
+    return params[0].value;
+  }
+
+  // Fall back to first active language
+  const langs = await client.searchRead<{ code: string }>('res.lang', [['active', '=', true]], {
+    fields: ['code'],
+    limit: 1,
+    order: 'id',
+  });
+  if (langs.length > 0) {
+    debug('detected instance language from res.lang: %s', langs[0].code);
+    return langs[0].code;
+  }
+
+  debug('no language detected, defaulting to en_US');
+  return 'en_US';
+}
