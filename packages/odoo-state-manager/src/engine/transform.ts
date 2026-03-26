@@ -103,6 +103,94 @@ export async function renderMarkerValue(
 }
 
 // ---------------------------------------------------------------------------
+// Sanitization heuristics
+// ---------------------------------------------------------------------------
+
+export interface SanitizationWarning {
+  pattern: string;
+  message: string;
+}
+
+/**
+ * Heuristic check: scan HTML for patterns that Odoo's sanitizer would strip.
+ * Returns warnings — not errors. The post-apply re-plan is the definitive check.
+ */
+export function checkSanitization(
+  html: string,
+  fieldAttrs: Record<string, unknown>
+): SanitizationWarning[] {
+  if (!fieldAttrs.sanitize) return [];
+
+  const warnings: SanitizationWarning[] = [];
+
+  // <script> — always stripped when sanitize=true
+  if (/<script[\s>]/i.test(html)) {
+    warnings.push({
+      pattern: 'script',
+      message: 'HTML contains <script> tag that will be stripped',
+    });
+  }
+
+  // <style> blocks — stripped when sanitize_tags=true
+  if (fieldAttrs.sanitize_tags !== false && /<style[\s>]/i.test(html)) {
+    warnings.push({
+      pattern: 'style',
+      message: 'HTML contains <style> block likely stripped (sanitize_tags=true)',
+    });
+  }
+
+  // Event handlers — stripped when sanitize_attributes=true
+  if (fieldAttrs.sanitize_attributes !== false && /\bon\w+\s*=/i.test(html)) {
+    warnings.push({
+      pattern: 'event_handler',
+      message: 'HTML contains event handler attributes likely stripped (sanitize_attributes=true)',
+    });
+  }
+
+  // <form>, <input>, <select> — stripped when sanitize_form=true
+  if (fieldAttrs.sanitize_form !== false && /<(form|input|select|textarea)[\s>]/i.test(html)) {
+    warnings.push({
+      pattern: 'form',
+      message: 'HTML contains form elements likely stripped (sanitize_form=true)',
+    });
+  }
+
+  // <iframe>, <embed>, <object> — always stripped when sanitize=true
+  if (/<(iframe|embed|object)[\s>]/i.test(html)) {
+    warnings.push({
+      pattern: 'embed',
+      message: 'HTML contains <iframe>/<embed>/<object> that will be stripped',
+    });
+  }
+
+  // Conditional comments — stripped when sanitize_conditional_comments is not explicitly false
+  if (fieldAttrs.sanitize_conditional_comments !== false && /<!--\[if/i.test(html)) {
+    warnings.push({
+      pattern: 'conditional_comment',
+      message: 'HTML contains IE conditional comments likely stripped',
+    });
+  }
+
+  // Inline style="" — stripped only when strip_style=true
+  if (fieldAttrs.strip_style && /\bstyle\s*=/i.test(html)) {
+    warnings.push({
+      pattern: 'inline_style',
+      message: 'HTML contains inline style attributes that will be stripped (strip_style=true)',
+    });
+  }
+
+  // class="" — stripped only when strip_classes=true
+  if (fieldAttrs.strip_classes && /\bclass\s*=/i.test(html)) {
+    warnings.push({
+      pattern: 'class',
+      message: 'HTML contains class attributes that will be stripped (strip_classes=true)',
+    });
+  }
+
+  return warnings;
+}
+
+// ---------------------------------------------------------------------------
 // extractTranslations — walk field values, extract translated() markers
 // ---------------------------------------------------------------------------
 
