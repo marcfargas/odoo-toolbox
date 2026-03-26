@@ -49,6 +49,16 @@ describe('mdFile()', () => {
     expect(marker.inlineCss).toBeUndefined();
   });
 
+  it('accepts stripFrontmatter option', () => {
+    const marker = mdFile('./t.md', { stripFrontmatter: false });
+    expect(marker.stripFrontmatter).toBe(false);
+  });
+
+  it('defaults stripFrontmatter to undefined (resolved to true at transform time)', () => {
+    const marker = mdFile('./t.md');
+    expect(marker.stripFrontmatter).toBeUndefined();
+  });
+
   it('is detected by isMdFileMarker', () => {
     expect(isMdFileMarker(mdFile('./t.md'))).toBe(true);
     expect(isMdFileMarker(md('test'))).toBe(false);

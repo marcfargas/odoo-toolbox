@@ -63,6 +63,22 @@ export async function applyCss(
 }
 
 // ---------------------------------------------------------------------------
+// Frontmatter stripping
+// ---------------------------------------------------------------------------
+
+/**
+ * Strip YAML frontmatter from Markdown source.
+ * Frontmatter is delimited by `---` at the start of the file.
+ */
+function stripFrontmatter(source: string): string {
+  const match = source.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/);
+  if (match) {
+    return source.slice(match[0].length);
+  }
+  return source;
+}
+
+// ---------------------------------------------------------------------------
 // renderMarkerValue — process a single field value
 // ---------------------------------------------------------------------------
 
@@ -88,7 +104,13 @@ export async function renderMarkerValue(
   if (isMdFileMarker(value)) {
     const absPath = resolvePath(projectDir, value.path);
     debug('render mdFile marker: %s', absPath);
-    const source = await readFile(absPath);
+    let source = await readFile(absPath);
+
+    // Strip frontmatter unless explicitly disabled
+    if (value.stripFrontmatter !== false) {
+      source = stripFrontmatter(source);
+    }
+
     const html = await renderMarkdown(source);
     if (value.css !== undefined) {
       return applyCss(html, value.css, value.inlineCss ?? true, projectDir, readFile);

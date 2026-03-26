@@ -12,6 +12,7 @@ export interface MdFileMarker {
   readonly path: string;
   readonly css?: string;
   readonly inlineCss?: boolean;
+  readonly stripFrontmatter?: boolean;
 }
 
 export interface TranslatedMarker {
@@ -44,12 +45,16 @@ export function md(source: string): MdMarker {
   return Object.freeze({ __type: 'md' as const, source });
 }
 
-export function mdFile(path: string, opts?: { css?: string; inlineCss?: boolean }): MdFileMarker {
+export function mdFile(
+  path: string,
+  opts?: { css?: string; inlineCss?: boolean; stripFrontmatter?: boolean }
+): MdFileMarker {
   return Object.freeze({
     __type: 'mdFile' as const,
     path,
     ...(opts?.css !== undefined ? { css: opts.css } : {}),
     ...(opts?.inlineCss !== undefined ? { inlineCss: opts.inlineCss } : {}),
+    ...(opts?.stripFrontmatter !== undefined ? { stripFrontmatter: opts.stripFrontmatter } : {}),
   });
 }
 

@@ -103,6 +103,46 @@ describe('renderMarkerValue with CSS markers', () => {
   });
 });
 
+describe('frontmatter stripping', () => {
+  const readFile = vi.fn();
+
+  beforeEach(() => {
+    readFile.mockReset();
+  });
+
+  it('strips frontmatter from mdFile by default', async () => {
+    readFile.mockResolvedValue('---\ntitle: Test\n---\n# Hello\n\nWorld');
+    const result = await renderMarkerValue(mdFile('./t.md'), '/project', readFile);
+    expect(result).toContain('<h1>');
+    expect(result).toContain('Hello');
+    expect(result).not.toContain('title');
+    expect(result).not.toContain('---');
+  });
+
+  it('preserves frontmatter when stripFrontmatter: false', async () => {
+    readFile.mockResolvedValue('---\ntitle: Test\n---\n# Hello');
+    const result = await renderMarkerValue(
+      mdFile('./t.md', { stripFrontmatter: false }),
+      '/project',
+      readFile
+    );
+    expect(result).toContain('title');
+  });
+
+  it('handles files without frontmatter', async () => {
+    readFile.mockResolvedValue('# Just Content\n\nNo frontmatter');
+    const result = await renderMarkerValue(mdFile('./t.md'), '/project', readFile);
+    expect(result).toContain('Just Content');
+  });
+
+  it('handles Windows-style line endings in frontmatter', async () => {
+    readFile.mockResolvedValue('---\r\ntitle: Test\r\n---\r\n# Hello');
+    const result = await renderMarkerValue(mdFile('./t.md'), '/project', readFile);
+    expect(result).toContain('Hello');
+    expect(result).not.toContain('title');
+  });
+});
+
 describe('extractTranslations', () => {
   const readFile = vi.fn();
 
