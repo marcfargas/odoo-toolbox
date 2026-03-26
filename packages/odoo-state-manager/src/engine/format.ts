@@ -187,7 +187,7 @@ export function formatPlan(plan: Plan, colorize?: boolean): string {
     for (const w of plan.warnings) {
       const extId = w.externalId ? ` (${w.externalId})` : '';
       const line = `! ${w.model}${extId} ${w.field}: ${w.message}`;
-      sections.push(color ? colorize(line, 'yellow', true) : line);
+      sections.push(color ? `${ANSI.yellow}${line}${ANSI.reset}` : line);
     }
   }
 
