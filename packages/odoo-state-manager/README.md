@@ -85,6 +85,7 @@ const partner = lookup('res.partner', [['name', 'ilike', 'Acme%']]);
 - Raw domain: `[['field', 'op', value]]` for complex queries
 - Must resolve to exactly one record (multi-match is an error)
 - As `_ref`: not found → create mode. As field value: not found → error.
+- Works inside many2many arrays: `tag_ids: [lookup('tag', { name: 'Public' }), 42]` — each element resolved independently.
 
 ### Content Markers
 
@@ -103,7 +104,7 @@ export const template = resource('mail.template', 'mymod.welcome_email', {
 ```
 
 - **`md(source)`** — inline Markdown, rendered to HTML at plan time
-- **`mdFile(path, opts?)`** — file-based Markdown. `{ css }` inlines styles via juice. `{ inlineCss: false }` injects a `<style>` block instead.
+- **`mdFile(path, opts?)`** — file-based Markdown. `{ css }` inlines styles via juice. `{ inlineCss: false }` injects a `<style>` block. Frontmatter stripped by default (`{ stripFrontmatter: false }` to keep).
 - **`translated(default, translations?)`** — first arg is always the instance default language. Translations map: `{ lang_CODE: value }`.
 - **`withCss(html, cssFile, opts?)`** — CSS injection on raw HTML
 - **`html(value, opts?)`** — optional wrapper; `{ verify: false }` suppresses sanitization warnings

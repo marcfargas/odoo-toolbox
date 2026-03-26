@@ -36,6 +36,12 @@ export const template = resource('mail.template', {
 
 File paths are relative to the project directory (the `--dir` argument).
 
+YAML frontmatter is stripped automatically — if your Markdown file starts with `---` delimiters, that block is removed before rendering. Opt out with `stripFrontmatter: false`:
+
+```typescript
+body_html: mdFile('./template.md', { stripFrontmatter: false })
+```
+
 ## CSS Injection
 
 Email clients don't support `<style>` blocks — styles must be inlined as `style=""` attributes. The state manager handles this automatically.
