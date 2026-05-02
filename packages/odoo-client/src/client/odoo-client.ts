@@ -26,6 +26,7 @@ import {
   inferSafetyLevel,
   resolveSafetyContext,
 } from '../safety';
+import type { OdooCrudClient } from './types';
 import { MailService } from '../services/mail/mail-service';
 import { ModuleManager } from '../services/modules/module-manager';
 import { AttendanceService } from '../services/attendance/attendance-service';
@@ -55,7 +56,7 @@ export interface OdooClientConfig {
  * Core: authentication, CRUD operations, raw RPC calls, safety guards.
  * Services: accessed via lazy getters — `client.mail`, `client.modules`, etc.
  */
-export class OdooClient {
+export class OdooClient implements OdooCrudClient {
   private config: OdooClientConfig;
   private transport: JsonRpcTransport;
   private authenticated = false;
