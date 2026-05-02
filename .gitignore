@@ -87,6 +87,9 @@ dist-skills/
 dist-plugins/
 docs/superpowers/
 
+# npm pack tarballs (local pre-publish testing artifacts)
+packages/*/*.tgz
+
 # VitePress
 docs/.vitepress/dist
 docs/.vitepress/cache
