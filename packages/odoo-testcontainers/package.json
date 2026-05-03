@@ -36,7 +36,7 @@
     "dockerode": "^4.0.0",
     "testcontainers": "^10.13.2",
     "@testcontainers/postgresql": "^10.13.2",
-    "@marcfargas/odoo-client": "^0.5.1"
+    "@marcfargas/odoo-client": "^0.5.1 || ^0.6.0"
   },
   "devDependencies": {
     "@types/debug": "^4.1.12",
@@ -46,6 +46,6 @@
     "vitest": "^2.1.8"
   },
   "peerDependencies": {
-    "@marcfargas/odoo-client": "^0.5.1"
+    "@marcfargas/odoo-client": "^0.5.1 || ^0.6.0"
   }
 }

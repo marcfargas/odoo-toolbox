@@ -102,6 +102,40 @@ const client = new OdooClient({
 await client.authenticate();
 ```
 
+## OAuth-Fronted Proxy
+
+For deployments where Odoo sits behind an OAuth-fronted proxy (e.g. [`odoo-api-proxy`](https://github.com/marcfargas/odoo-api-proxy)), use `OAuthProxyClient` instead of `OdooClient`. Same CRUD surface, bearer-token auth instead of `common.login`:
+
+```typescript
+import { OAuthProxyClient } from '@marcfargas/odoo-client';
+
+const client = new OAuthProxyClient({
+  proxyBaseUrl: 'https://proxy.example.com',
+  getAccessToken: async () => myAuthLib.getAccessToken(),
+});
+
+const partners = await client.searchRead('res.partner', [], {
+  fields: ['name', 'email'],
+  limit: 10,
+});
+```
+
+The `getAccessToken` callback owns caching and refresh — the client never caches and re-invokes the callback on HTTP 401 to signal a token-refresh.
+
+Both `OdooClient` and `OAuthProxyClient` implement the shared `OdooCrudClient` interface, so application code can program against the abstraction and swap transports with only a constructor change:
+
+```typescript
+import type { OdooCrudClient } from '@marcfargas/odoo-client';
+
+async function syncPartners(client: OdooCrudClient) {
+  return client.searchRead('res.partner', [], { fields: ['name', 'email'] });
+}
+```
+
+> Service accessors (`client.mail.*`, `client.modules.*`) and the safety guard live on `OdooClient` only. `OAuthProxyClient` ships with CRUD + raw `call` in v1.
+
+For lower-level control, `BearerJsonRpcTransport` is also exported.
+
 ## Tested Examples
 
 For comprehensive, tested examples of Odoo patterns — CRUD, search, domains, field types, and more — see the [knowledge modules](../../skills/odoo/SKILL.md).
