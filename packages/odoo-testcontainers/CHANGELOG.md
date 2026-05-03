@@ -1,5 +1,16 @@
 # @marcfargas/odoo-testcontainers
 
+## 0.1.4
+
+### Patch Changes
+
+- 8bbcfc3: Widen the `@marcfargas/odoo-client` dependency and peer-dependency ranges from `^0.5.1` to `^0.5.1 || ^0.6.0` so consumers can install `odoo-testcontainers` alongside `odoo-client` 0.6.x without a major version bump on this package.
+
+  No code changes — purely a peer-dependency range update to track the additive `OAuthProxyClient` release in `@marcfargas/odoo-client@0.6.0`.
+
+- Updated dependencies [4f08bcb]
+  - @marcfargas/odoo-client@0.6.0
+
 ## 0.1.3
 
 ### Patch Changes

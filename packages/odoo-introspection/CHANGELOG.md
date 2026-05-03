@@ -1,5 +1,12 @@
 # @marcfargas/odoo-introspection
 
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [4f08bcb]
+  - @marcfargas/odoo-client@0.6.0
+
 ## 0.2.0
 
 ### Minor Changes
