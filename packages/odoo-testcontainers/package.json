@@ -1,6 +1,6 @@
 {
   "name": "@marcfargas/odoo-testcontainers",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Testcontainers module for Odoo development",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -36,7 +36,7 @@
     "dockerode": "^4.0.0",
     "testcontainers": "^10.13.2",
     "@testcontainers/postgresql": "^10.13.2",
-    "@marcfargas/odoo-client": "^0.5.1 || ^0.6.0"
+    "@marcfargas/odoo-client": "^0.6.0"
   },
   "devDependencies": {
     "@types/debug": "^4.1.12",

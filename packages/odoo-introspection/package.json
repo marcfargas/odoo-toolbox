@@ -1,6 +1,6 @@
 {
   "name": "@marcfargas/odoo-introspection",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "TypeScript introspection and code generation for Odoo models",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -32,7 +32,7 @@
     "directory": "packages/odoo-introspection"
   },
   "dependencies": {
-    "@marcfargas/odoo-client": "^0.5.1",
+    "@marcfargas/odoo-client": "^0.6.0",
     "debug": "^4.4.3"
   },
   "devDependencies": {
