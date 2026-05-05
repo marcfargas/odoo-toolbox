@@ -128,7 +128,9 @@ export async function saveSnapshot(
   if (!cache.enabled || fs.existsSync(cache.hostPath)) return;
 
   ensureSnapshotDir(cache);
-  const tmpContainerPath = `${cache.containerPath}.tmp`;
+  const tmpSuffix = `${process.pid}.${Date.now()}.${crypto.randomBytes(4).toString('hex')}.tmp`;
+  const tmpContainerPath = `${cache.containerPath}.${tmpSuffix}`;
+  const tmpHostPath = `${cache.hostPath}.${tmpSuffix}`;
   const result = await postgresContainer.exec([
     'pg_dump',
     '-U',
@@ -142,14 +144,19 @@ export async function saveSnapshot(
 
   if (result.exitCode !== 0) {
     try {
-      fs.rmSync(`${cache.hostPath}.tmp`, { force: true });
+      fs.rmSync(tmpHostPath, { force: true });
     } catch {
       /* best-effort */
     }
     throw new Error(`Failed to save Odoo snapshot ${cache.key}: ${result.stderr || result.stdout}`);
   }
 
-  fs.renameSync(`${cache.hostPath}.tmp`, cache.hostPath);
+  if (fs.existsSync(cache.hostPath)) {
+    fs.rmSync(tmpHostPath, { force: true });
+    return;
+  }
+
+  fs.renameSync(tmpHostPath, cache.hostPath);
 }
 
 function computeSnapshotKey(input: SnapshotKeyInput): string {
