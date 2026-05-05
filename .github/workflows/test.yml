@@ -192,30 +192,10 @@ jobs:
         with:
           name: build-artifacts
 
-      - name: Compute seed hash + try pull
-        id: seed
-        run: |
-          SEED_HASH=$(bash docker/compute-seed-hash.sh "${{ matrix.odoo_version }}.0")
-          if [ -z "$SEED_HASH" ]; then
-            # Version not in seed-config.json yet — always cold start
-            echo "seed_image=" >> "$GITHUB_OUTPUT"
-            echo "::notice title=Seed Cache::NO CONFIG — no seed for Odoo ${{ matrix.odoo_version }}.0 (cold start)"
-          else
-            IMAGE="ghcr.io/marcfargas/odoo-test-db:${{ matrix.odoo_version }}.0-${SEED_HASH}"
-            if docker pull "$IMAGE" 2>/dev/null; then
-              echo "seed_image=${IMAGE}" >> "$GITHUB_OUTPUT"
-              echo "::notice title=Seed Cache::HIT — ${IMAGE}"
-            else
-              echo "seed_image=" >> "$GITHUB_OUTPUT"
-              echo "::warning title=Seed Cache::MISS — cold start (hash ${SEED_HASH})"
-            fi
-          fi
-
       - name: Run integration tests
         env:
           TESTCONTAINERS_RYUK_DISABLED: 'false'
           ODOO_VERSION: ${{ matrix.odoo_version }}
-          ODOO_SEED_IMAGE: ${{ steps.seed.outputs.seed_image }}
           DEBUG: 'odoo-mcp:*'
         run: npm run test:integration
 
@@ -283,29 +263,10 @@ jobs:
         with:
           name: build-artifacts
 
-      - name: Compute seed hash + try pull
-        id: seed
-        run: |
-          SEED_HASH=$(bash docker/compute-seed-hash.sh "${{ matrix.odoo_version }}.0")
-          if [ -z "$SEED_HASH" ]; then
-            echo "seed_image=" >> "$GITHUB_OUTPUT"
-            echo "::notice title=Seed Cache (testcontainers)::NO CONFIG — cold start"
-          else
-            IMAGE="ghcr.io/marcfargas/odoo-test-db:${{ matrix.odoo_version }}.0-${SEED_HASH}"
-            if docker pull "$IMAGE" 2>/dev/null; then
-              echo "seed_image=${IMAGE}" >> "$GITHUB_OUTPUT"
-              echo "::notice title=Seed Cache (testcontainers)::HIT — ${IMAGE}"
-            else
-              echo "seed_image=" >> "$GITHUB_OUTPUT"
-              echo "::warning title=Seed Cache (testcontainers)::MISS — cold start (hash ${SEED_HASH})"
-            fi
-          fi
-
       - name: Run testcontainers package tests
         env:
           TESTCONTAINERS_RYUK_DISABLED: 'false'
           ODOO_VERSION: ${{ matrix.odoo_version }}
-          ODOO_SEED_IMAGE: ${{ steps.seed.outputs.seed_image }}
         timeout-minutes: 20
         working-directory: packages/odoo-testcontainers
         run: npx vitest run
@@ -392,4 +353,3 @@ jobs:
           }
           echo "$OUTPUT"
           echo "✅ GitHub repo path works"
-

@@ -39,14 +39,9 @@ export {
 
 export { startOdoo, OdooPresets } from './presets';
 
-export {
-  readSeedConfig,
-  resolveSeedInfo,
-  normaliseOdooVersion,
-  type SeedConfig,
-  type SeedVersionConfig,
-  type SeedInfo,
-} from './seed-resolver';
+export { normaliseOdooVersion } from './version';
+
+export type { SnapshotCacheOptions } from './snapshot-cache';
 
 // Provisioners — opt-in imports for test data setup
 export * from './provisioners';

@@ -22,6 +22,6 @@ features:
     details: Declarative state management — define desired Odoo state in TypeScript, detect drift, plan and apply.
     link: /packages/odoo-state-manager
   - title: odoo-testcontainers
-    details: Custom Testcontainers for Odoo with module auto-installation, seed databases, and parallel test execution.
+    details: Custom Testcontainers for Odoo with module auto-installation, local DB snapshots, and parallel test execution.
     link: /packages/odoo-testcontainers
 ---
