@@ -64,7 +64,7 @@ packages/odoo-introspection/src/
   cli/               # CLI entry point
 
 packages/odoo-testcontainers/src/
-  odoo-container.ts  # OdooTestContainer, startOdoo, seed resolution
+  odoo-container.ts  # OdooTestContainer, startOdoo, snapshot restore/save
 ```
 
 ---
@@ -93,13 +93,9 @@ odoopy/
   .github/
     workflows/
       test.yml                # Lint + Unit + Docker Build + Integration (matrix: Odoo 17/18/19)
-      build-seed-db.yml       # Weekly seed image builder
       release.yml             # Publish to PyPI
   docker/
-    seed-config.json          # Same format as TS (reuse!)
-    Dockerfile.seed-db        # Same as TS (reuse!)
     odoo-entrypoint.sh        # Same as TS (reuse!)
-    seed-db-init.sh           # Same as TS (reuse!)
   packages/
     odoopy-client/
       pyproject.toml
@@ -161,7 +157,7 @@ odoopy/
       src/odoopy_testcontainers/
         __init__.py
         container.py          # OdooTestContainer
-        seed.py               # Seed resolution, hash computation
+        snapshots.py          # Local DB snapshot keys, dump, restore
         presets.py            # OdooPresets (version configs)
       tests/
         test_container.py
@@ -399,16 +395,16 @@ await client.call(model, method, args=None, kwargs=None)                  # → 
 
 ### Testcontainers Design
 
-**Seed-aware startup** (critical performance optimization):
+**Snapshot-aware startup** (critical performance optimization):
 
 ```
-1. Compute seed hash from: sorted(modules) + postgres_image + file_hashes(entrypoint, seed-init, Dockerfile)
-2. Try docker pull ghcr.io/marcfargas/odoo-test-db:{version}-{hash}
-3. HIT:  Start pre-seeded postgres (~15s), install only missing modules
-4. MISS: Start fresh postgres + odoo --init all_modules (~3min)
+1. Compute snapshot hash from: Odoo version + postgres image + modules + addons + env + caller key
+2. HIT:  Start fresh postgres, pg_restore the local dump, start Odoo without --init
+3. MISS: Start fresh postgres + odoo --init modules, then pg_dump the baseline to local cache
 ```
 
-**The `docker/seed-config.json` file is reusable across TS and Python** — same format, same Docker images.
+Snapshots are local/generated artifacts owned by the consuming project. Do not depend on
+language-shared prebuilt database images.
 
 **Wait strategy (important — ORM readiness != HTTP readiness):**
 1. Wait for PostgreSQL: `pg_isready` or log message
@@ -463,23 +459,9 @@ Jobs:
   1. setup-build     → uv sync, build all packages
   2. lint            → ruff check + ruff format --check + mypy
   3. unit-tests      → pytest -m "not integration", coverage → Codecov
-  4. docker-build    → Build seed image if needed
-  5. integration     → Matrix: Odoo 17/18/19, seed-aware containers
+  4. docker-build    → Validate package/container builds if needed
+  5. integration     → Matrix: Odoo 17/18/19, snapshot-aware containers
 ```
-
-#### build-seed-db.yml
-```
-Schedule: Weekly (Monday 04:00 UTC)
-Matrix: Odoo 17.0, 18.0, 19.0
-Process:
-  1. Start postgres + Odoo with --init modules
-  2. Wait for ORM readiness (auth probe)
-  3. Sanity check (ir_model count > 100)
-  4. pg_dump → Dockerfile.seed-db → push to GHCR
-  5. Prune stale images (keep 2)
-```
-
-**The seed-config.json, Dockerfile.seed-db, entrypoint scripts, and seed-db-init.sh can be shared verbatim between TS and Python repos.**
 
 #### release.yml
 ```
@@ -594,17 +576,15 @@ class ResPartner(TypedDict, total=False):
 
 ## 9. Shared Docker Infrastructure
 
-These files can be **copied verbatim** from the TS repo to the Python repo:
+These files can be copied from the TS repo to the Python repo as needed:
 
 | File | Purpose |
 |---|---|
-| `docker/seed-config.json` | Odoo versions, modules, postgres images |
-| `docker/Dockerfile.seed-db` | Seeded postgres image |
 | `docker/odoo-entrypoint.sh` | Custom Odoo entrypoint |
-| `docker/seed-db-init.sh` | pg_restore on container init |
 | `docker-compose.test.yml` | Manual local testing |
 
-The seed images on GHCR (`ghcr.io/marcfargas/odoo-test-db:*`) are **language-agnostic** — the Python repo can pull the same images built by the TS CI.
+Snapshot caches should be generated locally by the Python package or restored from the
+consumer project's CI cache.
 
 ---
 
@@ -624,7 +604,7 @@ The seed images on GHCR (`ghcr.io/marcfargas/odoo-test-db:*`) are **language-agn
 7. **Codegen** — generate Python TypedDicts from Odoo schemas
 
 ### Phase 4: Testing Infrastructure
-8. **odoo-testcontainers** — `OdooTestContainer` with seed-aware startup
+8. **odoo-testcontainers** — `OdooTestContainer` with snapshot-aware startup
 9. **Integration tests** — CRUD, services, introspection against real Odoo
 10. **CI/CD** — GitHub Actions with matrix testing
 
@@ -681,9 +661,7 @@ For anyone reading the TS source alongside this document:
 | Type mappers | `packages/odoo-introspection/src/codegen/type-mappers.ts` |
 | Code formatter | `packages/odoo-introspection/src/codegen/formatter.ts` |
 | Container setup | `packages/odoo-testcontainers/src/odoo-container.ts` |
-| Seed resolution | `packages/odoo-testcontainers/src/odoo-container.ts` (resolveSeedInfo) |
+| Snapshot startup | `packages/odoo-testcontainers/src/odoo-container.ts` |
 | Global test setup | `tests/helpers/globalSetup.ts` |
-| Seed config | `docker/seed-config.json` |
 | CI test workflow | `.github/workflows/test.yml` |
-| CI seed builder | `.github/workflows/build-seed-db.yml` |
 | CI release | `.github/workflows/release.yml` |

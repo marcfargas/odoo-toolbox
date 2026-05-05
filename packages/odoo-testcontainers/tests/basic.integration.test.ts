@@ -58,7 +58,7 @@ describe('OdooTestContainer with HR modules', () => {
   beforeAll(async () => {
     // Re-use the shared container (already running)
     odoo = await getSharedOdooContainer();
-    // Install hr modules on demand — not in the base seed
+    // Install hr modules on demand in the shared running container.
     if (!(await odoo.moduleManager.isModuleInstalled('hr'))) {
       console.log('📦 Installing hr module...');
       await odoo.moduleManager.installModule('hr');

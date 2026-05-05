@@ -2,18 +2,10 @@
  * Global test setup using Testcontainers.
  *
  * Starts PostgreSQL + Odoo containers for each test run.
- * Two modes:
- *
- *   SEED HIT  — ODOO_SEED_IMAGE is set (pre-built image in GHCR).
- *               Postgres restores from pg_dump in ~15s, Odoo skips --init.
- *
- *   COLD START — ODOO_SEED_IMAGE is unset (cache miss or local dev).
- *               Fresh postgres + `odoo --init ...` (~3 min). Same as before.
  *
  * Tests connect to localhost on dynamic ports — no shared state between runs.
  */
 
-import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { GenericContainer, Network, Wait } from 'testcontainers';
 import { PostgreSqlContainer } from '@testcontainers/postgresql';
@@ -21,84 +13,40 @@ import { PostgreSqlContainer } from '@testcontainers/postgresql';
 const SKIP_TEARDOWN = process.env.SKIP_TEARDOWN === 'true';
 
 const projectRoot = path.resolve(__dirname, '..', '..');
-const seedConfig = JSON.parse(
-  readFileSync(path.join(projectRoot, 'docker', 'seed-config.json'), 'utf-8')
-);
 
-// CI passes ODOO_VERSION as e.g. "17" or "18"; we need "17.0" for seed-config lookup.
+// CI passes ODOO_VERSION as e.g. "17" or "18"; Odoo images use "17.0".
 const rawVersion = process.env.ODOO_VERSION ?? '17';
 const odooVersion = rawVersion.includes('.') ? rawVersion : `${rawVersion}.0`;
-
-const versionConfig = seedConfig.versions[odooVersion];
-if (!versionConfig) {
-  throw new Error(
-    `No seed-config.json entry for Odoo ${odooVersion}. ` +
-      `Known versions: ${Object.keys(seedConfig.versions).join(', ')}`
-  );
-}
-const initModules: string = versionConfig.modules.slice().sort().join(',');
-const pgImage: string = seedConfig.postgresImage;
+const initModules = 'base,mail,crm';
+const pgImage = 'postgres:15-alpine';
 
 export default async function globalSetup() {
-  const seedImage = process.env.ODOO_SEED_IMAGE || '';
-
-  console.log(
-    seedImage
-      ? `🌱 Starting Odoo ${odooVersion} test environment (seed image: ${seedImage})`
-      : `🚀 Starting Odoo ${odooVersion} test environment (cold start — no seed image)`
-  );
+  console.log(`🚀 Starting Odoo ${odooVersion} test environment`);
 
   try {
     const network = await new Network().start();
 
-    // ------------------------------------------------------------------
-    // Postgres: either pre-seeded image or a fresh postgres container
-    // ------------------------------------------------------------------
-    let postgres;
-
-    if (seedImage) {
-      // Seed hit — pre-seeded image. Restore from pg_dump runs via initdb.d.
-      //
-      // IMPORTANT: wait for "PostgreSQL init process complete; ready for start up."
-      // NOT the first "ready to accept connections" which fires before pg_restore.
-      postgres = await new GenericContainer(seedImage)
-        .withNetwork(network)
-        .withNetworkAliases('postgres')
-        .withExposedPorts(5432)
-        .withWaitStrategy(
-          Wait.forLogMessage(
-            'PostgreSQL init process complete; ready for start up.'
-          ).withStartupTimeout(90_000)
-        )
-        .start();
-    } else {
-      postgres = await new PostgreSqlContainer(pgImage)
-        .withDatabase('postgres')
-        .withUsername('admin')
-        .withPassword('admin')
-        .withNetwork(network)
-        .withNetworkAliases('postgres')
-        .start();
-    }
+    const postgres = await new PostgreSqlContainer(pgImage)
+      .withDatabase('postgres')
+      .withUsername('admin')
+      .withPassword('admin')
+      .withNetwork(network)
+      .withNetworkAliases('postgres')
+      .start();
 
     const pgPort = postgres.getMappedPort(5432);
     console.log(`✅ PostgreSQL ready on port ${pgPort}`);
 
-    // ------------------------------------------------------------------
-    // Odoo: skip --init on seed hit, run it on cold start
-    // ------------------------------------------------------------------
-    const odooCommand = seedImage
-      ? ['--database', 'odoo', '--without-demo', 'all', '--max-cron-threads', '0']
-      : [
-          '--database',
-          'odoo',
-          '--init',
-          initModules,
-          '--without-demo',
-          'all',
-          '--max-cron-threads',
-          '0',
-        ];
+    const odooCommand = [
+      '--database',
+      'odoo',
+      '--init',
+      initModules,
+      '--without-demo',
+      'all',
+      '--max-cron-threads',
+      '0',
+    ];
 
     const odoo = await new GenericContainer(`odoo:${odooVersion}`)
       .withNetwork(network)

@@ -17,6 +17,7 @@ pnpm-debug.log*
 coverage/
 .env.local
 tests/fixtures/http/**/*.json
+.odoo-testcontainers/
 
 # Docker
 .docker-compose.env

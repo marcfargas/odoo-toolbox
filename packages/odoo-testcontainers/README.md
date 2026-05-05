@@ -6,6 +6,7 @@ A custom Testcontainers module for Odoo development in Node.js.
 
 - 🐳 **Fresh containers** for each test run (no shared state!)
 - 📦 **Module auto-installation** with dependency resolution  
+- ⚡ **Local DB snapshots** so repeated `startOdoo()` calls skip Odoo init/module install
 - 🎯 **High-level presets** for common Odoo setups
 - 🔧 **Custom addons support** (mount your own modules)
 - ⚡ **Parallel test execution** (each test gets its own Odoo)
@@ -55,6 +56,7 @@ const odoo = await startOdoo({
   modules: ['hr_attendance', 'project', 'sale'],
   database: 'test_db',
   adminPassword: 'admin',
+  snapshot: { key: 'my-suite-v1' },
 });
 
 // Use the authenticated client
@@ -91,6 +93,35 @@ const odoo = await startOdoo({
   ],
 });
 ```
+
+### Snapshot Cache
+
+`startOdoo()` caches the database baseline after Odoo init and requested module installation.
+The cache is a local `pg_dump -Fc` file under `.odoo-testcontainers/snapshots` by default.
+Later calls with the same Odoo version, modules, addons, database, admin password, and env restore
+that snapshot and skip module installation.
+
+```typescript
+const odoo = await startOdoo({
+  modules: ['base', 'account'],
+  snapshot: {
+    key: 'accounting-suite-v1', // bump when your expected baseline changes
+    cacheDir: '.cache/odoo-snapshots',
+  },
+});
+```
+
+Disable snapshots when you need to measure cold-start behavior:
+
+```typescript
+const odoo = await startOdoo({
+  modules: ['base', 'account'],
+  snapshot: false,
+});
+```
+
+You can also set `ODOO_TESTCONTAINERS_SNAPSHOT=disabled` or
+`ODOO_TESTCONTAINERS_SNAPSHOT_DIR=/path/to/cache`.
 
 ### With OCA Modules
 
@@ -144,6 +175,7 @@ Creates and starts an Odoo testcontainer.
 - `adminPassword?: string` - Admin password (default: 'admin')
 - `env?: Record<string, string>` - Additional environment variables
 - `startupTimeout?: number` - Startup timeout in ms (default: 180000)
+- `snapshot?: boolean | SnapshotCacheOptions` - Local DB snapshot caching (default: enabled)
 
 **Returns:** `StartedOdooContainer`
 - `client: OdooClient` - Authenticated Odoo client
@@ -161,6 +193,16 @@ interface AddonsMount {
   source: string;    // Local directory path
   target?: string;   // Mount point in container
   mode?: 'ro' | 'rw'; // Mount mode (default: 'ro')
+}
+```
+
+### SnapshotCacheOptions
+
+```typescript
+interface SnapshotCacheOptions {
+  enabled?: boolean;
+  key?: string;
+  cacheDir?: string;
 }
 ```
 

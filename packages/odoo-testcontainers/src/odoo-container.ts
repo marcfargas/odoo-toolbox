@@ -9,7 +9,18 @@ import Dockerode from 'dockerode';
 import { GenericContainer, StartedTestContainer, Wait, Network } from 'testcontainers';
 import { PostgreSqlContainer, StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import { OdooClient, ModuleManager } from '@marcfargas/odoo-client';
-import { resolveSeedInfo, normaliseOdooVersion } from './seed-resolver';
+import { normaliseOdooVersion } from './version';
+import {
+  createSnapshotCache,
+  ensureSnapshotDir,
+  hasSnapshot,
+  restoreSnapshot,
+  saveSnapshot,
+  snapshotBindMount,
+  type SnapshotCacheOptions,
+} from './snapshot-cache';
+
+const POSTGRES_IMAGE = 'postgres:15-alpine';
 
 /**
  * Force-disconnect all containers from a Docker network.
@@ -60,6 +71,11 @@ export interface OdooTestContainerOptions {
   env?: Record<string, string>;
   /** Startup timeout in ms (default: 180000) */
   startupTimeout?: number;
+  /**
+   * Cache the post-init/module-install database baseline as a local pg_dump.
+   * Enabled by default. Set false to force a cold Odoo init every time.
+   */
+  snapshot?: boolean | SnapshotCacheOptions;
 }
 
 export interface StartedOdooContainer {
@@ -73,9 +89,10 @@ export interface StartedOdooContainer {
 }
 
 export class OdooTestContainer {
-  private options: Required<Omit<OdooTestContainerOptions, 'addonsPath' | 'env'>> & {
+  private options: Required<Omit<OdooTestContainerOptions, 'addonsPath' | 'env' | 'snapshot'>> & {
     addonsPath?: string | AddonsMount[];
     env: Record<string, string>;
+    snapshot?: boolean | SnapshotCacheOptions;
   };
 
   constructor(options: OdooTestContainerOptions = {}) {
@@ -92,25 +109,31 @@ export class OdooTestContainer {
   /**
    * Start Odoo container with PostgreSQL and install requested modules.
    *
-   * When ODOO_SEED_IMAGE is set and the seed covers all requested modules,
-   * uses the pre-seeded Postgres image for ~15s startup instead of ~3min.
+   * When snapshot caching is enabled, the first run for a given
+   * Odoo/modules/addons/env hash writes a local pg_dump. Later starts restore
+   * that baseline and skip Odoo --init plus module installation.
    */
   async start(): Promise<StartedOdooContainer> {
     const odooVer = normaliseOdooVersion(process.env.ODOO_VERSION);
-    const seedInfo = resolveSeedInfo(this.options.modules, odooVer);
+    const snapshot = createSnapshotCache(this.options.snapshot, {
+      odooVersion: odooVer,
+      postgresImage: POSTGRES_IMAGE,
+      modules: this.options.modules,
+      addonsPath: this.options.addonsPath,
+      database: this.options.database,
+      adminPassword: this.options.adminPassword,
+      env: this.options.env,
+    });
+    const snapshotHit = hasSnapshot(snapshot);
 
-    if (seedInfo) {
+    if (snapshot.enabled) {
+      ensureSnapshotDir(snapshot);
       console.log(
-        `🌱 Starting Odoo testcontainer with pre-seeded image: ${seedInfo.seedImage}\n` +
-          `   Modules: ${this.options.modules.join(', ') || '(all seeded)'}`
+        snapshotHit
+          ? `⚡ Starting Odoo testcontainer from snapshot ${snapshot.key}`
+          : `🚀 Starting Odoo testcontainer cold; will save snapshot ${snapshot.key}`
       );
     } else {
-      // If ODOO_SEED_IMAGE was set but we're not using it, log why
-      if (process.env.ODOO_SEED_IMAGE) {
-        console.log(
-          `⚠️  ODOO_SEED_IMAGE set but seed not usable for [${this.options.modules.join(', ')}] — cold start`
-        );
-      }
       console.log(
         `🚀 Starting Odoo testcontainer with modules: ${this.options.modules.join(', ')}`
       );
@@ -124,56 +147,28 @@ export class OdooTestContainer {
 
     try {
       // ── Postgres ──────────────────────────────────────────────────────
-      let postgresContainer: StartedPostgreSqlContainer | StartedTestContainer;
-      let pgUser: string;
-      let pgPassword: string;
+      const pgUser = 'odoo';
+      const pgPassword = 'odoo';
 
-      if (seedInfo) {
-        // SEED HIT — pre-seeded image: pg_restore runs via initdb.d (~15s).
-        //
-        // IMPORTANT wait strategy: the SECOND "ready for start up." log line
-        // fires AFTER pg_restore completes. The first fires before restore.
-        // Waiting for this exact message is critical for a consistent DB state.
-        //
-        // SEED_DB_NAME tells seed-db-init.sh what database name to create,
-        // matching this container's configured database option.
-        postgresContainer = await new GenericContainer(seedInfo.seedImage)
-          .withNetwork(network)
-          .withNetworkAliases('db')
-          .withExposedPorts(5432)
-          .withEnvironment({ SEED_DB_NAME: this.options.database })
-          .withWaitStrategy(
-            Wait.forLogMessage(
-              'PostgreSQL init process complete; ready for start up.'
-            ).withStartupTimeout(90_000)
-          )
-          .start();
-
-        // Seed image is built with admin/admin (see docker/Dockerfile.seed-db)
-        pgUser = 'admin';
-        pgPassword = 'admin';
-        startedContainers.push(postgresContainer);
-        console.log(
-          `✅ Seed PostgreSQL ready (${this.options.database} restored from dump) ` +
-            `on port ${postgresContainer.getMappedPort(5432)}`
-        );
-      } else {
-        // COLD START — fresh Postgres, Odoo will --init the database.
-        postgresContainer = await new PostgreSqlContainer('postgres:15-alpine')
+      const postgresContainer: StartedPostgreSqlContainer | StartedTestContainer =
+        await new PostgreSqlContainer(POSTGRES_IMAGE)
           .withDatabase(this.options.database)
-          .withUsername('odoo')
-          .withPassword('odoo')
+          .withUsername(pgUser)
+          .withPassword(pgPassword)
           .withNetwork(network)
           .withNetworkAliases('db')
+          .withBindMounts(snapshotBindMount(snapshot))
           .start();
 
-        pgUser = 'odoo';
-        pgPassword = 'odoo';
-        startedContainers.push(postgresContainer);
-        console.log(
-          `✅ PostgreSQL ready at ` +
-            `${postgresContainer.getHost()}:${postgresContainer.getMappedPort(5432)}`
-        );
+      startedContainers.push(postgresContainer);
+      console.log(
+        `✅ PostgreSQL ready at ` +
+          `${postgresContainer.getHost()}:${postgresContainer.getMappedPort(5432)}`
+      );
+
+      if (snapshotHit) {
+        await restoreSnapshot(postgresContainer, snapshot, this.options.database, pgUser);
+        console.log(`✅ Restored Odoo database snapshot ${snapshot.key}`);
       }
 
       // ── Odoo ──────────────────────────────────────────────────────────
@@ -183,9 +178,9 @@ export class OdooTestContainer {
       //   • Saves ~60–90 s of startup time in CI
       //   • Safe for test environments (no scheduled jobs needed)
       //
-      // Seed path: no --init (database already exists + modules installed)
-      // Cold-start path: --init base to create the database structure
-      const odooCommand = seedInfo
+      // Snapshot hit: no --init (database already exists + modules installed).
+      // Snapshot miss: --init base creates the database structure.
+      const odooCommand = snapshotHit
         ? ['--database', this.options.database, '--without-demo', 'all', '--max-cron-threads', '0']
         : [
             '--database',
@@ -259,18 +254,15 @@ export class OdooTestContainer {
       const moduleManager = new ModuleManager(client);
 
       // ── Module installation ───────────────────────────────────────────
-      //
-      // Seed hit: seed already has seedInfo.seedModules installed.
-      //   Install only the EXTRA modules requested but not in the seed.
-      // Cold start: install all requested modules.
-      const modulesToInstall = seedInfo
-        ? this.options.modules.filter((m) => !seedInfo.seedModules.includes(m))
-        : this.options.modules;
+      if (!snapshotHit && this.options.modules.length > 0) {
+        await this.installModules(moduleManager, this.options.modules);
+      } else if (snapshotHit) {
+        console.log('✅ All requested modules already present in snapshot');
+      }
 
-      if (modulesToInstall.length > 0) {
-        await this.installModules(moduleManager, modulesToInstall);
-      } else if (seedInfo) {
-        console.log('✅ All requested modules already present in seed');
+      if (!snapshotHit && snapshot.enabled) {
+        await saveSnapshot(postgresContainer, snapshot, this.options.database, pgUser);
+        console.log(`✅ Saved Odoo database snapshot ${snapshot.key}`);
       }
 
       return {
