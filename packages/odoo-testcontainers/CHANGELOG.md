@@ -1,5 +1,22 @@
 # @marcfargas/odoo-testcontainers
 
+## 0.1.4
+
+### Patch Changes
+
+- fc1cd9a: Cache `startOdoo()` database baselines as local `pg_dump` snapshots keyed by the requested Odoo version, modules, addon contents, database settings, and environment.
+
+  The first start for a cache key still initializes Odoo and installs requested modules. Later starts restore the saved database snapshot into a fresh Postgres container and skip Odoo `--init` plus module installation, which speeds up repeated integration test runs without requiring consumers to depend on project-specific seed images.
+
+  The old seed database image path and CI seed image workflow were removed.
+
+- 8bbcfc3: Widen the `@marcfargas/odoo-client` dependency and peer-dependency ranges from `^0.5.1` to `^0.5.1 || ^0.6.0` so consumers can install `odoo-testcontainers` alongside `odoo-client` 0.6.x without a major version bump on this package.
+
+  No code changes — purely a peer-dependency range update to track the additive `OAuthProxyClient` release in `@marcfargas/odoo-client@0.6.0`.
+
+- Updated dependencies [4f08bcb]
+  - @marcfargas/odoo-client@0.6.0
+
 ## 0.1.3
 
 ### Patch Changes
