@@ -1,5 +1,28 @@
 # odoo-toolbox
 
+The four legacy libraries below have moved to [Godoo](https://github.com/godoo-dev). Their old npm names are no longer maintained; existing versions remain downloadable. Source history and licenses are retained here.
+
+## Migration
+
+| Legacy package | Maintained replacement |
+| --- | --- |
+| `@marcfargas/odoo-client` | [`@godoo-dev/client@0.7.0`](https://www.npmjs.com/package/@godoo-dev/client) |
+| `@marcfargas/odoo-introspection` | [`@godoo-dev/introspection@0.2.3`](https://www.npmjs.com/package/@godoo-dev/introspection) |
+| `@marcfargas/odoo-testcontainers` | [`@godoo-dev/testcontainers@0.2.0`](https://www.npmjs.com/package/@godoo-dev/testcontainers) |
+| `@marcfargas/odoo-state-manager` | [`@godoo-dev/stateman@0.1.0`](https://www.npmjs.com/package/@godoo-dev/stateman) |
+
+Replace package dependencies and import specifiers, regenerate your lockfile and check ESM compatibility. The TypeScript libraries require Node 22.18+; Stateman requires Node 24+. Godoo supports Odoo 18 as its baseline; application migration needs its own verification.
+
+Stateman is a redesign, not a package rename: migrate the CLI to `stateman`, review plan/apply/drift and durable recovery, and replace implicit unmanaged removal with explicit scoped intent. Follow the [Stateman guide](https://github.com/godoo-dev/godoo-stateman/blob/9ff36580da66e3167b5ea1acdb783296b33e7738/README.md).
+
+The old npm MCP package is already deprecated in favor of [godoo-mcp-server on PyPI](https://pypi.org/project/godoo-mcp-server/); its transport, configuration and tools require migration. The standalone CLI, native skills and scaffolder have no established drop-in Godoo replacements. Their retained source does not imply that those interfaces moved to the new libraries. The n8n adapter is a separate project.
+
+Legacy release automation is disabled. This repository remains unarchived while the remaining source components retain their separate disposition. No new README-only package version was published.
+
+## Historical documentation
+
+The following documentation preserves the old toolbox interfaces and Odoo 17 claims. It does not describe Godoo's current support policy.
+
 > Battle-tested Odoo knowledge for AI agents, validated against real Odoo v17 instances in CI.
 
 **odoo-toolbox** teaches AI agents (Claude Code, Cursor, etc.) how to work with Odoo ERP. It provides tested knowledge modules, a TypeScript RPC client, and schema introspection tools.
@@ -53,10 +76,10 @@ The skills are backed by tested TypeScript infrastructure. The monorepo splits i
 
 | Package | Description | Status |
 |---------|-------------|--------|
-| [@marcfargas/odoo-client](./packages/odoo-client) | Lightweight RPC client for Odoo | Active |
-| [@marcfargas/odoo-introspection](./packages/odoo-introspection) | Schema introspection and type generation | Active |
-| [@marcfargas/odoo-testcontainers](./packages/odoo-testcontainers) | Testcontainers-based Odoo testing infrastructure | Active |
-| [@marcfargas/odoo-state-manager](./packages/odoo-state-manager) | Drift detection and plan/apply (Terraform-style) | Experimental |
+| [@marcfargas/odoo-client](./packages/odoo-client) | Lightweight RPC client for Odoo | Moved to @godoo-dev/client |
+| [@marcfargas/odoo-introspection](./packages/odoo-introspection) | Schema introspection and type generation | Moved to @godoo-dev/introspection |
+| [@marcfargas/odoo-testcontainers](./packages/odoo-testcontainers) | Testcontainers-based Odoo testing infrastructure | Moved to @godoo-dev/testcontainers |
+| [@marcfargas/odoo-state-manager](./packages/odoo-state-manager) | Drift detection and plan/apply (Terraform-style) | Moved to @godoo-dev/stateman |
 
 ### Targets
 
