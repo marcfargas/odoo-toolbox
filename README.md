@@ -1,6 +1,6 @@
-# odoo-toolbox
+# odoo-toolbox (retired)
 
-The four legacy libraries below have moved to [Godoo](https://github.com/godoo-dev). Their old npm names are no longer maintained; existing versions remain downloadable. Source history and licenses are retained here.
+This project is retired. The maintained libraries have moved to [Godoo](https://github.com/godoo-dev); the remaining tools have the explicit dispositions below. Existing npm versions remain downloadable. Source history and licenses are retained here, and no further Toolbox releases are planned.
 
 ## Migration
 
@@ -15,9 +15,20 @@ Replace package dependencies and import specifiers, regenerate your lockfile and
 
 Stateman is a redesign, not a package rename: migrate the CLI to `stateman`, review plan/apply/drift and durable recovery, and replace implicit unmanaged removal with explicit scoped intent. Follow the [Stateman guide](https://github.com/godoo-dev/godoo-stateman/blob/9ff36580da66e3167b5ea1acdb783296b33e7738/README.md).
 
-The old npm MCP package is already deprecated in favor of [godoo-mcp-server on PyPI](https://pypi.org/project/godoo-mcp-server/); its transport, configuration and tools require migration. The standalone CLI, native skills and scaffolder have no established drop-in Godoo replacements. Their retained source does not imply that those interfaces moved to the new libraries. The n8n adapter is a separate project.
+## Retired tools and knowledge adoption
 
-Legacy release automation is disabled. This repository remains unarchived while the remaining source components retain their separate disposition. No new README-only package version was published.
+| Legacy package | Disposition |
+| --- | --- |
+| `@marcfargas/odoo-mcp` | Already deprecated in favor of [godoo-mcp-server on PyPI](https://pypi.org/project/godoo-mcp-server/). Transport, configuration and tools require migration. |
+| `@marcfargas/odoo-cli` | Retired. No successor standalone Odoo CLI is planned. Agents use operational MCP or execute code with the Godoo libraries. |
+| `@marcfargas/odoo-skills` | The npm skills bundle is retired. Its Odoo knowledge is being adopted into Godoo Atlas, preserving source, license and historical version caveats. |
+| `@marcfargas/create-odoo-skills` | Retired. The Atlas knowledge direction supersedes scaffolding native skill projects; no replacement scaffolder is planned. |
+
+Atlas adoption is separate work, not a drop-in npm skill installer. Future operational MCP knowledge guidance should defer to Atlas; that runtime integration is not available through this retirement. The [Godoo portfolio](https://github.com/godoo-dev) describes the maintained products. Existing focused Stateman and schema-generation commands retain their own interfaces.
+
+The separate [n8n adapter](https://github.com/marcfargas/n8n-nodes-odoo), published as `@marcfargas/n8n-nodes-odoo`, is also retired. No successor n8n integration is planned; its repository is already archived.
+
+Legacy release automation has been removed and no README-only npm version was published. The source, including the complete [`skills/odoo/`](./skills/odoo/) corpus and its license, remains available for reference and Atlas adoption. The documentation below is historical.
 
 ## Historical documentation
 

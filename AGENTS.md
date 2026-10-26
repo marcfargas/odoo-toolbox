@@ -1,3 +1,11 @@
+# Retired repository
+
+This repository is retired. Read the migration and retirement dispositions in
+[README.md](README.md) before using the historical guidance below. Maintained
+libraries live in Godoo; the standalone CLI and scaffolder are retired. Legacy
+knowledge is being adopted into Godoo Atlas with its source and license preserved.
+Do not treat the historical Odoo17 CI or interfaces as current Godoo support.
+
 # Agent Instructions for odoo-toolbox Development
 
 Guidelines for AI coding assistants working on the odoo-toolbox project.
